@@ -1,5 +1,5 @@
 use axum::{
-    http::{header, StatusCode},
+    http::{header, HeaderMap, HeaderValue, StatusCode},
     response::IntoResponse,
     routing::post,
     Router,
@@ -24,7 +24,7 @@ pub fn bevy_playground_run_app() {
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
+        .with_max_level(tracing::Level::DEBUG)
         .init();
 
     let app = Router::new()
@@ -37,14 +37,20 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn compile(code: String) -> Result<impl IntoResponse, impl IntoResponse> {
+async fn compile(headers: HeaderMap, code: String) -> Result<impl IntoResponse, impl IntoResponse> {
     let id = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map_err(internal("Failed to get time"))?
+        .map_err(internal("Failed to get time", 0))?
         .subsec_nanos();
 
     info!("{id}: Started");
     let start = std::time::Instant::now();
+
+    let mut response_headers = HeaderMap::new();
+    response_headers.append(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("application/wasm"),
+    );
 
     if code.is_empty() {
         info!("{id}: Denied due to empty body");
@@ -57,18 +63,19 @@ async fn compile(code: String) -> Result<impl IntoResponse, impl IntoResponse> {
     let dir = std::env::temp_dir().join(".learnbevy").join(id.to_string());
     tokio::fs::create_dir_all(&dir)
         .await
-        .map_err(internal("Failed to create temp dir"))?;
+        .map_err(internal("Failed to create temp dir", id))?;
     let mut file = File::create(dir.join("main.rs"))
         .await
-        .map_err(internal("Failed to create code file"))?;
+        .map_err(internal("Failed to create code file", id))?;
 
     file.write_all(ADDITIONAL_CODE)
         .await
-        .map_err(internal("Failed to write additional code"))?;
+        .map_err(internal("Failed to write additional code", id))?;
     file.write_all(code.as_bytes())
         .await
-        .map_err(internal("Failed to write user code"))?;
+        .map_err(internal("Failed to write user code", id))?;
 
+    let build_start = std::time::Instant::now();
     let command_status = Command::new("docker")
         .args([
             "run",
@@ -84,13 +91,28 @@ async fn compile(code: String) -> Result<impl IntoResponse, impl IntoResponse> {
         ])
         .output()
         .await
-        .map_err(internal("Failed to start docker compile instance"))?;
+        .map_err(internal("Failed to start docker compile instance", id))?;
+    info!("{id}: Built in {:.2?}", build_start.elapsed());
+
+    match command_status.status.code() {
+        Some(137) => return Err(custom_internal("Container was killed", id)),
+        _ => {}
+    }
 
     if !command_status.status.success() {
         let stdout = String::from_utf8(command_status.stdout)
-            .map_err(internal("Failed to convert stdout to string"))?;
+            .map_err(internal("Failed to convert stdout to string", id))?;
         let stderr = String::from_utf8(command_status.stderr)
-            .map_err(internal("Failed to convert stderr to string"))?;
+            .map_err(internal("Failed to convert stderr to string", id))?;
+
+        if stderr.contains("docker:") {
+            error!("Error with docker: {stderr}");
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                String::from("Internal Server Error"),
+            ));
+        }
+
         return Err((
             StatusCode::BAD_REQUEST,
             format!(
@@ -100,13 +122,35 @@ async fn compile(code: String) -> Result<impl IntoResponse, impl IntoResponse> {
         ));
     }
 
-    let mut file = File::open(dir.join("game_bg.wasm"))
+    let compress = headers
+        .get(header::ACCEPT_ENCODING)
+        .map(|accept| accept.to_str().unwrap().to_lowercase().contains("gzip"))
+        .unwrap_or(false);
+
+    if compress {
+        let compress_start = std::time::Instant::now();
+        Command::new("gzip")
+            .arg(dir.join("game_bg.wasm"))
+            .output()
+            .await
+            .map_err(internal("Failed to gzip wasm", id))?;
+        info!("{id}: Compressed in {:.2?}", compress_start.elapsed());
+        response_headers.append(header::CONTENT_ENCODING, HeaderValue::from_static("gzip"));
+    }
+
+    let output_file = if !compress {
+        dir.join("game_bg.wasm")
+    } else {
+        dir.join("game_bg.wasm.gz")
+    };
+
+    let mut file = File::open(output_file)
         .await
-        .map_err(internal("Failed to open final wasm"))?;
+        .map_err(internal("Failed to open final wasm", id))?;
     let mut wasm = Vec::with_capacity(
         file.metadata()
             .await
-            .map_err(internal("Failed to get wasm file metadata"))?
+            .map_err(internal("Failed to get wasm file metadata", id))?
             .len() as usize,
     );
     file.read_to_end(&mut wasm).await.unwrap();
@@ -116,28 +160,33 @@ async fn compile(code: String) -> Result<impl IntoResponse, impl IntoResponse> {
         .output()
         .await
     {
-        error!("Failed to remove container {id}: {e:?}");
+        error!("{id}: Failed to remove container: {e:?}");
     }
 
     if let Err(e) = tokio::fs::remove_dir_all(dir).await {
-        error!("Failed to remove temp dir {id}: {e:?}");
+        error!("{id}: Failed to remove temp dir: {e:?}");
     }
 
     info!("{id}: Successful in {:.2?}", start.elapsed());
-    Ok((
-        StatusCode::OK,
-        [(header::CONTENT_TYPE, "application/wasm")],
-        wasm,
-    ))
+    Ok((StatusCode::OK, response_headers, wasm))
 }
 
 /// Helper for maping errors to internal server errors while also logging the error
-fn internal<E: Error>(msg: &str) -> impl Fn(E) -> (StatusCode, String) + '_ {
+fn internal<E: Error>(msg: &str, id: u32) -> impl Fn(E) -> (StatusCode, String) + '_ {
     move |e: E| {
-        error!("{msg}: {e:?}");
+        error!("{id}: {msg}: {e:?}");
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            String::from("Internal Server Error"),
+            String::from(format!("Internal Server Error\nReference Code: {id}")),
         )
     }
+}
+
+/// Helper for creating a 500 error
+fn custom_internal(msg: &str, id: u32) -> (StatusCode, String) {
+    error!("{id}: {msg}");
+    (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        String::from(format!("Internal Server Error\nReference Code: {id}")),
+    )
 }
