@@ -1,35 +1,41 @@
 use axum::{
+    extract::State,
     http::{header, HeaderMap, HeaderValue, StatusCode},
-    response::IntoResponse,
     routing::post,
     Router,
 };
-use std::{error::Error, net::Ipv4Addr};
+use std::{error::Error, net::Ipv4Addr, sync::Arc, time::Instant};
 use tokio::{
     fs::File,
     io::{AsyncReadExt, AsyncWriteExt},
     process::Command,
+    sync::RwLock,
 };
 use tower_http::trace::TraceLayer;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 const ADDRESS: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
 const PORT: u16 = 8080;
-const IMAGE: &str = "comp";
-const ADDITIONAL_CODE: &[u8] = b"#[wasm_bindgen::prelude::wasm_bindgen(start)]
-pub fn bevy_playground_run_app() {
-    main();
-}";
+const IMAGE: &str = "liamg737/comp";
+const COOLDOWN_DURATION: u64 = 10;
+
+#[derive(Default)]
+struct AppState {
+    cooldown_start: RwLock<Option<Instant>>,
+}
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::INFO)
         .init();
+
+    let shared_state = Arc::new(AppState::default());
 
     let app = Router::new()
         .route("/", post(compile))
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .with_state(shared_state);
     let listener = tokio::net::TcpListener::bind((ADDRESS, PORT))
         .await
         .unwrap();
@@ -37,25 +43,48 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn compile(headers: HeaderMap, code: String) -> Result<impl IntoResponse, impl IntoResponse> {
+async fn compile(
+    State(state): State<Arc<AppState>>,
+    request_headers: HeaderMap,
+    code: String,
+) -> Result<(StatusCode, HeaderMap, Vec<u8>), (StatusCode, HeaderMap, String)> {
     let id = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_err(internal("Failed to get time", 0))?
         .subsec_nanos();
 
-    info!("{id}: Started");
-    let start = std::time::Instant::now();
-
     let mut response_headers = HeaderMap::new();
-    response_headers.append(
-        header::CONTENT_TYPE,
-        HeaderValue::from_static("application/wasm"),
-    );
+    response_headers.append("ref-code", HeaderValue::from(id));
+
+    {
+        let cooldown_read = state.cooldown_start.read().await;
+        if let Some(cooldown_start) = *cooldown_read {
+            if cooldown_start.elapsed().as_secs() < COOLDOWN_DURATION {
+                let time_left = COOLDOWN_DURATION - cooldown_start.elapsed().as_secs();
+                warn!("{id}: Rejected due to cooldown - {time_left}s remaining");
+                response_headers.append(header::RETRY_AFTER, HeaderValue::from(time_left));
+                return Err((
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    response_headers,
+                    format!(
+                        "The server has been placed in a cooldown state due to being overloaded, try again in {time_left} secconds",
+                    ),
+                ));
+            } else {
+                drop(cooldown_read);
+                *state.cooldown_start.write().await = None;
+            }
+        }
+    }
+
+    info!("{id}: Started");
+    let start = Instant::now();
 
     if code.is_empty() {
-        info!("{id}: Denied due to empty body");
+        info!("{id}: Rejected due to empty body");
         return Err((
             StatusCode::BAD_REQUEST,
+            response_headers,
             "Request must have a body".to_string(),
         ));
     }
@@ -68,14 +97,11 @@ async fn compile(headers: HeaderMap, code: String) -> Result<impl IntoResponse, 
         .await
         .map_err(internal("Failed to create code file", id))?;
 
-    file.write_all(ADDITIONAL_CODE)
-        .await
-        .map_err(internal("Failed to write additional code", id))?;
     file.write_all(code.as_bytes())
         .await
         .map_err(internal("Failed to write user code", id))?;
 
-    let build_start = std::time::Instant::now();
+    let build_start = Instant::now();
     let command_status = Command::new("docker")
         .args([
             "run",
@@ -94,9 +120,17 @@ async fn compile(headers: HeaderMap, code: String) -> Result<impl IntoResponse, 
         .map_err(internal("Failed to start docker compile instance", id))?;
     info!("{id}: Built in {:.2?}", build_start.elapsed());
 
-    match command_status.status.code() {
-        Some(137) => return Err(custom_internal("Container was killed", id)),
-        _ => {}
+    if let Some(137) = command_status.status.code() {
+        *state.cooldown_start.write().await = Some(Instant::now());
+        warn!("Server is now in a cooldown state due to being overloaded, all requests will be rejected for the next 5 seconds");
+        response_headers.append(header::RETRY_AFTER, HeaderValue::from(COOLDOWN_DURATION));
+        return Err((
+            StatusCode::SERVICE_UNAVAILABLE,
+            response_headers,
+            format!(
+                "The server has been placed in a cooldown state due to being overloaded, try again in {COOLDOWN_DURATION} secconds"
+            ),
+        ));
     }
 
     if !command_status.status.success() {
@@ -109,12 +143,14 @@ async fn compile(headers: HeaderMap, code: String) -> Result<impl IntoResponse, 
             error!("Error with docker: {stderr}");
             return Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
+                response_headers,
                 String::from("Internal Server Error"),
             ));
         }
 
         return Err((
             StatusCode::BAD_REQUEST,
+            response_headers,
             format!(
                 "Status: {}\nStdout: {stdout}\nStderr: {stderr}",
                 command_status.status
@@ -122,7 +158,7 @@ async fn compile(headers: HeaderMap, code: String) -> Result<impl IntoResponse, 
         ));
     }
 
-    let compress = headers
+    let compress = request_headers
         .get(header::ACCEPT_ENCODING)
         .map(|accept| accept.to_str().unwrap().to_lowercase().contains("gzip"))
         .unwrap_or(false);
@@ -167,26 +203,25 @@ async fn compile(headers: HeaderMap, code: String) -> Result<impl IntoResponse, 
         error!("{id}: Failed to remove temp dir: {e:?}");
     }
 
+    response_headers.append(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("application/wasm"),
+    );
+
     info!("{id}: Successful in {:.2?}", start.elapsed());
     Ok((StatusCode::OK, response_headers, wasm))
 }
 
 /// Helper for maping errors to internal server errors while also logging the error
-fn internal<E: Error>(msg: &str, id: u32) -> impl Fn(E) -> (StatusCode, String) + '_ {
+fn internal<E: Error>(msg: &str, id: u32) -> impl Fn(E) -> (StatusCode, HeaderMap, String) + '_ {
     move |e: E| {
+        let mut headers = HeaderMap::new();
+        headers.append("ref-code", HeaderValue::from(id));
         error!("{id}: {msg}: {e:?}");
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            String::from(format!("Internal Server Error\nReference Code: {id}")),
+            headers,
+            format!("Internal Server Error\nReference Code: {id}"),
         )
     }
-}
-
-/// Helper for creating a 500 error
-fn custom_internal(msg: &str, id: u32) -> (StatusCode, String) {
-    error!("{id}: {msg}");
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        String::from(format!("Internal Server Error\nReference Code: {id}")),
-    )
 }

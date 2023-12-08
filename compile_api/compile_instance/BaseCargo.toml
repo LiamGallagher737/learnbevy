@@ -4,8 +4,27 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = "0.12"
-wasm-bindgen = "0.2"
+bevy = { version = "0.12", default-features = false, features = [
+    "bevy_asset",
+    "bevy_audio",
+    "bevy_winit",
+    "bevy_core_pipeline",
+    "bevy_pbr",
+    "bevy_gltf",
+    "bevy_render",
+    "bevy_sprite",
+    "bevy_text",
+    "bevy_ui",
+    "default_font",
+    "webgl2",
+] }
 
 [profile.release.package."*"]
 opt-level = 'z'
+
+[profile.release]
+debug = false
+debug-assertions = false
+lto = false
+strip = "debuginfo"
+codegen-units = 1

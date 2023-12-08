@@ -7,9 +7,10 @@ RUN cargo install wasm-bindgen-cli
 WORKDIR /compile
 RUN cargo init --name game --vcs none
 COPY ./BaseCargo.toml ./Cargo.toml
-COPY ./build.sh ./build.sh
-RUN chmod +x build.sh
 RUN cargo build --release --target wasm32-unknown-unknown
 
 RUN rm src/*.rs
 RUN rm ./target/wasm32-unknown-unknown/release/deps/game*
+
+COPY ./build.sh ./build.sh
+RUN chmod +x build.sh
