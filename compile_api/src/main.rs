@@ -71,10 +71,9 @@ async fn compile(
                         "The server has been placed in a cooldown state due to being overloaded, try again in {time_left} secconds",
                     ),
                 ));
-            } else {
-                drop(cooldown_read);
-                *state.cooldown_start.write().await = None;
             }
+            drop(cooldown_read);
+            *state.cooldown_start.write().await = None;
         }
     }
 
@@ -86,7 +85,7 @@ async fn compile(
         return Err((
             StatusCode::BAD_REQUEST,
             response_headers,
-            "Request must have a body".to_string(),
+            String::from("Request must have a body"),
         ));
     }
 
@@ -94,11 +93,12 @@ async fn compile(
     tokio::fs::create_dir_all(&dir)
         .await
         .map_err(internal("Failed to create temp dir", id))?;
-    let mut file = File::create(dir.join("main.rs"))
+    let mut code_file = File::create(dir.join("main.rs"))
         .await
         .map_err(internal("Failed to create code file", id))?;
 
-    file.write_all(code.as_bytes())
+    code_file
+        .write_all(code.as_bytes())
         .await
         .map_err(internal("Failed to write user code", id))?;
 
@@ -121,7 +121,7 @@ async fn compile(
         .map_err(internal("Failed to start docker compile instance", id))?;
     info!("{id}: Built in {:.2?}", build_start.elapsed());
 
-    if let Some(137) = command_status.status.code() {
+    if command_status.status.code() == Some(137) {
         *state.cooldown_start.write().await = Some(Instant::now());
         warn!("Server is now in a cooldown state due to being overloaded, all requests will be rejected for the next 5 seconds");
         response_headers.append(header::RETRY_AFTER, HeaderValue::from(COOLDOWN_DURATION));
@@ -161,8 +161,7 @@ async fn compile(
 
     let compress = request_headers
         .get(header::ACCEPT_ENCODING)
-        .map(|accept| accept.to_str().unwrap().to_lowercase().contains("gzip"))
-        .unwrap_or(false);
+        .is_some_and(|accept| accept.to_str().unwrap().to_lowercase().contains("gzip"));
 
     if compress {
         let compress_start = std::time::Instant::now();
@@ -175,33 +174,37 @@ async fn compile(
         response_headers.append(header::CONTENT_ENCODING, HeaderValue::from_static("gzip"));
     }
 
-    let output_file = if !compress {
-        dir.join("game_bg.wasm")
-    } else {
+    let output_file_name = if compress {
         dir.join("game_bg.wasm.gz")
+    } else {
+        dir.join("game_bg.wasm")
     };
 
-    let mut file = File::open(output_file)
+    let mut output_file = File::open(output_file_name)
         .await
         .map_err(internal("Failed to open final wasm", id))?;
     let mut wasm = Vec::with_capacity(
-        file.metadata()
+        output_file
+            .metadata()
             .await
             .map_err(internal("Failed to get wasm file metadata", id))?
             .len() as usize,
     );
-    file.read_to_end(&mut wasm).await.unwrap();
+    output_file
+        .read_to_end(&mut wasm)
+        .await
+        .map_err(internal("Failed to read final wasm", id))?;
 
-    if let Err(e) = Command::new("docker")
+    if let Err(err) = Command::new("docker")
         .args(["container", "rm", &format!("compile.{id}")])
         .output()
         .await
     {
-        error!("{id}: Failed to remove container: {e:?}");
+        error!("{id}: Failed to remove container: {err:?}");
     }
 
-    if let Err(e) = tokio::fs::remove_dir_all(dir).await {
-        error!("{id}: Failed to remove temp dir: {e:?}");
+    if let Err(err) = tokio::fs::remove_dir_all(dir).await {
+        error!("{id}: Failed to remove temp dir: {err:?}");
     }
 
     response_headers.append(
@@ -220,10 +223,10 @@ async fn compile(
 
 /// Helper for maping errors to internal server errors while also logging the error
 fn internal<E: Error>(msg: &str, id: u32) -> impl Fn(E) -> (StatusCode, HeaderMap, String) + '_ {
-    move |e: E| {
+    move |err: E| {
         let mut headers = HeaderMap::new();
         headers.append("ref-code", HeaderValue::from(id));
-        error!("{id}: {msg}: {e:?}");
+        error!("{id}: {msg}: {err:?}");
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             headers,
