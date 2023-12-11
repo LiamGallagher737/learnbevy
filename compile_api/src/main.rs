@@ -39,9 +39,13 @@ async fn main() {
         .with_state(shared_state);
     let listener = tokio::net::TcpListener::bind((ADDRESS, PORT))
         .await
-        .unwrap();
+        .unwrap_or_else(|err| {
+            panic!("Failed to bid tcp listener to {ADDRESS}:{PORT}\nError: {err:?}")
+        });
     info!("Listening on http://{ADDRESS}:{PORT}");
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app)
+        .await
+        .expect("Failed to begin serving app");
 }
 
 async fn compile(
@@ -159,9 +163,20 @@ async fn compile(
         ));
     }
 
-    let compress = request_headers
+    let compress = match request_headers
         .get(header::ACCEPT_ENCODING)
-        .is_some_and(|accept| accept.to_str().unwrap().to_lowercase().contains("gzip"));
+        .map(HeaderValue::to_str)
+    {
+        Some(Ok(accept)) if accept.contains("gzip") => true,
+        Some(Err(_)) => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                response_headers,
+                String::from("Accept-Encoding header must only contain valid ascii"),
+            ));
+        }
+        _ => false,
+    };
 
     if compress {
         let compress_start = std::time::Instant::now();
