@@ -11,7 +11,7 @@ use tokio::{
     process::Command,
     sync::RwLock,
 };
-use tower_http::trace::TraceLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::{error, info, warn};
 
 const ADDRESS: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
@@ -35,6 +35,7 @@ async fn main() {
     let app = Router::new()
         .route("/", post(compile))
         .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::new().allow_origin(HeaderValue::from_static("*")))
         .with_state(shared_state);
     let listener = tokio::net::TcpListener::bind((ADDRESS, PORT))
         .await
@@ -206,6 +207,11 @@ async fn compile(
     response_headers.append(
         header::CONTENT_TYPE,
         HeaderValue::from_static("application/wasm"),
+    );
+
+    response_headers.append(
+        header::CONTENT_DISPOSITION,
+        HeaderValue::from_static("inline"),
     );
 
     info!("{id}: Successful in {:.2?}", start.elapsed());
