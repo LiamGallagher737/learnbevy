@@ -4,7 +4,12 @@ use axum::{
     routing::post,
     Router,
 };
-use std::{error::Error, net::Ipv4Addr, sync::Arc, time::Instant};
+use std::{
+    error::Error,
+    net::Ipv4Addr,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 use tokio::{
     fs::File,
     io::{AsyncReadExt, AsyncWriteExt},
@@ -17,7 +22,7 @@ use tracing::{error, info, warn};
 const ADDRESS: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
 const PORT: u16 = 8080;
 const IMAGE: &str = "liamg737/comp";
-const COOLDOWN_DURATION: u64 = 10;
+const COOLDOWN_DURATION: Duration = Duration::from_secs(10);
 
 #[derive(Default)]
 struct AppState {
@@ -64,15 +69,16 @@ async fn compile(
     {
         let cooldown_read = state.cooldown_start.read().await;
         if let Some(cooldown_start) = *cooldown_read {
-            if cooldown_start.elapsed().as_secs() < COOLDOWN_DURATION {
-                let time_left = COOLDOWN_DURATION - cooldown_start.elapsed().as_secs();
-                warn!("{id}: Rejected due to cooldown - {time_left}s remaining");
-                response_headers.append(header::RETRY_AFTER, HeaderValue::from(time_left));
+            if cooldown_start.elapsed() < COOLDOWN_DURATION {
+                let time_left = COOLDOWN_DURATION - cooldown_start.elapsed();
+                warn!("{id}: Rejected due to cooldown - {time_left:.2?} remaining");
+                response_headers
+                    .append(header::RETRY_AFTER, HeaderValue::from(time_left.as_secs()));
                 return Err((
                     StatusCode::SERVICE_UNAVAILABLE,
                     response_headers,
                     format!(
-                        "The server has been placed in a cooldown state due to being overloaded, try again in {time_left} secconds",
+                        "The server has been placed in a cooldown state due to being overloaded, try again in {time_left:.2?}",
                     ),
                 ));
             }
@@ -127,13 +133,16 @@ async fn compile(
 
     if command_status.status.code() == Some(137) {
         *state.cooldown_start.write().await = Some(Instant::now());
-        warn!("Server is now in a cooldown state due to being overloaded, all requests will be rejected for the next 5 seconds");
-        response_headers.append(header::RETRY_AFTER, HeaderValue::from(COOLDOWN_DURATION));
+        warn!("Server is now in a cooldown state due to being overloaded, all requests will be rejected for the next {COOLDOWN_DURATION:.2?}");
+        response_headers.append(
+            header::RETRY_AFTER,
+            HeaderValue::from(COOLDOWN_DURATION.as_secs()),
+        );
         return Err((
             StatusCode::SERVICE_UNAVAILABLE,
             response_headers,
             format!(
-                "The server has been placed in a cooldown state due to being overloaded, try again in {COOLDOWN_DURATION} secconds"
+                "The server has been placed in a cooldown state due to being overloaded, try again in {COOLDOWN_DURATION:.2?}"
             ),
         ));
     }
