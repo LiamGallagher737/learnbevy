@@ -1,6 +1,6 @@
 use axum::{
     extract::State,
-    http::{header, HeaderMap, HeaderValue, StatusCode},
+    http::{header, HeaderMap, HeaderName, HeaderValue, StatusCode},
     routing::post,
     Router,
 };
@@ -16,7 +16,10 @@ use tokio::{
     process::Command,
     sync::RwLock,
 };
-use tower_http::{cors::CorsLayer, trace::TraceLayer};
+use tower_http::{
+    cors::{Any, CorsLayer},
+    trace::TraceLayer,
+};
 use tracing::{error, info, warn};
 
 const ADDRESS: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
@@ -40,7 +43,11 @@ async fn main() {
     let app = Router::new()
         .route("/", post(compile))
         .layer(TraceLayer::new_for_http())
-        .layer(CorsLayer::new().allow_origin(HeaderValue::from_static("*")))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(HeaderValue::from_static("*"))
+                .expose_headers(Any),
+        )
         .with_state(shared_state);
     let listener = tokio::net::TcpListener::bind((ADDRESS, PORT))
         .await
@@ -87,9 +94,6 @@ async fn compile(
         }
     }
 
-    info!("{id}: Started");
-    let start = Instant::now();
-
     if code.is_empty() {
         info!("{id}: Rejected due to empty body");
         return Err((
@@ -98,6 +102,9 @@ async fn compile(
             String::from("Request must have a body"),
         ));
     }
+
+    info!("{id}: Started");
+    let start = Instant::now();
 
     let dir = std::env::temp_dir().join(".learnbevy").join(id.to_string());
     tokio::fs::create_dir_all(&dir)
@@ -116,7 +123,7 @@ async fn compile(
     let command_status = Command::new("docker")
         .args([
             "run",
-            "--cpus=1",
+            // "--cpus=1",
             "--name",
             &format!("compile.{id}"),
             "-v",
@@ -129,7 +136,10 @@ async fn compile(
         .output()
         .await
         .map_err(internal("Failed to start docker compile instance", id))?;
-    info!("{id}: Built in {:.2?}", build_start.elapsed());
+    info!(
+        "{id}: App and bindings built in {:.2?}",
+        build_start.elapsed()
+    );
 
     if command_status.status.code() == Some(137) {
         *state.cooldown_start.write().await = Some(Instant::now());
@@ -187,6 +197,8 @@ async fn compile(
         _ => false,
     };
 
+    let compress = false;
+
     if compress {
         let compress_start = std::time::Instant::now();
         Command::new("gzip")
@@ -219,6 +231,24 @@ async fn compile(
         .await
         .map_err(internal("Failed to read final wasm", id))?;
 
+    let mut output_file = File::open(dir.join("game.js"))
+        .await
+        .map_err(internal("Failed to open final js", id))?;
+    let mut js = Vec::with_capacity(
+        output_file
+            .metadata()
+            .await
+            .map_err(internal("Failed to get js file metadata", id))?
+            .len() as usize,
+    );
+    output_file
+        .read_to_end(&mut js)
+        .await
+        .map_err(internal("Failed to read final js", id))?;
+    js.resize(js.len() - 47, 0);
+    js.drain(js.len() - 403 - 17..js.len() - 403);
+    js.append(&mut include_bytes!("extra.js").to_vec());
+
     if let Err(err) = Command::new("docker")
         .args(["container", "rm", &format!("compile.{id}")])
         .output()
@@ -232,17 +262,25 @@ async fn compile(
     }
 
     response_headers.append(
-        header::CONTENT_TYPE,
-        HeaderValue::from_static("application/wasm"),
-    );
-
-    response_headers.append(
         header::CONTENT_DISPOSITION,
         HeaderValue::from_static("inline"),
     );
 
+    response_headers.append(
+        HeaderName::from_static("wasm-content-length"),
+        HeaderValue::from_str(&wasm.len().to_string()).unwrap(),
+    );
+
+    response_headers.append(
+        HeaderName::from_static("js-content-length"),
+        HeaderValue::from_str(&js.len().to_string()).unwrap(),
+    );
+
+    let mut response_body = wasm;
+    response_body.append(&mut js);
+
     info!("{id}: Successful in {:.2?}", start.elapsed());
-    Ok((StatusCode::OK, response_headers, wasm))
+    Ok((StatusCode::OK, response_headers, response_body))
 }
 
 /// Helper for maping errors to internal server errors while also logging the error
