@@ -1,6 +1,7 @@
 use rouille::{Request, Response};
+use scopeguard::defer;
 use serde::Serialize;
-use std::{fs, process::Command, time::Instant};
+use std::{env, fs, process::Command, time::Instant};
 
 const ADDRESS: &str = "0.0.0.0:8080";
 const IMAGE: &str = "liamg737/comp";
@@ -40,12 +41,22 @@ fn compile(id: usize, request: &Request) -> Response {
         return Response::text("Body must be plain text").with_status_code(400);
     };
 
-    let Ok(dir) = tempfile::tempdir() else {
-        eprintln!("{id}: Failed to create tempdir");
+    let dir = env::temp_dir()
+        .join("bevy_compile_api")
+        .join(&id.to_string());
+    if let Err(err) = fs::create_dir_all(&dir) {
+        eprintln!("{id}: Failed to create tempdir: {err:?}");
         return e500;
-    };
+    }
 
-    if fs::write(dir.path().join("main.rs"), body).is_err() {
+    defer! {
+        // This is cleanup so we don't return 500 on an error
+        if let Err(err) = fs::remove_dir_all(&dir) {
+            eprintln!("{id}: Failed to remove tempdir: {err:?}");
+        }
+    }
+
+    if fs::write(dir.join("main.rs"), body).is_err() {
         eprintln!("{id}: Failed to write main.rs to tempdir");
         return e500;
     }
@@ -56,12 +67,22 @@ fn compile(id: usize, request: &Request) -> Response {
             "--name",
             &docker_container_id,
             "-v",
-            &format!("{}:/compile/src/", dir.path().display()),
+            &format!("{}:/compile/src/", dir.display()),
             IMAGE,
             "sh",
             "build.sh",
         ])
         .output();
+
+    defer! {
+        // This is cleanup so we don't return 500 on an error
+        if let Err(err) = Command::new("docker")
+            .args(["container", "rm", &docker_container_id])
+            .output()
+        {
+            eprintln!("{id}: Failed to remove container: {err:?}");
+        }
+    }
 
     let Ok(output) = command_output else {
         eprintln!("{id}: Failed to execute docker process");
@@ -86,12 +107,12 @@ fn compile(id: usize, request: &Request) -> Response {
         return e500;
     }
 
-    let Ok(wasm) = fs::read(dir.path().join("game_bg.wasm")) else {
+    let Ok(wasm) = fs::read(dir.join("game_bg.wasm")) else {
         eprintln!("{id}: Failed to read game_bg.wasm");
         return e500;
     };
 
-    let Ok(mut js) = fs::read(dir.path().join("game.js")) else {
+    let Ok(mut js) = fs::read(dir.join("game.js")) else {
         eprintln!("{id}: Failed to read game.js");
         return e500;
     };
@@ -101,17 +122,6 @@ fn compile(id: usize, request: &Request) -> Response {
     js.drain(js.len() - 403 - 17..js.len() - 403);
     // Add on the extra js
     js.append(&mut include_bytes!("extra.js").to_vec());
-
-    // Cleanup (Do NOT return 500 if there is an error)
-    if let Err(err) = Command::new("docker")
-        .args(["container", "rm", &docker_container_id])
-        .output()
-    {
-        eprintln!("{id}: Failed to remove container: {err:?}");
-    }
-    if let Err(err) = dir.close() {
-        eprintln!("{id}: Failed to remove tempdir: {err:?}");
-    }
 
     let wasm_len = wasm.len();
     let js_len = js.len();
