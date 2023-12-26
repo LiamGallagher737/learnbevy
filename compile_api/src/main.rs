@@ -6,6 +6,7 @@ use axum::{
 };
 use std::{
     error::Error,
+    io,
     net::Ipv4Addr,
     sync::Arc,
     time::{Duration, Instant},
@@ -33,7 +34,7 @@ struct AppState {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> io::Result<()> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
@@ -49,20 +50,17 @@ async fn main() {
                 .expose_headers(Any),
         )
         .with_state(shared_state);
-    let listener = tokio::net::TcpListener::bind((ADDRESS, PORT))
-        .await
-        .unwrap_or_else(|err| {
-            panic!("Failed to bid tcp listener to {ADDRESS}:{PORT}\nError: {err:?}")
-        });
-    info!("Listening on http://{ADDRESS}:{PORT}");
-    axum::serve(listener, app)
-        .await
-        .expect("Failed to begin serving app");
+
+    let listener = tokio::net::TcpListener::bind((ADDRESS, PORT)).await?;
+
+    info!("Listening on http://{}", listener.local_addr()?);
+    axum::serve(listener, app).await?;
+
+    Ok(())
 }
 
 async fn compile(
     State(state): State<Arc<AppState>>,
-    request_headers: HeaderMap,
     code: String,
 ) -> Result<(StatusCode, HeaderMap, Vec<u8>), (StatusCode, HeaderMap, String)> {
     let id = std::time::SystemTime::now()
@@ -71,7 +69,7 @@ async fn compile(
         .subsec_nanos();
 
     let mut response_headers = HeaderMap::new();
-    response_headers.append("ref-code", HeaderValue::from(id));
+    response_headers.append("reference-code", HeaderValue::from(id));
 
     {
         let cooldown_read = state.cooldown_start.read().await;
@@ -119,7 +117,6 @@ async fn compile(
         .await
         .map_err(internal("Failed to write user code", id))?;
 
-    let build_start = Instant::now();
     let command_status = Command::new("docker")
         .args([
             "run",
@@ -136,10 +133,6 @@ async fn compile(
         .output()
         .await
         .map_err(internal("Failed to start docker compile instance", id))?;
-    info!(
-        "{id}: App and bindings built in {:.2?}",
-        build_start.elapsed()
-    );
 
     if command_status.status.code() == Some(137) {
         *state.cooldown_start.write().await = Some(Instant::now());
@@ -182,41 +175,7 @@ async fn compile(
         ));
     }
 
-    let compress = match request_headers
-        .get(header::ACCEPT_ENCODING)
-        .map(HeaderValue::to_str)
-    {
-        Some(Ok(accept)) if accept.contains("gzip") => true,
-        Some(Err(_)) => {
-            return Err((
-                StatusCode::BAD_REQUEST,
-                response_headers,
-                String::from("Accept-Encoding header must only contain valid ascii"),
-            ));
-        }
-        _ => false,
-    };
-
-    let compress = false;
-
-    if compress {
-        let compress_start = std::time::Instant::now();
-        Command::new("gzip")
-            .arg(dir.join("game_bg.wasm"))
-            .output()
-            .await
-            .map_err(internal("Failed to gzip wasm", id))?;
-        info!("{id}: Compressed in {:.2?}", compress_start.elapsed());
-        response_headers.append(header::CONTENT_ENCODING, HeaderValue::from_static("gzip"));
-    }
-
-    let output_file_name = if compress {
-        dir.join("game_bg.wasm.gz")
-    } else {
-        dir.join("game_bg.wasm")
-    };
-
-    let mut output_file = File::open(output_file_name)
+    let mut output_file = File::open(dir.join("game_bg.wasm"))
         .await
         .map_err(internal("Failed to open final wasm", id))?;
     let mut wasm = Vec::with_capacity(
