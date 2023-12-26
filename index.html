@@ -31,7 +31,7 @@ fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearC
 }
   `;
 
-    const res = await fetch("http://45.148.60.5:8080", {
+    const res = await fetch("http://127.0.0.1:8080", {
       method: "POST",
       body: code,
     });
@@ -43,8 +43,6 @@ fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearC
     const wasm = body.slice(0, wasm_size, "application/wasm");
     const js = body.slice(wasm_size, wasm_size + js_size, "application/javascript");
     const js_text = await js.text();
-
-    console.log(js_text);
 
     const AsyncFunction = async function () { }.constructor;
     const load = new AsyncFunction("wasm_blob", js_text);

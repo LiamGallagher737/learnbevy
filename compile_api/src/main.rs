@@ -45,10 +45,7 @@ async fn main() -> io::Result<()> {
 async fn compile(
     code: String,
 ) -> Result<(StatusCode, HeaderMap, Vec<u8>), (StatusCode, HeaderMap, String)> {
-    let id = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_err(internal("Failed to get time", 0))?
-        .subsec_nanos();
+    let id = fastrand::u32(..);
 
     let mut response_headers = HeaderMap::new();
     response_headers.append("reference-code", HeaderValue::from(id));
@@ -65,7 +62,7 @@ async fn compile(
     info!("{id}: Started");
     let start = Instant::now();
 
-    let dir = std::env::temp_dir().join(".learnbevy").join(id.to_string());
+    let dir = std::env::temp_dir().join("learnbevy").join(id.to_string());
     tokio::fs::create_dir_all(&dir)
         .await
         .map_err(internal("Failed to create temp dir", id))?;
