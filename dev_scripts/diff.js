@@ -51,7 +51,7 @@ async function measureResponseTime(url) {
 }
 
 async function main() {
-    for (let n = 0; n < measurements; n++) {
+    while (true) {
         const results = await Promise.all([
             measureResponseTime(server1),
             measureResponseTime(server2),

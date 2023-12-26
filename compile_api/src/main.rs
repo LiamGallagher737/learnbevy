@@ -96,7 +96,7 @@ async fn compile(
         .map_err(internal("Failed to start docker compile instance", id))?;
 
     if command_status.status.code() == Some(137) {
-        error!("A docker compile instance returned a 137 status");
+        error!("{id}: Docker container returned a 137 status");
         return Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             response_headers,
