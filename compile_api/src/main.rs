@@ -1,45 +1,29 @@
 use axum::{
-    extract::State,
     http::{header, HeaderMap, HeaderName, HeaderValue, StatusCode},
     routing::post,
     Router,
 };
-use std::{
-    error::Error,
-    io,
-    net::Ipv4Addr,
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::{error::Error, io, net::Ipv4Addr, time::Instant};
 use tokio::{
     fs::File,
     io::{AsyncReadExt, AsyncWriteExt},
     process::Command,
-    sync::RwLock,
 };
 use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 const ADDRESS: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
 const PORT: u16 = 8080;
 const IMAGE: &str = "liamg737/comp";
-const COOLDOWN_DURATION: Duration = Duration::from_secs(10);
-
-#[derive(Default)]
-struct AppState {
-    cooldown_start: RwLock<Option<Instant>>,
-}
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
-
-    let shared_state = Arc::new(AppState::default());
 
     let app = Router::new()
         .route("/", post(compile))
@@ -48,8 +32,7 @@ async fn main() -> io::Result<()> {
             CorsLayer::new()
                 .allow_origin(HeaderValue::from_static("*"))
                 .expose_headers(Any),
-        )
-        .with_state(shared_state);
+        );
 
     let listener = tokio::net::TcpListener::bind((ADDRESS, PORT)).await?;
 
@@ -60,7 +43,6 @@ async fn main() -> io::Result<()> {
 }
 
 async fn compile(
-    State(state): State<Arc<AppState>>,
     code: String,
 ) -> Result<(StatusCode, HeaderMap, Vec<u8>), (StatusCode, HeaderMap, String)> {
     let id = std::time::SystemTime::now()
@@ -70,27 +52,6 @@ async fn compile(
 
     let mut response_headers = HeaderMap::new();
     response_headers.append("reference-code", HeaderValue::from(id));
-
-    {
-        let cooldown_read = state.cooldown_start.read().await;
-        if let Some(cooldown_start) = *cooldown_read {
-            if cooldown_start.elapsed() < COOLDOWN_DURATION {
-                let time_left = COOLDOWN_DURATION - cooldown_start.elapsed();
-                warn!("{id}: Rejected due to cooldown - {time_left:.2?} remaining");
-                response_headers
-                    .append(header::RETRY_AFTER, HeaderValue::from(time_left.as_secs()));
-                return Err((
-                    StatusCode::SERVICE_UNAVAILABLE,
-                    response_headers,
-                    format!(
-                        "The server has been placed in a cooldown state due to being overloaded, try again in {time_left:.2?}",
-                    ),
-                ));
-            }
-            drop(cooldown_read);
-            *state.cooldown_start.write().await = None;
-        }
-    }
 
     if code.is_empty() {
         info!("{id}: Rejected due to empty body");
@@ -135,17 +96,12 @@ async fn compile(
         .map_err(internal("Failed to start docker compile instance", id))?;
 
     if command_status.status.code() == Some(137) {
-        *state.cooldown_start.write().await = Some(Instant::now());
-        warn!("Server is now in a cooldown state due to being overloaded, all requests will be rejected for the next {COOLDOWN_DURATION:.2?}");
-        response_headers.append(
-            header::RETRY_AFTER,
-            HeaderValue::from(COOLDOWN_DURATION.as_secs()),
-        );
+        error!("A docker compile instance returned a 137 status");
         return Err((
-            StatusCode::SERVICE_UNAVAILABLE,
+            StatusCode::INTERNAL_SERVER_ERROR,
             response_headers,
-            format!(
-                "The server has been placed in a cooldown state due to being overloaded, try again in {COOLDOWN_DURATION:.2?}"
+            String::from(
+                "The server was unable to process request, possibly due to being overloaded",
             ),
         ));
     }
