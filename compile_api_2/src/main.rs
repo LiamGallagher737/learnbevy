@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use log::{error, info};
-use rouille::{Request, Response};
+use rouille::{Request, Response, Server};
 use scopeguard::defer;
 use serde::Serialize;
 use std::{
@@ -9,12 +9,12 @@ use std::{
     time::{Instant, SystemTime},
 };
 
-const ADDRESS: &str = "0.0.0.0:8080";
+const ADDRESS: &str = "0.0.0.0:443";
 const IMAGE: &str = "liamg737/comp";
 
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(debug_assertions)))]
 const LOG_FOLDER_PATH: &str = "/var/log/bevy_compiler_api";
-#[cfg(not(target_os = "linux"))]
+#[cfg(any(not(target_os = "linux"), debug_assertions))]
 const LOG_FOLDER_PATH: &str = "logs";
 const LOG_FILE_PREFIX: &str = "bevy_compiler_api.log.";
 
@@ -39,26 +39,35 @@ fn main() {
         .apply()
         .expect("Failed to setup logging");
 
-    rouille::start_server(ADDRESS, move |request| {
-        if request.raw_url() != "/" {
-            Response::empty_404()
-        } else if request.method() != "POST" {
-            Response::text("Only the POST method is allowed")
-                .with_status_code(405)
-                .with_additional_header("Allow", "POST")
-        } else {
-            let id = fastrand::usize(..);
-            info!("{id}: Serving new request from {}", request.remote_addr());
-            let start = Instant::now();
+    Server::new_ssl(
+        ADDRESS,
+        move |request| {
+            if request.raw_url() != "/" {
+                Response::empty_404()
+            } else if request.method() != "POST" {
+                Response::text("Only the POST method is allowed")
+                    .with_status_code(405)
+                    .with_additional_header("Allow", "POST")
+            } else {
+                let id = fastrand::usize(..);
+                info!("{id}: Serving new request from {}", request.remote_addr());
+                let start = Instant::now();
 
-            let response = compile(id, request)
-                .with_additional_header("access-control-allow-origin", "*")
-                .with_additional_header("access-control-expose-headers", "*");
+                let response = compile(id, request)
+                    .with_additional_header("access-control-allow-origin", "*")
+                    .with_additional_header("access-control-expose-headers", "*");
 
-            info!("{id}: Finished in {:.2?}", start.elapsed());
-            response
-        }
-    });
+                info!("{id}: Finished in {:.2?}", start.elapsed());
+                response
+            }
+        },
+        include_bytes!("cert.pem").to_vec(),
+        include_bytes!("cert.key").to_vec(),
+    )
+    .expect("Failed to start server")
+    .run();
+
+    error!("The server socket closed unexpectedly");
 }
 
 fn compile(id: usize, request: &Request) -> Response {
