@@ -13,10 +13,10 @@ const ADDRESS: &str = "0.0.0.0:443";
 const IMAGE: &str = "liamg737/comp";
 
 #[cfg(all(target_os = "linux", not(debug_assertions)))]
-const LOG_FOLDER_PATH: &str = "/var/log/bevy_compiler_api";
+const LOG_FOLDER_PATH: &str = "/var/log/bca";
 #[cfg(any(not(target_os = "linux"), debug_assertions))]
 const LOG_FOLDER_PATH: &str = "logs";
-const LOG_FILE_PREFIX: &str = "bevy_compiler_api.log.";
+const LOG_FILE_PREFIX: &str = "bca.log.";
 
 fn main() {
     fs::create_dir_all(LOG_FOLDER_PATH).expect("Failed to create log folder");

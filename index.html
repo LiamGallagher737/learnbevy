@@ -31,7 +31,7 @@ fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearC
 }
   `;
 
-    const res = await fetch("http://127.0.0.1:8080", {
+    const res = await fetch("https://bcp.gserver.party/", {
       method: "POST",
       body: code,
     });
