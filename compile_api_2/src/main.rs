@@ -1,13 +1,43 @@
+use chrono::{DateTime, Utc};
+use log::{error, info};
 use rouille::{Request, Response};
 use scopeguard::defer;
 use serde::Serialize;
-use std::{env, fs, process::Command, time::Instant};
+use std::{
+    env, fs,
+    process::Command,
+    time::{Instant, SystemTime},
+};
 
 const ADDRESS: &str = "0.0.0.0:8080";
 const IMAGE: &str = "liamg737/comp";
 
+#[cfg(target_os = "linux")]
+const LOG_FOLDER_PATH: &str = "/var/log/bevy_compiler_api";
+#[cfg(not(target_os = "linux"))]
+const LOG_FOLDER_PATH: &str = "logs";
+const LOG_FILE_PREFIX: &str = "bevy_compiler_api.log.";
+
 fn main() {
-    println!("Listening on {ADDRESS}");
+    fs::create_dir_all(LOG_FOLDER_PATH).expect("Failed to create log folder");
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "[{} {} {}] {}",
+                DateTime::<Utc>::from(SystemTime::now()).format("%H:%M:%S"),
+                record.level(),
+                record.target(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Debug)
+        .chain(
+            fern::DateBased::new(format!("{LOG_FOLDER_PATH}/{LOG_FILE_PREFIX}"), "%Y-%m-%d")
+                .utc_time(),
+        )
+        .chain(std::io::stdout())
+        .apply()
+        .expect("Failed to setup logging");
 
     rouille::start_server(ADDRESS, move |request| {
         if request.raw_url() != "/" {
@@ -18,14 +48,14 @@ fn main() {
                 .with_additional_header("Allow", "POST")
         } else {
             let id = fastrand::usize(..);
-            println!("{id}: Serving new request from {}", request.remote_addr());
+            info!("{id}: Serving new request from {}", request.remote_addr());
             let start = Instant::now();
 
             let response = compile(id, request)
                 .with_additional_header("access-control-allow-origin", "*")
                 .with_additional_header("access-control-expose-headers", "*");
 
-            println!("{id}: Finished in {:.2?}", start.elapsed());
+            info!("{id}: Finished in {:.2?}", start.elapsed());
             response
         }
     });
@@ -38,26 +68,30 @@ fn compile(id: usize, request: &Request) -> Response {
         .with_additional_header("reference-number", id.to_string());
 
     let Ok(body) = rouille::input::plain_text_body(&request) else {
-        return Response::text("Body must be plain text").with_status_code(400);
+        info!("{id}: Rejected for invalid body");
+        return Response::json(&OtherUserError {
+            msg: "Body must be plain utf8 text",
+        })
+        .with_status_code(400);
     };
 
     let dir = env::temp_dir()
         .join("bevy_compile_api")
         .join(&id.to_string());
     if let Err(err) = fs::create_dir_all(&dir) {
-        eprintln!("{id}: Failed to create tempdir: {err:?}");
+        error!("{id}: Failed to create tempdir: {err:?}");
         return e500;
     }
 
     defer! {
         // This is cleanup so we don't return 500 on an error
         if let Err(err) = fs::remove_dir_all(&dir) {
-            eprintln!("{id}: Failed to remove tempdir: {err:?}");
+            error!("{id}: Failed to remove tempdir: {err:?}");
         }
     }
 
-    if fs::write(dir.join("main.rs"), body).is_err() {
-        eprintln!("{id}: Failed to write main.rs to tempdir");
+    if let Err(err) = fs::write(dir.join("main.rs"), body) {
+        error!("{id}: Failed to write main.rs to tempdir: {err:?}");
         return e500;
     }
 
@@ -80,41 +114,51 @@ fn compile(id: usize, request: &Request) -> Response {
             .args(["container", "rm", &docker_container_id])
             .output()
         {
-            eprintln!("{id}: Failed to remove container: {err:?}");
+            error!("{id}: Failed to remove container: {err:?}");
         }
     }
 
-    let Ok(output) = command_output else {
-        eprintln!("{id}: Failed to execute docker process");
-        return e500;
+    let output = match command_output {
+        Ok(output) => output,
+        Err(err) => {
+            error!("{id}: Failed to execute docker process: {err:?}");
+            return e500;
+        }
     };
 
     // 101 is the rust compilers status code for failed to build (user error)
     if output.status.code() == Some(101) {
-        println!("{id}: Build failed (user error)");
+        info!("{id}: Build failed (user error)");
         return Response::json(&BuildError {
             msg: "Error building game",
             stdout: String::from_utf8(output.stdout).unwrap_or("Contained invalid utf8".to_owned()),
             stderr: String::from_utf8(output.stderr).unwrap_or("Contained invalid utf8".to_owned()),
-        });
+        })
+        .with_status_code(400);
     }
 
     if !output.status.success() {
-        eprintln!(
+        error!(
             "{id}: Build failed with code {} (server error)",
             output.status
         );
         return e500;
     }
 
-    let Ok(wasm) = fs::read(dir.join("game_bg.wasm")) else {
-        eprintln!("{id}: Failed to read game_bg.wasm");
-        return e500;
+    let wasm = match fs::read(dir.join("game_bg.wasm")) {
+        Ok(wasm) => wasm,
+        Err(err) => {
+            error!("{id}: Failed to read game_bg.wasm: {err:?}");
+            return e500;
+        }
     };
 
-    let Ok(mut js) = fs::read(dir.join("game.js")) else {
-        eprintln!("{id}: Failed to read game.js");
-        return e500;
+    let mut js = match fs::read(dir.join("game.js")) {
+        Ok(js) => js,
+        Err(err) => {
+            error!("{id}: Failed to read game.js: {err:?}");
+            return e500;
+        }
     };
     // Remove two last lines of exports
     js.resize(js.len() - 47, 0);
@@ -140,4 +184,9 @@ struct BuildError {
     msg: &'static str,
     stdout: String,
     stderr: String,
+}
+
+#[derive(Serialize)]
+struct OtherUserError {
+    msg: &'static str,
 }
