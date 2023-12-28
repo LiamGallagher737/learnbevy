@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use log::{error, info};
+use log::{debug, error, info};
 use rouille::{Request, Response, Server};
 use scopeguard::defer;
 use serde::Serialize;
@@ -12,9 +12,9 @@ use std::{
 const ADDRESS: &str = "0.0.0.0:443";
 const IMAGE: &str = "liamg737/comp";
 
-#[cfg(all(target_os = "linux", not(debug_assertions)))]
+#[cfg(target_os = "linux")]
 const LOG_FOLDER_PATH: &str = "/var/log/bca";
-#[cfg(any(not(target_os = "linux"), debug_assertions))]
+#[cfg(not(target_os = "linux"))]
 const LOG_FOLDER_PATH: &str = "logs";
 const LOG_FILE_PREFIX: &str = "bca.log.";
 
@@ -28,7 +28,7 @@ fn main() {
                 record.level(),
                 record.target(),
                 message
-            ))
+            ));
         })
         .level(log::LevelFilter::Debug)
         .chain(
@@ -76,7 +76,7 @@ fn compile(id: usize, request: &Request) -> Response {
         .with_status_code(500)
         .with_additional_header("reference-number", id.to_string());
 
-    let Ok(body) = rouille::input::plain_text_body(&request) else {
+    let Ok(body) = rouille::input::plain_text_body(request) else {
         info!("{id}: Rejected for invalid body");
         return Response::json(&OtherUserError {
             msg: "Body must be plain utf8 text",
@@ -86,7 +86,7 @@ fn compile(id: usize, request: &Request) -> Response {
 
     let dir = env::temp_dir()
         .join("bevy_compile_api")
-        .join(&id.to_string());
+        .join(id.to_string());
     if let Err(err) = fs::create_dir_all(&dir) {
         error!("{id}: Failed to create tempdir: {err:?}");
         return e500;
@@ -151,6 +151,9 @@ fn compile(id: usize, request: &Request) -> Response {
             "{id}: Build failed with code {} (server error)",
             output.status
         );
+        let stderr =
+            String::from_utf8(output.stderr).unwrap_or("Contained invalid utf8".to_string());
+        debug!("{id}: Stderr: {stderr}");
         return e500;
     }
 
