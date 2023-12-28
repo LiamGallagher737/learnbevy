@@ -41,26 +41,7 @@ fn main() {
 
     Server::new_ssl(
         ADDRESS,
-        move |request| {
-            if request.raw_url() != "/" {
-                Response::empty_404()
-            } else if request.method() != "POST" {
-                Response::text("Only the POST method is allowed")
-                    .with_status_code(405)
-                    .with_additional_header("Allow", "POST")
-            } else {
-                let id = fastrand::usize(..);
-                info!("{id}: Serving new request from {}", request.remote_addr());
-                let start = Instant::now();
-
-                let response = compile(id, request)
-                    .with_additional_header("access-control-allow-origin", "*")
-                    .with_additional_header("access-control-expose-headers", "*");
-
-                info!("{id}: Finished in {:.2?}", start.elapsed());
-                response
-            }
-        },
+        request_handler,
         include_bytes!("cert.pem").to_vec(),
         include_bytes!("cert.key").to_vec(),
     )
@@ -68,6 +49,37 @@ fn main() {
     .run();
 
     error!("The server socket closed unexpectedly");
+}
+
+fn request_handler(request: &Request) -> Response {
+    if request.raw_url() != "/compile" {
+        info!(
+            "Invalid path \"{}\" requested from {}",
+            request.raw_url(),
+            request.remote_addr()
+        );
+        Response::empty_404()
+    } else if request.method() != "POST" {
+        info!(
+            "Invalid mathod \"{}\" requested from {}",
+            request.method(),
+            request.remote_addr()
+        );
+        Response::text("Only the POST method is allowed")
+            .with_status_code(405)
+            .with_additional_header("Allow", "POST")
+    } else {
+        let id = fastrand::usize(..);
+        info!("{id}: Serving new request from {}", request.remote_addr());
+        let start = Instant::now();
+
+        let response = compile(id, request)
+            .with_additional_header("access-control-allow-origin", "*")
+            .with_additional_header("access-control-expose-headers", "*");
+
+        info!("{id}: Finished in {:.2?}", start.elapsed());
+        response
+    }
 }
 
 fn compile(id: usize, request: &Request) -> Response {
