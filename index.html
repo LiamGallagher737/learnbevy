@@ -31,7 +31,7 @@ fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearC
 }
   `;
 
-    const res = await fetch("https://bcp.gserver.party/", {
+    const res = await fetch("https://bcp.gserver.party/compile", {
       method: "POST",
       body: code,
     });

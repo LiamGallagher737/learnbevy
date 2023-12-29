@@ -3,3 +3,4 @@
 /logs
 *.pem
 *.key
+auth-token.txt
