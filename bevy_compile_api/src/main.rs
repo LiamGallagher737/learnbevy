@@ -1,7 +1,8 @@
 use chrono::{DateTime, Utc};
-use log::{error, info};
+use log::{error, info, trace};
 use rate_limit::RateLimitMap;
 use rouille::{Request, Response, Server};
+use serde::Serialize;
 use std::{
     fs,
     net::Ipv4Addr,
@@ -62,7 +63,7 @@ fn main() {
 
 fn request_handler(request: &Request, rate_limits: RateLimitMap) -> Response {
     if request.header("Cool-Auth") != Some(AUTH_TOKEN) {
-        info!(
+        trace!(
             "Rejected request from {} because the auth header either did not exist or was incorrect",
             request.remote_addr()
         );
@@ -70,7 +71,7 @@ fn request_handler(request: &Request, rate_limits: RateLimitMap) -> Response {
     }
 
     let Some(ip_str) = request.header("CF-Connecting-IP") else {
-        info!(
+        trace!(
             "Rejected request from {} because it did not contain a \"CF-Connecting-IP\" header",
             request.remote_addr()
         );
@@ -82,11 +83,15 @@ fn request_handler(request: &Request, rate_limits: RateLimitMap) -> Response {
     };
 
     if let Some(rate_limit) = rate_limits.get(&ip) {
-        let time_left = rate_limit.length - rate_limit.start.elapsed().as_secs_f32();
+        let time_left = (rate_limit.length - rate_limit.start.elapsed().as_secs_f32()).ceil();
         if time_left > 0.0 {
-            return Response::text(format!("You may try again in {}s", time_left.ceil()))
-                .with_status_code(429)
-                .with_additional_header("Retry-After", time_left.ceil().to_string());
+            trace!("Rejected request from {ip} because of a rate limit");
+            return Response::json(&RateLimitError {
+                msg: "Rate limited",
+                time_left,
+            })
+            .with_status_code(429)
+            .with_additional_header("Retry-After", time_left.to_string());
         } else {
             rate_limits.remove(&ip);
         }
@@ -132,4 +137,10 @@ fn request_handler(request: &Request, rate_limits: RateLimitMap) -> Response {
 
     info!("{id}: Finished in {:.2?}", start.elapsed());
     response
+}
+
+#[derive(Serialize)]
+struct RateLimitError {
+    msg: &'static str,
+    time_left: f32,
 }
