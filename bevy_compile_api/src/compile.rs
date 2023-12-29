@@ -76,6 +76,12 @@ pub fn compile(id: usize, request: &Request) -> Response {
         .with_status_code(400);
     }
 
+    // 127 is the docker status code when the container was killed due to insufficient memory (server error)
+    if output.status.code() == Some(137) {
+        error!("{id}: Container was killed due to insufficient memory");
+        return Response::json(&Error::Overloaded).with_status_code(500);
+    }
+
     if !output.status.success() {
         error!(
             "{id}: Build failed with code {} (server error)",

@@ -112,7 +112,7 @@ fn request_handler(
     }
 
     if request.raw_url() != "/compile" {
-        info!(
+        trace!(
             "Invalid path \"{}\" requested from {}",
             request.raw_url(),
             request.remote_addr()
@@ -122,7 +122,7 @@ fn request_handler(
     }
 
     if request.method() != "POST" {
-        info!(
+        trace!(
             "Invalid mathod \"{}\" requested from {}",
             request.method(),
             request.remote_addr()
@@ -172,5 +172,6 @@ enum Error {
         stdout: String,
         stderr: String,
     },
+    Overloaded,
     Internal,
 }
