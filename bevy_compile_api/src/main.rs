@@ -4,8 +4,10 @@ use rate_limit::RateLimitMap;
 use rouille::{Request, Response, Server};
 use serde::Serialize;
 use std::{
+    collections::HashSet,
     fs,
     net::Ipv4Addr,
+    sync::{Arc, RwLock},
     time::{Instant, SystemTime},
 };
 
@@ -48,10 +50,11 @@ fn main() {
         .expect("Failed to setup logging");
 
     let rate_limits = RateLimitMap::default();
+    let active_ips = Arc::new(RwLock::new(HashSet::new()));
 
     Server::new_ssl(
         ADDRESS,
-        move |request| request_handler(request, rate_limits.clone()),
+        move |request| request_handler(request, rate_limits.clone(), active_ips.clone()),
         include_bytes!("cert.pem").to_vec(),
         include_bytes!("cert.key").to_vec(),
     )
@@ -61,7 +64,11 @@ fn main() {
     error!("The server socket closed unexpectedly");
 }
 
-fn request_handler(request: &Request, rate_limits: RateLimitMap) -> Response {
+fn request_handler(
+    request: &Request,
+    rate_limits: RateLimitMap,
+    active_ips: Arc<RwLock<HashSet<Ipv4Addr>>>,
+) -> Response {
     if request.header("Cool-Auth") != Some(AUTH_TOKEN) {
         trace!(
             "Rejected request from {} because the auth header either did not exist or was incorrect",
@@ -87,6 +94,7 @@ fn request_handler(request: &Request, rate_limits: RateLimitMap) -> Response {
         if time_left > 0.0 {
             trace!("Rejected request from {ip} because of a rate limit");
             return Response::json(&RateLimitError {
+                kind: ErrorKind::RateLimit,
                 msg: "Rate limited",
                 time_left,
             })
@@ -95,6 +103,17 @@ fn request_handler(request: &Request, rate_limits: RateLimitMap) -> Response {
         } else {
             rate_limits.remove(&ip);
         }
+    }
+
+    if active_ips.read().unwrap().contains(&ip) {
+        trace!(
+            "Rejected request from {ip} because a request from this ip is already being processed"
+        );
+        return Response::json(&BasicError {
+            kind: ErrorKind::ActiveRequestExists,
+            msg: "A request from your IP is already being processed",
+        })
+        .with_status_code(429);
     }
 
     if request.raw_url() != "/compile" {
@@ -119,6 +138,8 @@ fn request_handler(request: &Request, rate_limits: RateLimitMap) -> Response {
             .with_additional_header("Allow", "POST");
     }
 
+    active_ips.write().unwrap().insert(ip);
+
     let id = fastrand::usize(..);
     info!("{id}: Serving new request from {ip}");
     let start = Instant::now();
@@ -135,12 +156,32 @@ fn request_handler(request: &Request, rate_limits: RateLimitMap) -> Response {
         },
     );
 
+    active_ips.write().unwrap().remove(&ip);
+
     info!("{id}: Finished in {:.2?}", start.elapsed());
     response
 }
 
 #[derive(Serialize)]
 struct RateLimitError {
+    kind: ErrorKind,
     msg: &'static str,
     time_left: f32,
+}
+
+#[derive(Serialize)]
+struct BasicError {
+    kind: ErrorKind,
+    msg: &'static str,
+}
+
+#[derive(Serialize)]
+enum ErrorKind {
+    RateLimit,
+    #[allow(dead_code)]
+    CFRateLimit,
+    ActiveRequestExists,
+    InvalidBody,
+    BuildFailed,
+    Internal,
 }

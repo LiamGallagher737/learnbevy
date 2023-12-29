@@ -1,4 +1,4 @@
-use crate::IMAGE;
+use crate::{BasicError, ErrorKind, IMAGE};
 use log::{debug, error, info};
 use rouille::{Request, Response};
 use scopeguard::defer;
@@ -7,13 +7,17 @@ use std::{env, fs, process::Command};
 
 pub fn compile(id: usize, request: &Request) -> Response {
     let docker_container_id = format!("compile.{id}");
-    let e500 = Response::text("Internal Server Error")
-        .with_status_code(500)
-        .with_additional_header("reference-number", id.to_string());
+    let e500 = Response::json(&BasicError {
+        kind: ErrorKind::Internal,
+        msg: "Internal Server Error",
+    })
+    .with_status_code(500)
+    .with_additional_header("reference-number", id.to_string());
 
     let Ok(body) = rouille::input::plain_text_body(request) else {
         info!("{id}: Rejected for invalid body");
-        return Response::json(&OtherUserError {
+        return Response::json(&BasicError {
+            kind: ErrorKind::InvalidBody,
             msg: "Body must be plain utf8 text",
         })
         .with_status_code(400);
@@ -74,6 +78,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
     if output.status.code() == Some(101) {
         info!("{id}: Build failed (user error)");
         return Response::json(&BuildError {
+            kind: ErrorKind::BuildFailed,
             msg: "Error building game",
             stdout: String::from_utf8(output.stdout).unwrap_or("Contained invalid utf8".to_owned()),
             stderr: String::from_utf8(output.stderr).unwrap_or("Contained invalid utf8".to_owned()),
@@ -128,12 +133,8 @@ pub fn compile(id: usize, request: &Request) -> Response {
 
 #[derive(Serialize)]
 struct BuildError {
+    kind: ErrorKind,
     msg: &'static str,
     stdout: String,
     stderr: String,
-}
-
-#[derive(Serialize)]
-struct OtherUserError {
-    msg: &'static str,
 }
