@@ -54,7 +54,10 @@ fn main() {
 
     Server::new_ssl(
         ADDRESS,
-        move |request| request_handler(request, rate_limits.clone(), active_ips.clone()),
+        move |request| {
+            request_handler(request, rate_limits.clone(), active_ips.clone())
+                .with_additional_header("access-control-allow-origin", "*")
+        },
         include_bytes!("cert.pem").to_vec(),
         include_bytes!("cert.key").to_vec(),
     )
@@ -93,13 +96,9 @@ fn request_handler(
         let time_left = (rate_limit.length - rate_limit.start.elapsed().as_secs_f32()).ceil();
         if time_left > 0.0 {
             trace!("Rejected request from {ip} because of a rate limit");
-            return Response::json(&RateLimitError {
-                kind: ErrorKind::RateLimit,
-                msg: "Rate limited",
-                time_left,
-            })
-            .with_status_code(429)
-            .with_additional_header("Retry-After", time_left.to_string());
+            return Response::json(&Error::RateLimit { time_left })
+                .with_status_code(429)
+                .with_additional_header("Retry-After", time_left.to_string());
         } else {
             rate_limits.remove(&ip);
         }
@@ -109,11 +108,7 @@ fn request_handler(
         trace!(
             "Rejected request from {ip} because a request from this ip is already being processed"
         );
-        return Response::json(&BasicError {
-            kind: ErrorKind::ActiveRequestExists,
-            msg: "A request from your IP is already being processed",
-        })
-        .with_status_code(429);
+        return Response::json(&Error::ActiveRequestExists).with_status_code(429);
     }
 
     if request.raw_url() != "/compile" {
@@ -144,9 +139,10 @@ fn request_handler(
     info!("{id}: Serving new request from {ip}");
     let start = Instant::now();
 
-    let response = compile::compile(id, request)
-        .with_additional_header("access-control-allow-origin", "*")
-        .with_additional_header("access-control-expose-headers", "*");
+    let response = compile::compile(id, request).with_additional_header(
+        "access-control-expose-headers",
+        "wasm-content-length, js-content-length",
+    );
 
     rate_limits.insert(
         ip,
@@ -163,25 +159,18 @@ fn request_handler(
 }
 
 #[derive(Serialize)]
-struct RateLimitError {
-    kind: ErrorKind,
-    msg: &'static str,
-    time_left: f32,
-}
-
-#[derive(Serialize)]
-struct BasicError {
-    kind: ErrorKind,
-    msg: &'static str,
-}
-
-#[derive(Serialize)]
-enum ErrorKind {
-    RateLimit,
+#[serde(tag = "kind")]
+enum Error {
+    RateLimit {
+        time_left: f32,
+    },
     #[allow(dead_code)]
     CFRateLimit,
     ActiveRequestExists,
     InvalidBody,
-    BuildFailed,
+    BuildFailed {
+        stdout: String,
+        stderr: String,
+    },
     Internal,
 }

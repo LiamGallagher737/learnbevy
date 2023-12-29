@@ -36,6 +36,11 @@ fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearC
       body: code,
     });
 
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`Request failed with error ${error.kind}`);
+    }
+
     const wasm_size = res.headers.get("wasm-content-length");
     const js_size = res.headers.get("js-content-length");
 

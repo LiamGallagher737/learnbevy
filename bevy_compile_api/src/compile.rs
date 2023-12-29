@@ -1,26 +1,18 @@
-use crate::{BasicError, ErrorKind, IMAGE};
+use crate::{Error, IMAGE};
 use log::{debug, error, info};
 use rouille::{Request, Response};
 use scopeguard::defer;
-use serde::Serialize;
 use std::{env, fs, process::Command};
 
 pub fn compile(id: usize, request: &Request) -> Response {
     let docker_container_id = format!("compile.{id}");
-    let e500 = Response::json(&BasicError {
-        kind: ErrorKind::Internal,
-        msg: "Internal Server Error",
-    })
-    .with_status_code(500)
-    .with_additional_header("reference-number", id.to_string());
+    let e500 = Response::json(&Error::Internal)
+        .with_status_code(500)
+        .with_additional_header("reference-number", id.to_string());
 
     let Ok(body) = rouille::input::plain_text_body(request) else {
         info!("{id}: Rejected for invalid body");
-        return Response::json(&BasicError {
-            kind: ErrorKind::InvalidBody,
-            msg: "Body must be plain utf8 text",
-        })
-        .with_status_code(400);
+        return Response::json(&Error::InvalidBody).with_status_code(400);
     };
 
     let dir = env::temp_dir()
@@ -77,9 +69,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
     // 101 is the rust compilers status code for failed to build (user error)
     if output.status.code() == Some(101) {
         info!("{id}: Build failed (user error)");
-        return Response::json(&BuildError {
-            kind: ErrorKind::BuildFailed,
-            msg: "Error building game",
+        return Response::json(&Error::BuildFailed {
             stdout: String::from_utf8(output.stdout).unwrap_or("Contained invalid utf8".to_owned()),
             stderr: String::from_utf8(output.stderr).unwrap_or("Contained invalid utf8".to_owned()),
         })
@@ -129,12 +119,4 @@ pub fn compile(id: usize, request: &Request) -> Response {
         .with_additional_header("reference-number", id.to_string())
         .with_additional_header("wasm-content-length", wasm_len.to_string())
         .with_additional_header("js-content-length", js_len.to_string())
-}
-
-#[derive(Serialize)]
-struct BuildError {
-    kind: ErrorKind,
-    msg: &'static str,
-    stdout: String,
-    stderr: String,
 }
