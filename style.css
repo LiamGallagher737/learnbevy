@@ -1,0 +1,50 @@
+body {
+  background: #e1e1db;
+  padding: 1rem;
+  height: calc(100vh - 2rem);
+  font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
+    helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial,
+    sans-serif;
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+main {
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 800px;
+  grid-template-rows: 1fr;
+  gap: 1rem;
+}
+
+#button-run {
+  background: #aa4422;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem 1.2rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 4px;
+  transition: 150ms;
+}
+
+#button-run:hover {
+  background: #da7553;
+}
+
+#button-run:disabled {
+  opacity: 0.5;
+}
+
+#editor {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+#game {
+  height: 100%;
+  border-radius: 4px;
+}

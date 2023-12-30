@@ -1,62 +1,41 @@
 <!doctype html>
 <html lang="en">
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bevy Playground</title>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css"
+    integrity="sha512-cglMadHaO/jAvqEM51bUj/saVbUkZwVa4PX0bcpWVlND3OrPpYcS/91uhIrgHrXmikanebYApd7UWjbDGEQUqg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
 <body style="margin: 0px;">
-  <script type="module">
-    const code = `
-use bevy::prelude::*;
+  <header>
+    <button id="button-run" type="button" onclick="run()">Run</button>
+  </header>
 
-fn main() {
-    App::new()
-        .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.9)))
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, setup)
-        .add_systems(Update, change_clear_color)
-        .run();
-}
+  <main>
+    <div id="editor"></div>
+    <div id="game"></div>
+  </main>
 
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
-}
+  <!-- Toastify script -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearColor>, mut state: Local<bool>) {
-    if input.just_pressed(KeyCode::Space) {
-      *state = !*state;
-      if *state {
-        clear_color.0 = Color::PURPLE;
-      } else {
-        clear_color.0 = Color::RED;
-      }
-    }
-}
-  `;
+  <!-- Monaco scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"
+    integrity="sha512-ZG31AN9z/CQD1YDDAK4RUAvogwbJHv6bHrumrnMLzdCrVu4HeAqrUX7Jsal/cbUwXGfaMUNmQU04tQ8XXl5Znw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/basic-languages/rust/rust.min.js"
+    integrity="sha512-esXjQnKe+u9BLrz9IERxKUsZBaF5694muq+bB1vwPBZTtdD8luMzsg4Ko0T7E8llQKHDLo1FRiE60Ur7W+JqAw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    const res = await fetch("https://bcp.gserver.party/compile", {
-      method: "POST",
-      body: code,
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`Request failed with error ${error.kind}`);
-    }
-
-    const wasm_size = res.headers.get("wasm-content-length");
-    const js_size = res.headers.get("js-content-length");
-
-    const body = await res.blob();
-    const wasm = body.slice(0, wasm_size, "application/wasm");
-    const js = body.slice(wasm_size, wasm_size + js_size, "application/javascript");
-    const js_text = await js.text();
-
-    const AsyncFunction = async function () { }.constructor;
-    const load = new AsyncFunction("wasm_blob", js_text);
-    await load(wasm).catch((error) => {
-      if (!error.message.startsWith("Using exceptions for control flow, don't mind me. This isn't actually an error!")) {
-        throw error;
-      }
-    });
-  </script>
+  <!-- App script -->
+  <script src="/index.js"></script>
 </body>
 
 </html>
