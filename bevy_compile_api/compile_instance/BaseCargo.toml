@@ -18,6 +18,7 @@ bevy = { version = "0.12", default-features = false, features = [
     "bevy_gizmos",
     "default_font",
     "webgl2",
+    "png",
 ] }
 wasm-bindgen = "0.2"
 

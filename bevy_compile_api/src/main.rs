@@ -19,6 +19,7 @@ mod rate_limit;
 const ADDRESS: &str = "0.0.0.0:443";
 const IMAGE: &str = "liamg737/comp";
 const AUTH_TOKEN: &str = include_str!("auth-token.txt");
+const CACHE_BYPASS_TOKEN: &str = include_str!("cache-bypass-token.txt");
 const COMPRESSION_LEVEL: Compression = Compression::fast();
 
 const RATE_LIMIT_LENGTH_SUCCESSFUL: f32 = 5.0;

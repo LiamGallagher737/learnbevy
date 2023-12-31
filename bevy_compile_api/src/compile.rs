@@ -1,9 +1,9 @@
 use crate::{
     cache::{self, CacheEntry},
-    Error, COMPRESSION_LEVEL, IMAGE,
+    Error, CACHE_BYPASS_TOKEN, COMPRESSION_LEVEL, IMAGE,
 };
 use flate2::write::GzEncoder;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use rouille::{Request, Response};
 use scopeguard::defer;
 use std::{env, fs, io::Write, process::Command};
@@ -50,17 +50,22 @@ pub fn compile(id: usize, request: &Request) -> Response {
         }
     }
 
-    // Check cache
     let minified_code = rust_minify::minify(&code).ok();
     let hash = minified_code.map(|code| fastmurmur3::hash(code.as_bytes()));
-    if let Some(cache) = hash.map(|hash| cache::get(hash)).flatten() {
-        info!("{id}: Hit cache");
-        return Response::from_data("application/octet-stream", cache.body)
-            .with_additional_header("reference-number", id.to_string())
-            .with_additional_header("wasm-content-length", cache.wasm_len.to_string())
-            .with_additional_header("js-content-length", cache.js_len.to_string())
-            .with_additional_header("origin-cache-status", "HIT")
-            .with_additional_header("content-encoding", "gzip");
+
+    // Check cache
+    if request.header("cache-bypass") != Some(CACHE_BYPASS_TOKEN) {
+        if let Some(cache) = hash.map(|hash| cache::get(hash)).flatten() {
+            info!("{id}: Hit cache");
+            return Response::from_data("application/octet-stream", cache.body)
+                .with_additional_header("reference-number", id.to_string())
+                .with_additional_header("wasm-content-length", cache.wasm_len.to_string())
+                .with_additional_header("js-content-length", cache.js_len.to_string())
+                .with_additional_header("origin-cache-status", "HIT")
+                .with_additional_header("content-encoding", "gzip");
+        }
+    } else {
+        warn!("{id}: Bypassed cache");
     }
 
     code = code.replace(
