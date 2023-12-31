@@ -1,8 +1,8 @@
 use crate::{
     cache::{self, CacheEntry},
-    Error, IMAGE,
+    Error, COMPRESSION_LEVEL, IMAGE,
 };
-use flate2::{write::GzEncoder, Compression};
+use flate2::write::GzEncoder;
 use log::{debug, error, info};
 use rouille::{Request, Response};
 use scopeguard::defer;
@@ -36,10 +36,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
         .with_status_code(500)
         .with_additional_header("reference-number", id.to_string());
 
-    let compress = request
-        .header("accept-encoding")
-        .map_or(false, |header| header.contains("gzip"));
-    let mut encoder = GzEncoder::new(Vec::new(), Compression::fast());
+    let mut encoder = GzEncoder::new(Vec::new(), COMPRESSION_LEVEL);
 
     let Ok(mut code) = rouille::input::plain_text_body(request) else {
         info!("{id}: Rejected for invalid body");
@@ -56,21 +53,14 @@ pub fn compile(id: usize, request: &Request) -> Response {
     // Check cache
     let minified_code = rust_minify::minify(&code).ok();
     let hash = minified_code.map(|code| fastmurmur3::hash(code.as_bytes()));
-    if let Some(mut cache) = hash.map(|hash| cache::get(hash)).flatten() {
+    if let Some(cache) = hash.map(|hash| cache::get(hash)).flatten() {
         info!("{id}: Hit cache");
-        if compress {
-            encoder.write_all(&cache.body).unwrap();
-            cache.body = encoder.finish().unwrap();
-        }
-        let mut response = Response::from_data("application/octet-stream", cache.body)
+        return Response::from_data("application/octet-stream", cache.body)
             .with_additional_header("reference-number", id.to_string())
             .with_additional_header("wasm-content-length", cache.wasm_len.to_string())
             .with_additional_header("js-content-length", cache.js_len.to_string())
-            .with_additional_header("origin-cache-status", "HIT");
-        if compress {
-            response = response.with_additional_header("content-encoding", "gzip");
-        }
-        return response;
+            .with_additional_header("origin-cache-status", "HIT")
+            .with_additional_header("content-encoding", "gzip");
     }
 
     code = code.replace(
@@ -208,6 +198,9 @@ pub fn compile(id: usize, request: &Request) -> Response {
     body.append(&mut js);
     body.append(&mut stderr);
 
+    encoder.write_all(&body).unwrap();
+    body = encoder.finish().unwrap();
+
     if let Some(hash) = hash {
         cache::insert(
             hash,
@@ -219,20 +212,10 @@ pub fn compile(id: usize, request: &Request) -> Response {
         );
     }
 
-    if compress {
-        encoder.write_all(&body).unwrap();
-        body = encoder.finish().unwrap();
-    }
-
-    let response = Response::from_data("application/octet-stream", body)
+    Response::from_data("application/octet-stream", body)
         .with_additional_header("reference-number", id.to_string())
         .with_additional_header("wasm-content-length", wasm_len.to_string())
         .with_additional_header("js-content-length", js_len.to_string())
-        .with_additional_header("origin-cache-status", "MISS");
-
-    if compress {
-        response.with_additional_header("content-encoding", "gzip")
-    } else {
-        response
-    }
+        .with_additional_header("origin-cache-status", "MISS")
+        .with_additional_header("content-encoding", "gzip")
 }

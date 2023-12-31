@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use flate2::Compression;
 use log::{error, info, trace};
 use rate_limit::RateLimitMap;
 use rouille::{Request, Response, Server};
@@ -18,6 +19,7 @@ mod rate_limit;
 const ADDRESS: &str = "0.0.0.0:443";
 const IMAGE: &str = "liamg737/comp";
 const AUTH_TOKEN: &str = include_str!("auth-token.txt");
+const COMPRESSION_LEVEL: Compression = Compression::fast();
 
 const RATE_LIMIT_LENGTH_SUCCESSFUL: f32 = 5.0;
 const RATE_LIMIT_LENGTH_UNSUCCESSFUL: f32 = 1.0;
