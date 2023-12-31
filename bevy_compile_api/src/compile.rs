@@ -1,4 +1,7 @@
-use crate::{Error, IMAGE};
+use crate::{
+    cache::{self, CacheEntry},
+    Error, IMAGE,
+};
 use log::{debug, error, info};
 use rouille::{Request, Response};
 use scopeguard::defer;
@@ -32,7 +35,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
         .with_status_code(500)
         .with_additional_header("reference-number", id.to_string());
 
-    let Ok(mut body) = rouille::input::plain_text_body(request) else {
+    let Ok(body) = rouille::input::plain_text_body(request) else {
         info!("{id}: Rejected for invalid body");
         return Response::json(&Error::InvalidBody).with_status_code(400);
     };
@@ -44,7 +47,25 @@ pub fn compile(id: usize, request: &Request) -> Response {
         }
     }
 
-    body = body.replace("App::new()", "App::new().add_systems(Update, __check_exit_flag)");
+    // Check cache
+    let mut code = rust_minify::minify(&body).unwrap_or_else(|_| {
+        info!("{id}: Failed to parse");
+        body
+    });
+    let hash = fastmurmur3::hash(code.as_bytes());
+    if let Some(cache) = cache::get(hash) {
+        info!("{id}: Hit cache");
+        return Response::from_data("application/octet-stream", cache.body)
+            .with_additional_header("reference-number", id.to_string())
+            .with_additional_header("wasm-content-length", cache.wasm_len.to_string())
+            .with_additional_header("js-content-length", cache.js_len.to_string())
+            .with_additional_header("origin-cache-status", "HIT");
+    }
+
+    code = code.replace(
+        "App::new()",
+        "App::new().add_systems(Update, __check_exit_flag)",
+    );
 
     let dir = env::temp_dir()
         .join("bevy_compile_api")
@@ -61,8 +82,8 @@ pub fn compile(id: usize, request: &Request) -> Response {
         }
     }
 
-    body.push_str(EXTRA_RUST);
-    if let Err(err) = fs::write(dir.join("main.rs"), body) {
+    code.push_str(EXTRA_RUST);
+    if let Err(err) = fs::write(dir.join("main.rs"), code) {
         error!("{id}: Failed to write main.rs to tempdir: {err:?}");
         return e500;
     }
@@ -176,8 +197,18 @@ pub fn compile(id: usize, request: &Request) -> Response {
     body.append(&mut js);
     body.append(&mut stderr);
 
+    cache::insert(
+        hash,
+        CacheEntry {
+            wasm_len,
+            js_len,
+            body: body.clone(),
+        },
+    );
+
     Response::from_data("application/octet-stream", body)
         .with_additional_header("reference-number", id.to_string())
         .with_additional_header("wasm-content-length", wasm_len.to_string())
         .with_additional_header("js-content-length", js_len.to_string())
+        .with_additional_header("origin-cache-status", "MISS")
 }

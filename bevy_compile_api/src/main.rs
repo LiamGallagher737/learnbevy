@@ -11,6 +11,7 @@ use std::{
     time::{Instant, SystemTime},
 };
 
+mod cache;
 mod compile;
 mod rate_limit;
 
@@ -28,8 +29,14 @@ const LOG_FOLDER_PATH: &str = "/var/log/bca";
 const LOG_FOLDER_PATH: &str = "logs";
 const LOG_FILE_PREFIX: &str = "bca.log.";
 
+#[cfg(target_os = "linux")]
+const CACHE_FOLDER_PATH: &str = "/bca_cache";
+#[cfg(not(target_os = "linux"))]
+const CACHE_FOLDER_PATH: &str = "cache";
+
 fn main() {
     fs::create_dir_all(LOG_FOLDER_PATH).expect("Failed to create log folder");
+    fs::create_dir_all(CACHE_FOLDER_PATH).expect("Failed to create cache folder");
     fern::Dispatch::new()
         .format(|out, message, record| {
             out.finish(format_args!(
