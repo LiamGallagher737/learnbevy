@@ -73,6 +73,9 @@ async function run() {
             case "ActiveRequestExists":
                 msg = "A request from your IP is currently being handled, please wait until it is complete";
                 break;
+            case "DisallowedWord":
+                msg = `Your code contains a disallowed word: "${error.word}"`;
+                break;
             case "BuildFailed":
                 msg = "The code failed to build";
                 break;
@@ -98,6 +101,7 @@ async function run() {
             },
         }).showToast();
         runBtn.disabled = false;
+        return;
     }
 
     const wasm_size = parseInt(res.headers.get("wasm-content-length"));

@@ -4,6 +4,16 @@ use rouille::{Request, Response};
 use scopeguard::defer;
 use std::{env, fs, process::Command};
 
+const DISALLOWED_WORDS: &[&str] = &[
+    "include!",
+    "include_str!",
+    "include_bytes!",
+    "embedded_asset!",
+    "embedded_path",
+    "load_internal_asset",
+    "load_internal_binary_asset",
+];
+
 pub fn compile(id: usize, request: &Request) -> Response {
     let docker_container_id = format!("compile.{id}");
     let e500 = Response::json(&Error::Internal)
@@ -14,6 +24,13 @@ pub fn compile(id: usize, request: &Request) -> Response {
         info!("{id}: Rejected for invalid body");
         return Response::json(&Error::InvalidBody).with_status_code(400);
     };
+
+    for word in DISALLOWED_WORDS {
+        if body.contains(word) {
+            info!("{id}: Rejected for containing disallowed word {word:?}");
+            return Response::json(&Error::DisallowedWord { word }).with_status_code(400);
+        }
+    }
 
     let dir = env::temp_dir()
         .join("bevy_compile_api")

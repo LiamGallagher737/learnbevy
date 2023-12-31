@@ -168,6 +168,9 @@ enum Error {
     CFRateLimit,
     ActiveRequestExists,
     InvalidBody,
+    DisallowedWord {
+        word: &'static str,
+    },
     BuildFailed {
         stdout: String,
         stderr: String,
