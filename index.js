@@ -1,6 +1,7 @@
 const runBtn = document.getElementById('button-run');
 const editorElement = document.getElementById('editor');
 const gameElement = document.getElementById('game');
+const consoleElement = document.getElementById('console-content');
 
 const startingCode =
     `use bevy::prelude::*;
@@ -20,12 +21,12 @@ fn setup(mut commands: Commands) {
 
 fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearColor>, mut state: Local<bool>) {
     if input.just_pressed(KeyCode::Space) {
-      *state = !*state;
-      if *state {
-        clear_color.0 = Color::PURPLE;
-      } else {
-        clear_color.0 = Color::RED;
-      }
+        *state = !*state;
+        if *state {
+            clear_color.0 = Color::PURPLE;
+        } else {
+            clear_color.0 = Color::RED;
+        }
     }
 }
   `;
@@ -46,6 +47,7 @@ window.addEventListener('resize', () => editor.layout());
 async function run() {
     runBtn.disabled = true;
     gameElement.innerHTML = "";
+    consoleElement.innerHTML = "";
     const code = editor.getValue();
 
     const res = await fetch("https://compile.learnbevy.com/", {
@@ -57,11 +59,9 @@ async function run() {
         const error = await res.json();
 
         if (error.kind === "BuildFailed") {
-            const stdout = document.createElement("pre");
-            stdout.innerText = error.stderr;
-            gameElement.appendChild(stdout);
+            consoleElement.innerText = error.stdout;
         }
-        
+
         let msg = "";
         switch (error.kind) {
             case "RateLimit":
@@ -98,16 +98,19 @@ async function run() {
             },
         }).showToast();
         runBtn.disabled = false;
-        throw new Error(`Request failed with error ${error.kind}`);
     }
 
-    const wasm_size = res.headers.get("wasm-content-length");
-    const js_size = res.headers.get("js-content-length");
+    const wasm_size = parseInt(res.headers.get("wasm-content-length"));
+    const js_size = parseInt(res.headers.get("js-content-length"));
 
     const body = await res.blob();
+
     const wasm = body.slice(0, wasm_size, "application/wasm");
     const js = body.slice(wasm_size, wasm_size + js_size, "application/javascript");
+    const stderr = body.slice(wasm_size + js_size, -1, "text/plain");
+
     const js_text = await js.text();
+    const stderr_text = await stderr.text();
 
     const AsyncFunction = async function () { }.constructor;
     const load = new AsyncFunction("wasm_blob", js_text);
@@ -121,6 +124,8 @@ async function run() {
     gameElement.appendChild(gameCanvas);
     gameCanvas.style.width = "800px";
     gameCanvas.style.height = null;
+
+    consoleElement.innerHTML = stderr_text;
 
     runBtn.disabled = false;
 }

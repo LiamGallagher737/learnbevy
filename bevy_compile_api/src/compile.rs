@@ -93,6 +93,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
         return e500;
     }
 
+    // Get WASM
     let wasm = match fs::read(dir.join("game_bg.wasm")) {
         Ok(wasm) => wasm,
         Err(err) => {
@@ -101,6 +102,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
         }
     };
 
+    // Get JS
     let mut js = match fs::read(dir.join("game.js")) {
         Ok(js) => js,
         Err(err) => {
@@ -115,11 +117,15 @@ pub fn compile(id: usize, request: &Request) -> Response {
     // Add on the extra js
     js.append(&mut include_bytes!("extra.js").to_vec());
 
+    // Get stderr
+    let mut stderr = output.stderr;
+
     let wasm_len = wasm.len();
     let js_len = js.len();
 
     let mut body = wasm;
     body.append(&mut js);
+    body.append(&mut stderr);
 
     Response::from_data("application/octet-stream", body)
         .with_additional_header("reference-number", id.to_string())

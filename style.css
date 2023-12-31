@@ -42,9 +42,31 @@ main {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  border-radius: 4px;
+}
+
+#output {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#game,
+#console {
+  border-radius: 4px;
+  background-color: #1e1e1e;
 }
 
 #game {
-  height: 100%;
-  border-radius: 4px;
+  height: 450px;
+  overflow: none;
+}
+
+#console {
+  flex-grow: 1;
+  color: white;
+  padding: 1rem;
+  font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console,
+    monospace;
+  overflow: auto;
 }
