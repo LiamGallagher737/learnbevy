@@ -2,10 +2,11 @@ use crate::{
     cache::{self, CacheEntry},
     Error, IMAGE,
 };
+use flate2::{write::GzEncoder, Compression};
 use log::{debug, error, info};
 use rouille::{Request, Response};
 use scopeguard::defer;
-use std::{env, fs, process::Command};
+use std::{env, fs, io::Write, process::Command};
 
 const EXTRA_RUST: &str = r#"
 static __EXIT_FLAG: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
@@ -35,31 +36,41 @@ pub fn compile(id: usize, request: &Request) -> Response {
         .with_status_code(500)
         .with_additional_header("reference-number", id.to_string());
 
-    let Ok(body) = rouille::input::plain_text_body(request) else {
+    let compress = request
+        .header("accept-encoding")
+        .map_or(false, |header| header.contains("gzip"));
+    let mut encoder = GzEncoder::new(Vec::new(), Compression::fast());
+
+    let Ok(mut code) = rouille::input::plain_text_body(request) else {
         info!("{id}: Rejected for invalid body");
         return Response::json(&Error::InvalidBody).with_status_code(400);
     };
 
     for word in DISALLOWED_WORDS {
-        if body.contains(word) {
+        if code.contains(word) {
             info!("{id}: Rejected for containing disallowed word {word:?}");
             return Response::json(&Error::DisallowedWord { word }).with_status_code(400);
         }
     }
 
     // Check cache
-    let mut code = rust_minify::minify(&body).unwrap_or_else(|_| {
-        info!("{id}: Failed to parse");
-        body
-    });
-    let hash = fastmurmur3::hash(code.as_bytes());
-    if let Some(cache) = cache::get(hash) {
+    let minified_code = rust_minify::minify(&code).ok();
+    let hash = minified_code.map(|code| fastmurmur3::hash(code.as_bytes()));
+    if let Some(mut cache) = hash.map(|hash| cache::get(hash)).flatten() {
         info!("{id}: Hit cache");
-        return Response::from_data("application/octet-stream", cache.body)
+        if compress {
+            encoder.write_all(&cache.body).unwrap();
+            cache.body = encoder.finish().unwrap();
+        }
+        let mut response = Response::from_data("application/octet-stream", cache.body)
             .with_additional_header("reference-number", id.to_string())
             .with_additional_header("wasm-content-length", cache.wasm_len.to_string())
             .with_additional_header("js-content-length", cache.js_len.to_string())
             .with_additional_header("origin-cache-status", "HIT");
+        if compress {
+            response = response.with_additional_header("content-encoding", "gzip");
+        }
+        return response;
     }
 
     code = code.replace(
@@ -197,18 +208,31 @@ pub fn compile(id: usize, request: &Request) -> Response {
     body.append(&mut js);
     body.append(&mut stderr);
 
-    cache::insert(
-        hash,
-        CacheEntry {
-            wasm_len,
-            js_len,
-            body: body.clone(),
-        },
-    );
+    if let Some(hash) = hash {
+        cache::insert(
+            hash,
+            CacheEntry {
+                wasm_len,
+                js_len,
+                body: body.clone(),
+            },
+        );
+    }
 
-    Response::from_data("application/octet-stream", body)
+    if compress {
+        encoder.write_all(&body).unwrap();
+        body = encoder.finish().unwrap();
+    }
+
+    let response = Response::from_data("application/octet-stream", body)
         .with_additional_header("reference-number", id.to_string())
         .with_additional_header("wasm-content-length", wasm_len.to_string())
         .with_additional_header("js-content-length", js_len.to_string())
-        .with_additional_header("origin-cache-status", "MISS")
+        .with_additional_header("origin-cache-status", "MISS");
+
+    if compress {
+        response.with_additional_header("content-encoding", "gzip")
+    } else {
+        response
+    }
 }

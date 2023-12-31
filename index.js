@@ -78,7 +78,7 @@ async function run() {
         const error = await res.json();
 
         if (error.kind === "BuildFailed") {
-            consoleElement.innerText = error.stdout;
+            consoleElement.innerHTML = error.stderr;
         }
 
         let msg = "";

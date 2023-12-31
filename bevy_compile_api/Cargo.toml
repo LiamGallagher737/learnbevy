@@ -10,6 +10,7 @@ chrono = "0.4"
 fastmurmur3 = "0.2"
 fastrand = "2.0"
 fern = { version = "0.6", features = ["date-based"] }
+flate2 = "1.0"
 log = "0.4"
 rouille = { version = "3.6", features = ["rustls"] }
 rust_minify = "0.1"
