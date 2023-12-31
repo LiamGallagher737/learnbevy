@@ -69,4 +69,9 @@ main {
   font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console,
     monospace;
   overflow: auto;
+  height: 0;
+}
+
+#console-content {
+  text-wrap: wrap;
 }

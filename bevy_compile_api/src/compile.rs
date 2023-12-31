@@ -4,6 +4,18 @@ use rouille::{Request, Response};
 use scopeguard::defer;
 use std::{env, fs, process::Command};
 
+const EXTRA_RUST: &str = r#"
+static __EXIT_FLAG: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn __exit() {
+    __EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
+}
+fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>) {
+    if __EXIT_FLAG.load(std::sync::atomic::Ordering::Relaxed) {
+        exit.send(bevy::app::AppExit);
+    }
+}"#;
+
 const DISALLOWED_WORDS: &[&str] = &[
     "include!",
     "include_str!",
@@ -20,7 +32,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
         .with_status_code(500)
         .with_additional_header("reference-number", id.to_string());
 
-    let Ok(body) = rouille::input::plain_text_body(request) else {
+    let Ok(mut body) = rouille::input::plain_text_body(request) else {
         info!("{id}: Rejected for invalid body");
         return Response::json(&Error::InvalidBody).with_status_code(400);
     };
@@ -31,6 +43,8 @@ pub fn compile(id: usize, request: &Request) -> Response {
             return Response::json(&Error::DisallowedWord { word }).with_status_code(400);
         }
     }
+
+    body = body.replace("App::new()", "App::new().add_systems(Update, __check_exit_flag)");
 
     let dir = env::temp_dir()
         .join("bevy_compile_api")
@@ -47,6 +61,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
         }
     }
 
+    body.push_str(EXTRA_RUST);
     if let Err(err) = fs::write(dir.join("main.rs"), body) {
         error!("{id}: Failed to write main.rs to tempdir: {err:?}");
         return e500;
@@ -127,6 +142,23 @@ pub fn compile(id: usize, request: &Request) -> Response {
             return e500;
         }
     };
+
+    // Remove "export" from "export function __exit()"
+    let search_bytes = b"export function __exit()";
+    let mut seen = 0;
+    let mut n = 0;
+    for byte in &js {
+        if *byte == search_bytes[seen] {
+            seen += 1;
+        } else {
+            seen = 0;
+        }
+        if seen == search_bytes.len() {
+            break;
+        }
+        n += 1;
+    }
+    js.drain(n - seen + 1..n - seen + 7);
     // Remove two last lines of exports
     js.resize(js.len() - 47, 0);
     // Remove "import.meta.url" as it's not allowed outside a js module

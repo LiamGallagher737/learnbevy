@@ -17,10 +17,14 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
+    info!("Here is some info");
+    warn!("Here is a warning");
+    error!("Here is an error");
 }
 
 fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearColor>, mut state: Local<bool>) {
     if input.just_pressed(KeyCode::Space) {
+        info!("Changing color");
         *state = !*state;
         if *state {
             clear_color.0 = Color::PURPLE;
@@ -29,7 +33,7 @@ fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearC
         }
     }
 }
-  `;
+`;
 
 let editor = null;
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs' } });
@@ -44,7 +48,22 @@ require(["vs/editor/editor.main"], () => {
 
 window.addEventListener('resize', () => editor.layout());
 
+const origConsoleLog = console.log;
+console.log = (...args) => {
+    origConsoleLog.apply(console, args);
+    if (args[0]?.startsWith("%c") && !args[0]?.includes("GPU lacks support")) {
+        consoleElement.innerHTML += "\n" + args[0].replaceAll("%c", "");
+    }
+};
+
+let runningWasm = null;
+let EXIT_FLAG = false;
+
 async function run() {
+    if (runningWasm) {
+        runningWasm.__exit();
+        runningWasm = null;
+    }
     runBtn.disabled = true;
     gameElement.innerHTML = "";
     consoleElement.innerHTML = "";
@@ -116,20 +135,22 @@ async function run() {
     const js_text = await js.text();
     const stderr_text = await stderr.text();
 
+    let ref_obj = new Object();
     const AsyncFunction = async function () { }.constructor;
-    const load = new AsyncFunction("wasm_blob", js_text);
-    await load(wasm).catch((error) => {
+    const load = new AsyncFunction("wasm_blob", "ref_obj", js_text);
+    await load(wasm, ref_obj).catch((error) => {
         if (!error.message.startsWith("Using exceptions for control flow, don't mind me. This isn't actually an error!")) {
             throw error;
         }
     });
+    runningWasm = ref_obj.wasm;
 
     const gameCanvas = document.querySelector('canvas[alt="App"]');
     gameElement.appendChild(gameCanvas);
     gameCanvas.style.width = "800px";
     gameCanvas.style.height = null;
 
-    consoleElement.innerHTML = stderr_text;
+    consoleElement.innerHTML = stderr_text + '\n';
 
     runBtn.disabled = false;
 }
