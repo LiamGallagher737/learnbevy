@@ -19,7 +19,7 @@ main {
   gap: 1rem;
 }
 
-#button-run {
+button {
   background: #aa4422;
   color: white;
   cursor: pointer;
@@ -28,13 +28,14 @@ main {
   border: none;
   border-radius: 4px;
   transition: 150ms;
+  margin-right: 0.5rem;
 }
 
-#button-run:hover {
+button:hover {
   background: #da7553;
 }
 
-#button-run:disabled {
+button:disabled {
   opacity: 0.5;
 }
 

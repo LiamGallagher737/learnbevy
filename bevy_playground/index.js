@@ -1,9 +1,13 @@
 const runBtn = document.getElementById('button-run');
+const shareBtn = document.getElementById('button-share');
 const editorElement = document.getElementById('editor');
 const gameElement = document.getElementById('game');
 const consoleElement = document.getElementById('console-content');
 
-const startingCode =
+runBtn.addEventListener('click', run);
+shareBtn.addEventListener('click', share);
+
+let startingCode =
     `use bevy::prelude::*;
 
 fn main() {
@@ -35,6 +39,19 @@ fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearC
 }
 `;
 
+const urlParams = new URLSearchParams(window.location.search);
+const share_id = urlParams.get('share');
+if (share_id) {
+    const res = await fetch(`/api/share/${share_id}`);
+    if (res.ok) {
+        startingCode = await res.json().then((json) => json.code);
+    } else if (res.status === 404) {
+        showToast(`Share "${share_id} not found"`, "#f87171");
+    } else {
+        showToast(`Failed to fetch share"`, "#f87171");
+    }
+}
+
 let editor = null;
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs' } });
 require(["vs/editor/editor.main"], () => {
@@ -57,9 +74,8 @@ console.log = (...args) => {
 };
 
 let runningWasm = null;
-let EXIT_FLAG = false;
 
-async function run() {
+export async function run() {
     if (runningWasm) {
         runningWasm.__exit();
         runningWasm = null;
@@ -107,18 +123,7 @@ async function run() {
             default:
                 msg = "An error occurred: " + error.kind;
         }
-        Toastify({
-            text: msg,
-            duration: 5000,
-            close: true,
-            gravity: "top",
-            position: "center",
-            stopOnFocus: true,
-            style: {
-                background: "#f87171",
-                borderRadius: "4px",
-            },
-        }).showToast();
+        showToast(msg, "#f87171");
         runBtn.disabled = false;
         return;
     }
@@ -153,4 +158,42 @@ async function run() {
     consoleElement.innerHTML = stderr_text + '\n';
 
     runBtn.disabled = false;
+}
+
+export async function share() {
+    const code = editor.getValue();
+    const res = await fetch('/api/share', {
+        method: "POST",
+        body: code,
+    });
+
+    if (!res.ok) {
+        showToast("An error occurred when creating a share", "#f87171");
+        return;
+    }
+
+    const id = await res.json().then((json) => json.id);
+    const url = `https://play.learnbevy.com?share=${id}`;
+    navigator.clipboard.writeText(url);
+    window.history.replaceState({}, "", `/?share=${id}`);
+    showToast(`Share copied to clipboard: ${url}`, "#16a34a");
+}
+
+/**
+ * @param {string} text 
+ * @param {string} background 
+ */
+function showToast(text, background) {
+    Toastify({
+        text,
+        duration: 5000,
+        close: true,
+        gravity: "top",
+        position: "center",
+        stopOnFocus: true,
+        style: {
+            background,
+            borderRadius: "4px",
+        },
+    }).showToast();
 }
