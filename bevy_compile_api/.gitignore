@@ -6,3 +6,4 @@
 *.key
 auth-token.txt
 cache-bypass-token.txt
+*.bat
