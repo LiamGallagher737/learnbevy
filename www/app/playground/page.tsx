@@ -8,6 +8,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { DEFAULT_CODE } from "@/lib/constants";
 import { run } from "@/lib/runCode";
 import { Share, Copy } from "lucide-react";
 import { useRef, useState } from "react";
@@ -16,7 +17,7 @@ import { toast } from "sonner";
 type State = "default" | "loadingGame" | "playingGame";
 
 export default function Playground() {
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(DEFAULT_CODE);
   const gameCanvas = useRef<HTMLCanvasElement | null>(null);
   const wasm = useRef<{ __exit: () => void } | null>(null);
   const [state, setState] = useState<State>("default");
@@ -48,6 +49,8 @@ export default function Playground() {
             <Button
               className="transition"
               onClick={async () => {
+                if (wasm.current) wasm.current.__exit();
+                if (gameCanvas.current) gameCanvas.current.remove();
                 setState("loadingGame");
                 const result = await run(code, "gameCard");
                 setState("playingGame");
@@ -72,7 +75,12 @@ export default function Playground() {
             </div>
           </Card>
           <Card className="p-4 h-full">
-            <CodeEditor onChange={(code) => setCode(code)}></CodeEditor>
+            <CodeEditor
+              onChange={(code) => {
+                console.log(code);
+                setCode(code);
+              }}
+            ></CodeEditor>
           </Card>
         </ResizablePanel>
         <ResizableHandle withHandle className="mx-4" />

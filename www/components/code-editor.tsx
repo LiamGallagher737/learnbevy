@@ -6,7 +6,6 @@ import { DEFAULT_CODE } from "@/lib/constants";
 
 export function CodeEditor(props: { onChange: (code: string) => void }) {
   useEffect(() => {
-    props.onChange(DEFAULT_CODE);
     loader.init().then((monaco) => {
       monaco.editor.defineTheme("custom-theme", {
         base: "vs-dark",
