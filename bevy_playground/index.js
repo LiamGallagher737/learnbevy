@@ -5,6 +5,10 @@ const editorElement = document.getElementById('editor');
 const gameElement = document.getElementById('game');
 const consoleElement = document.getElementById('console-content');
 
+gameSizeInput.value = (window.innerHeight / 2) * (16 / 9);
+document.querySelector('main').style.gridTemplateColumns = `1fr ${gameSizeInput.value}px`;
+gameElement.style.height = `${gameSizeInput.value * 9 / 16}px`;
+
 runBtn.addEventListener('click', run);
 shareBtn.addEventListener('click', share);
 
@@ -69,7 +73,7 @@ window.addEventListener('resize', () => editor.layout());
 gameSizeInput.addEventListener("input", (event) => {
     document.querySelector('main').style.gridTemplateColumns = `1fr ${event.target.value}px`;
     gameElement.style.height = `${event.target.value * 9 / 16}px`;
-    const gameCanvas = document.querySelector('game-canvas');
+    const gameCanvas = document.getElementById('game-canvas');
     if (gameCanvas) gameCanvas.style.width = `${event.target.value}px`;
     editor.layout();
 });
