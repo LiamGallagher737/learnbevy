@@ -74,7 +74,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
     );
 
     let dir = env::temp_dir()
-        .join("bevy_compile_api")
+        .join("bca")
         .join(id.to_string());
     if let Err(err) = fs::create_dir_all(&dir) {
         error!("{id}: Failed to create tempdir: {err:?}");
