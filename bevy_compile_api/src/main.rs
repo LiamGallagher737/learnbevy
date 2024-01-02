@@ -7,7 +7,7 @@ use serde::Serialize;
 use std::{
     collections::HashSet,
     fs,
-    net::Ipv4Addr,
+    net::IpAddr,
     sync::{Arc, RwLock},
     time::{Instant, SystemTime},
 };
@@ -80,7 +80,7 @@ fn main() {
 fn request_handler(
     request: &Request,
     rate_limits: RateLimitMap,
-    active_ips: Arc<RwLock<HashSet<Ipv4Addr>>>,
+    active_ips: Arc<RwLock<HashSet<IpAddr>>>,
 ) -> Response {
     if request.header("Cool-Auth") != Some(AUTH_TOKEN) {
         trace!(
@@ -98,7 +98,10 @@ fn request_handler(
         return Response::empty_404();
     };
 
-    let Ok(ip) = ip_str.parse::<Ipv4Addr>() else {
+    let Ok(ip) = ip_str.parse::<IpAddr>() else {
+        error!(
+            "Request's CF-Connecting-IP header could not parse to a valid IpAddr: {ip_str}"
+        );
         return Response::empty_400();
     };
 
