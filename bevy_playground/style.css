@@ -1,5 +1,5 @@
 body {
-  background: #e1e1db;
+  background: #171717;
   padding: 1rem;
   height: calc(100vh - 2rem);
   font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
@@ -20,7 +20,7 @@ main {
 }
 
 button {
-  background: #aa4422;
+  background: #ea580c;
   color: white;
   cursor: pointer;
   padding: 0.5rem 1.2rem;
@@ -32,7 +32,7 @@ button {
 }
 
 button:hover {
-  background: #da7553;
+  background: #9a3412;
 }
 
 button:disabled {

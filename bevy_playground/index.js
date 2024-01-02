@@ -1,5 +1,6 @@
 const runBtn = document.getElementById('button-run');
 const shareBtn = document.getElementById('button-share');
+const gameSizeInput = document.getElementById('input-game-size');
 const editorElement = document.getElementById('editor');
 const gameElement = document.getElementById('game');
 const consoleElement = document.getElementById('console-content');
@@ -64,6 +65,14 @@ require(["vs/editor/editor.main"], () => {
 });
 
 window.addEventListener('resize', () => editor.layout());
+
+gameSizeInput.addEventListener("input", (event) => {
+    document.querySelector('main').style.gridTemplateColumns = `1fr ${event.target.value}px`;
+    gameElement.style.height = `${event.target.value * 9 / 16}px`;
+    const gameCanvas = document.querySelector('game-canvas');
+    if (gameCanvas) gameCanvas.style.width = `${event.target.value}px`;
+    editor.layout();
+});
 
 const origConsoleLog = console.log;
 console.log = (...args) => {
@@ -152,8 +161,9 @@ export async function run() {
 
     const gameCanvas = document.querySelector('canvas[alt="App"]');
     gameElement.appendChild(gameCanvas);
-    gameCanvas.style.width = "800px";
+    gameCanvas.style.width = `${gameSizeInput.value}px`;
     gameCanvas.style.height = null;
+    gameCanvas.id = "game-canvas";
 
     consoleElement.innerHTML = stderr_text + '\n';
 

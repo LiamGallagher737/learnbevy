@@ -9,23 +9,20 @@ export async function onRequestPost(context) {
             status: 400,
         });
     }
-    const id = generateId(8);
+    const id = await hashString(code);
     await context.env.BEVY_PLAYGROUND_SHARES.put(id, code);
     return new Response(JSON.stringify({ id }));
 }
 
 /**
- * @param {number} length 
- * @returns {string}
+ * @param {string} message
  */
-function generateId(length) {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-        counter += 1;
-    }
-    return result;
+async function hashString(message) {
+    const msgUint8 = new TextEncoder().encode(message); // encode as (utf-8) Uint8Array
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8); // hash the message
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
+    const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    return hashHex;
 }
