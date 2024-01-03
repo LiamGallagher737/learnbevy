@@ -60,15 +60,20 @@ export default function ClientPlayground(params: { code: string }) {
 
   async function copyCodeToClipboard() {
     await navigator.clipboard.writeText(code);
-    toast("Code copied to clipboard");
+    toast.success("Code copied to clipboard");
   }
 
   async function share() {
-    const { id } = await createShare(code);
-    await navigator.clipboard.writeText(
-      `https://learnbevy.com/playground?share=${id}`
-    );
-    toast("Share link copied to clipboard");
+    toast.promise(createShare(code), {
+      loading: "Loading...",
+      success: async ({ id }) => {
+        await navigator.clipboard.writeText(
+          `https://learnbevy.com/playground?share=${id}`
+        );
+        return "Share link copied to clipboard";
+      },
+      error: "Error creating share link",
+    });
   }
 
   return (

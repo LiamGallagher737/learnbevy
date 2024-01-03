@@ -36,7 +36,7 @@ export async function run(code: string, parentId: string) {
             default:
                 msg = "An error occurred: " + error.kind;
         }
-        toast(msg);
+        toast.error(msg);
         return {
             status: "Error" as const,
             stderr: error.kind === "BuildFailed" ? error.stderr : null,
