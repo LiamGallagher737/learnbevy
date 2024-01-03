@@ -3,6 +3,11 @@ export const runtime = "edge";
 import { DEFAULT_CODE } from "@/lib/constants";
 import { notFound } from "next/navigation";
 import ClientPlayground from "./client-playground";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Bevy Playground",
+};
 
 export default async function Page({
   searchParams,

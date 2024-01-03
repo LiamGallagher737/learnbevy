@@ -62,6 +62,8 @@ fn main() {
     let rate_limits = RateLimitMap::default();
     let active_ips = Arc::new(RwLock::new(HashSet::new()));
 
+    info!("Starting server on {ADDRESS}");
+
     Server::new_ssl(
         ADDRESS,
         move |request| {
