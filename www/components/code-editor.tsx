@@ -2,9 +2,8 @@
 
 import React, { useEffect } from "react";
 import Editor, { loader } from "@monaco-editor/react";
-import { DEFAULT_CODE } from "@/lib/constants";
 
-export function CodeEditor(props: { onChange: (code: string) => void }) {
+export function CodeEditor(props: { defaultValue: string, onChange: (code: string) => void }) {
   useEffect(() => {
     loader.init().then((monaco) => {
       monaco.editor.defineTheme("custom-theme", {
@@ -22,7 +21,7 @@ export function CodeEditor(props: { onChange: (code: string) => void }) {
     <Editor
       height="100%"
       defaultLanguage="rust"
-      defaultValue={DEFAULT_CODE}
+      defaultValue={props.defaultValue}
       theme="custom-theme"
       options={{ minimap: { enabled: false } }}
       onChange={(code) => props.onChange(code!)}

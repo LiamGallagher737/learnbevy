@@ -1,141 +1,29 @@
-"use client";
 export const runtime = "edge";
 
-import { CodeEditor } from "@/components/code-editor";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
 import { DEFAULT_CODE } from "@/lib/constants";
-import { run } from "@/lib/runCode";
-import { Console } from "@/components/console";
-import { Share, Copy } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
-import Image from "next/image";
+import { notFound } from "next/navigation";
+import ClientPlayground from "./client-playground";
 
-type State = "default" | "loadingGame" | "playingGame";
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) {
+  let code = DEFAULT_CODE;
 
-export default function Playground() {
-  const [code, setCode] = useState(DEFAULT_CODE);
-  const gameCanvas = useRef<HTMLCanvasElement | null>(null);
-  const wasm = useRef<{ __exit: () => void } | null>(null);
-  const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
-  const [state, setState] = useState<State>("default");
-
-  useEffect(() => {
-    const originalConsoleLog = console.log;
-    console.log = (...args) => {
-      originalConsoleLog.apply(console, args);
-      if (
-        args[0]?.startsWith("%c") &&
-        !args[0]?.includes("GPU lacks support")
-      ) {
-        setConsoleOutput((prev) => [...prev, args[0].replaceAll("%c", "")]);
-      }
-    };
-  }, []);
-
-  async function play() {
-    if (wasm.current) wasm.current.__exit();
-    if (gameCanvas.current) gameCanvas.current.remove();
-    setConsoleOutput([]);
-
-    setState("loadingGame");
-    const result = await run(code, "gameCard");
-
-    if (result.status === "Success") {
-      setState("playingGame");
-      gameCanvas.current = result.gameCanvas;
-      wasm.current = result.wasm;
-    } else if (result.status === "Error") {
-      setState("default");
-      if (result.stderr) {
-        setConsoleOutput([result.stderr]);
-      }
+  const shareId = searchParams["share"];
+  if (shareId) {
+    const result = await process.env.SHARES.get(shareId);
+    if (result) {
+      code = result;
+    } else {
+      return notFound();
     }
-  }
-
-  async function copyCodeToClipboard() {
-    await navigator.clipboard.writeText(code);
-    toast("Code copied to clipboard");
   }
 
   return (
     <main className="p-4 h-screen">
-      <ResizablePanelGroup
-        direction="horizontal"
-        onLayout={() => {
-          const canvas = gameCanvas.current;
-          if (canvas) {
-            const parent = canvas.parentElement!;
-            canvas.style.width = `${parent.clientWidth}px`;
-            canvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
-          }
-        }}
-      >
-        <ResizablePanel
-          defaultSize={60}
-          minSize={20}
-          className="flex flex-col gap-4"
-        >
-          <Card className="p-4 flex flex-row justify-between">
-            <div className="flex flex-row gap-4">
-              <Button
-                className="transition"
-                onClick={play}
-                disabled={state === "loadingGame"}
-              >
-                Play
-              </Button>
-              {state === "loadingGame" && (
-                <Image
-                  className="animate-spin-slow"
-                  src="/assets/bevy_bird_dark.png"
-                  alt="Bevy Bird"
-                  width={40}
-                  height={40}
-                />
-              )}
-            </div>
-            <div className="flex flex-row gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={copyCodeToClipboard}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <Share className="h-4 w-4" />
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="p-4 h-full">
-            <CodeEditor onChange={(code) => setCode(code)}></CodeEditor>
-          </Card>
-        </ResizablePanel>
-
-        <ResizableHandle withHandle className="mx-4" />
-
-        <ResizablePanel
-          defaultSize={40}
-          minSize={20}
-          className="flex flex-col gap-4"
-        >
-          <Card className="aspect-video">
-            <div id="gameCard" className="w-full h-full"></div>
-          </Card>
-
-          <Card className="flex-grow p-4 text-sm overflow-auto">
-            <Console logs={consoleOutput}></Console>
-          </Card>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+      <ClientPlayground code={code} />
     </main>
   );
 }
