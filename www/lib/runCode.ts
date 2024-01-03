@@ -7,7 +7,7 @@ export async function run(code: string, parentId: string) {
     });
 
     if (!res.ok) {
-        const error = await res.json();
+        const error: BcaError = await res.json();
         let msg = "";
         switch (error.kind) {
             case "RateLimit":
@@ -37,6 +37,10 @@ export async function run(code: string, parentId: string) {
                 msg = "An error occurred: " + error.kind;
         }
         toast(msg);
+        return {
+            status: "Error" as const,
+            stderr: error.kind === "BuildFailed" ? error.stderr : null,
+        }
     }
 
     const wasmSize = parseInt(res.headers.get("wasm-content-length")!);
@@ -79,5 +83,43 @@ export async function run(code: string, parentId: string) {
     gameCanvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
     gameCanvas.style.borderRadius = "0.5rem";
 
-    return { gameCanvas, wasm: refObj.wasm };
+    return { status: "Success" as const, gameCanvas, wasm: refObj.wasm };
+}
+
+type BcaError = RateLimitError | CFRateLimitError | ActiveRequestExistsError | InvalidBodyError | DisallowedWordError | BuildFailedError | OverloadedError | InternalError;
+
+type RateLimitError = {
+    kind: "RateLimit";
+    time_left: number;
+}
+
+type CFRateLimitError = {
+    kind: "CFRateLimit";
+}
+
+type ActiveRequestExistsError = {
+    kind: "ActiveRequestExists";
+}
+
+type InvalidBodyError = {
+    kind: "InvalidBody";
+}
+
+type DisallowedWordError = {
+    kind: "DisallowedWord";
+    word: string;
+}
+
+type BuildFailedError = {
+    kind: "BuildFailed";
+    stdout: string;
+    stderr: string;
+}
+
+type OverloadedError = {
+    kind: "Overloaded";
+}
+
+type InternalError = {
+    kind: "Internal";
 }

@@ -1,4 +1,5 @@
 "use client";
+export const runtime = 'edge';
 
 import { CodeEditor } from "@/components/code-editor";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { Console } from "@/components/console";
 import { Share, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 type State = "default" | "loadingGame" | "playingGame";
 
@@ -44,10 +46,17 @@ export default function Playground() {
 
     setState("loadingGame");
     const result = await run(code, "gameCard");
-    setState("playingGame");
 
-    gameCanvas.current = result.gameCanvas;
-    wasm.current = result.wasm;
+    if (result.status === "Success") {
+      setState("playingGame");
+      gameCanvas.current = result.gameCanvas;
+      wasm.current = result.wasm;
+    } else if (result.status === "Error") {
+      setState("default");
+      if (result.stderr) {
+        setConsoleOutput([result.stderr]);
+      }
+    }
   }
 
   async function copyCodeToClipboard() {
@@ -94,11 +103,14 @@ export default function Playground() {
               </Button>
             </div>
           </Card>
+
           <Card className="p-4 h-full">
             <CodeEditor onChange={(code) => setCode(code)}></CodeEditor>
           </Card>
         </ResizablePanel>
+
         <ResizableHandle withHandle className="mx-4" />
+
         <ResizablePanel
           defaultSize={40}
           minSize={20}
@@ -107,6 +119,7 @@ export default function Playground() {
           <Card className="aspect-video">
             <div id="gameCard" className="w-full h-full"></div>
           </Card>
+
           <Card className="flex-grow p-4 text-sm overflow-auto">
             <Console logs={consoleOutput}></Console>
           </Card>
