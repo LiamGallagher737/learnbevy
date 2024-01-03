@@ -26,7 +26,7 @@ export function CodeEditor(props: {
   return (
     <Editor
       height="100%"
-      defaultLanguage="rusty"
+      defaultLanguage={MODE_ID}
       defaultValue={props.defaultValue}
       theme="vscode-dark-plus"
       options={{

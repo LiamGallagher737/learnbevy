@@ -83,7 +83,7 @@ export async function run(code: string, parentId: string) {
     gameCanvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
     gameCanvas.style.borderRadius = "0.5rem";
 
-    return { status: "Success" as const, gameCanvas, wasm: refObj.wasm };
+    return { status: "Success" as const, gameCanvas, wasm: refObj.wasm, stderr: stderrText };
 }
 
 type BcaError = RateLimitError | CFRateLimitError | ActiveRequestExistsError | InvalidBodyError | DisallowedWordError | BuildFailedError | OverloadedError | InternalError;

@@ -1,13 +1,13 @@
 "use client";
 
 import { Copy, Share } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "../../components/ui/resizable";
+} from "@/components/ui/resizable";
 import { CodeEditor } from "@/components/code-editor";
 import { Console } from "@/components/console";
 import { useEffect, useRef, useState } from "react";
@@ -53,6 +53,7 @@ export default function ClientPlayground(params: { code: string }) {
       setState("playingGame");
       gameCanvas.current = result.gameCanvas;
       wasm.current = result.wasm;
+      setConsoleOutput([result.stderr]);
     } else if (result.status === "Error") {
       setState("default");
       if (result.stderr) {

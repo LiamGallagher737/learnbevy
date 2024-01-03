@@ -57,7 +57,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
     if request.header("cache-bypass") != Some(CACHE_BYPASS_TOKEN) {
         if let Some(cache) = hash.map(|hash| cache::get(hash)).flatten() {
             info!("{id}: Hit cache");
-            return Response::from_data("application/octet-stream", cache.body)
+            return Response::from_data("application/wasm", cache.body)
                 .with_additional_header("reference-number", id.to_string())
                 .with_additional_header("wasm-content-length", cache.wasm_len.to_string())
                 .with_additional_header("js-content-length", cache.js_len.to_string())
@@ -217,7 +217,7 @@ pub fn compile(id: usize, request: &Request) -> Response {
         );
     }
 
-    Response::from_data("application/octet-stream", body)
+    Response::from_data("application/wasm", body)
         .with_additional_header("reference-number", id.to_string())
         .with_additional_header("wasm-content-length", wasm_len.to_string())
         .with_additional_header("js-content-length", js_len.to_string())
