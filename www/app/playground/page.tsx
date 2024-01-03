@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/resizable";
 import { DEFAULT_CODE } from "@/lib/constants";
 import { run } from "@/lib/runCode";
+import { Console } from "@/components/console";
 import { Share, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -35,6 +36,19 @@ export default function Playground() {
       }
     };
   }, []);
+
+  async function play() {
+    if (wasm.current) wasm.current.__exit();
+    if (gameCanvas.current) gameCanvas.current.remove();
+    setConsoleOutput([]);
+
+    setState("loadingGame");
+    const result = await run(code, "gameCard");
+    setState("playingGame");
+
+    gameCanvas.current = result.gameCanvas;
+    wasm.current = result.wasm;
+  }
 
   async function copyCodeToClipboard() {
     await navigator.clipboard.writeText(code);
@@ -62,19 +76,10 @@ export default function Playground() {
           <Card className="p-4 flex flex-row justify-between">
             <Button
               className="transition"
-              onClick={async () => {
-                if (wasm.current) wasm.current.__exit();
-                if (gameCanvas.current) gameCanvas.current.remove();
-                setConsoleOutput([]);
-                setState("loadingGame");
-                const result = await run(code, "gameCard");
-                setState("playingGame");
-                gameCanvas.current = result.gameCanvas;
-                wasm.current = result.wasm;
-              }}
+              onClick={play}
               disabled={state === "loadingGame"}
             >
-              Run
+              Play
             </Button>
             <div className="flex flex-row gap-4">
               <Button
@@ -90,12 +95,7 @@ export default function Playground() {
             </div>
           </Card>
           <Card className="p-4 h-full">
-            <CodeEditor
-              onChange={(code) => {
-                console.log(code);
-                setCode(code);
-              }}
-            ></CodeEditor>
+            <CodeEditor onChange={(code) => setCode(code)}></CodeEditor>
           </Card>
         </ResizablePanel>
         <ResizableHandle withHandle className="mx-4" />
@@ -108,30 +108,7 @@ export default function Playground() {
             <div id="gameCard" className="w-full h-full"></div>
           </Card>
           <Card className="flex-grow p-4 text-sm overflow-auto">
-            <pre className="text-wrap">
-              {consoleOutput.map((log) => {
-                const words = log.split(" ");
-                let color = "text-white";
-                switch (words[0]) {
-                  case "INFO":
-                    color = "text-green-500";
-                    break;
-                  case "WARN":
-                    color = "text-orange-500";
-                    break;
-                  case "ERROR":
-                    color = "text-red-500";
-                    break;
-                }
-                return (
-                  <div>
-                    <span className={color}>{words[0]}</span>{" "}
-                    <span className="text-neutral-500">{words[1]}</span>{" "}
-                    {words.slice(2).join(" ")}
-                  </div>
-                );
-              })}
-            </pre>
+            <Console logs={consoleOutput}></Console>
           </Card>
         </ResizablePanel>
       </ResizablePanelGroup>
