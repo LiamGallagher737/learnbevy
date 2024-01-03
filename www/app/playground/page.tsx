@@ -1,5 +1,5 @@
 "use client";
-export const runtime = 'edge';
+export const runtime = "edge";
 
 import { CodeEditor } from "@/components/code-editor";
 import { Button } from "@/components/ui/button";
@@ -83,13 +83,24 @@ export default function Playground() {
           className="flex flex-col gap-4"
         >
           <Card className="p-4 flex flex-row justify-between">
-            <Button
-              className="transition"
-              onClick={play}
-              disabled={state === "loadingGame"}
-            >
-              Play
-            </Button>
+            <div className="flex flex-row gap-4">
+              <Button
+                className="transition"
+                onClick={play}
+                disabled={state === "loadingGame"}
+              >
+                Play
+              </Button>
+              {state === "loadingGame" && (
+                <Image
+                  className="animate-spin-slow"
+                  src="/assets/bevy_bird_dark.png"
+                  alt="Bevy Bird"
+                  width={40}
+                  height={40}
+                />
+              )}
+            </div>
             <div className="flex flex-row gap-4">
               <Button
                 variant="outline"
