@@ -15,10 +15,12 @@ import { run } from "@/lib/runCode";
 import { toast } from "sonner";
 import Image from "next/image";
 import { createShare } from "./create-share";
+import { useRouter } from "next/navigation";
 
 type State = "default" | "loadingGame" | "playingGame";
 
 export default function ClientPlayground(params: { code: string }) {
+  const router = useRouter();
   const [code, setCode] = useState(params.code);
   const gameCanvas = useRef<HTMLCanvasElement | null>(null);
   const wasm = useRef<{ __exit: () => void } | null>(null);
@@ -29,11 +31,12 @@ export default function ClientPlayground(params: { code: string }) {
     const originalConsoleLog = console.log;
     console.log = (...args) => {
       originalConsoleLog.apply(console, args);
+      const message: string = args[0];
       if (
-        args[0]?.startsWith("%c") &&
-        !args[0]?.includes("GPU lacks support")
+        message?.startsWith("%c") &&
+        !message?.includes("GPU lacks support")
       ) {
-        setConsoleOutput((prev) => [...prev, args[0].replaceAll("%c", "")]);
+        setConsoleOutput((prev) => [...prev, message.replaceAll("%c", "")]);
       }
     };
   }, []);
@@ -70,6 +73,7 @@ export default function ClientPlayground(params: { code: string }) {
         await navigator.clipboard.writeText(
           `https://learnbevy.com/playground?share=${id}`
         );
+        router.push(`/playground?share=${id}`);
         return "Share link copied to clipboard";
       },
       error: "Error creating share link",
