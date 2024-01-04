@@ -1,5 +1,5 @@
 export async function run(code: string, parentId: string) {
-    const res = await fetch("https://compile.learnbevy.com/", {
+    const res = await fetch("https://compile.learnbevy.com/compile", {
         method: "POST",
         body: code,
     });
