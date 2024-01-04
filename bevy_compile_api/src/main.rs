@@ -16,7 +16,7 @@ mod cache;
 mod compile;
 mod rate_limit;
 
-const ADDRESS: &str = "0.0.0.0:443";
+const ADDRESS: &str = "0.0.0.0:53740";
 const IMAGE: &str = "liamg737/comp";
 const AUTH_TOKEN: &str = include_str!("auth-token.txt");
 const CACHE_BYPASS_TOKEN: &str = include_str!("cache-bypass-token.txt");
