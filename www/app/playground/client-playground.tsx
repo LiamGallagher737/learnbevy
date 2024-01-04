@@ -13,7 +13,6 @@ import { Console } from "@/components/console";
 import { useEffect, useRef, useState } from "react";
 import { run } from "@/lib/runCode";
 import { toast } from "sonner";
-import Image from "next/image";
 import { createShare } from "./create-share";
 import { useRouter } from "next/navigation";
 
@@ -47,19 +46,24 @@ export default function ClientPlayground(params: { code: string }) {
     setConsoleOutput([]);
 
     setState("loadingGame");
-    const result = await run(code, "gameCard");
 
-    if (result.status === "Success") {
-      setState("playingGame");
-      gameCanvas.current = result.gameCanvas;
-      wasm.current = result.wasm;
-      setConsoleOutput([result.stderr]);
-    } else if (result.status === "Error") {
-      setState("default");
-      if (result.stderr) {
+    toast.promise(run(code, "gameCard"), {
+      loading: "Loading...",
+      success: (result) => {
+        setState("playingGame");
+        gameCanvas.current = result.gameCanvas;
+        wasm.current = result.wasm;
         setConsoleOutput([result.stderr]);
-      }
-    }
+        return "Built successfully";
+      },
+      error: (error) => {
+        setState("default");
+        if (error.cause.stderr) {
+          setConsoleOutput([error.cause.stderr]);
+        }
+        return error.message;
+      },
+    });
   }
 
   async function copyCodeToClipboard() {
@@ -107,15 +111,6 @@ export default function ClientPlayground(params: { code: string }) {
             >
               Play
             </Button>
-            {state === "loadingGame" && (
-              <Image
-                className="animate-spin-slow"
-                src="/assets/bevy_bird_dark.png"
-                alt="Bevy Bird"
-                width={40}
-                height={40}
-              />
-            )}
           </div>
           <div className="flex flex-row gap-4">
             <Button variant="outline" size="icon" onClick={copyCodeToClipboard}>

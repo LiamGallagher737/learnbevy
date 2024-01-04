@@ -1,5 +1,3 @@
-import { toast } from "sonner";
-
 export async function run(code: string, parentId: string) {
     const res = await fetch("https://compile.learnbevy.com/", {
         method: "POST",
@@ -36,11 +34,11 @@ export async function run(code: string, parentId: string) {
             default:
                 msg = "An error occurred: " + error.kind;
         }
-        toast.error(msg);
-        return {
-            status: "Error" as const,
-            stderr: error.kind === "BuildFailed" ? error.stderr : null,
-        }
+        throw new Error(msg, {
+            cause: {
+                stderr: error.kind === "BuildFailed" ? error.stderr : null,
+            }
+        });
     }
 
     const wasmSize = parseInt(res.headers.get("wasm-content-length")!);
@@ -83,7 +81,7 @@ export async function run(code: string, parentId: string) {
     gameCanvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
     gameCanvas.style.borderRadius = "0.5rem";
 
-    return { status: "Success" as const, gameCanvas, wasm: refObj.wasm, stderr: stderrText };
+    return { gameCanvas, wasm: refObj.wasm, stderr: stderrText };
 }
 
 type BcaError = RateLimitError | CFRateLimitError | ActiveRequestExistsError | InvalidBodyError | DisallowedWordError | BuildFailedError | OverloadedError | InternalError;
