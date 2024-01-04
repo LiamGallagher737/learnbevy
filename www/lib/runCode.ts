@@ -70,7 +70,10 @@ export async function run(code: string, parentId: string) {
         }
     });
 
-    const gameCanvas: HTMLCanvasElement = document.querySelector('canvas[alt="App"]')!;
+    const gameCanvas: HTMLCanvasElement | null = document.querySelector('canvas[alt="App"]');
+    if (!gameCanvas) {
+        return { gameCanvas: null, wasm: refObj.wasm, stderr: stderrText };
+    }
     const parent = document.getElementById(parentId)!;
     parent.appendChild(gameCanvas);
     window.addEventListener('resize', () => {

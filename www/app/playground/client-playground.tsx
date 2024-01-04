@@ -58,7 +58,7 @@ export default function ClientPlayground(params: { code: string }) {
       },
       error: (error) => {
         setState("default");
-        if (error.cause.stderr) {
+        if (error.cause?.stderr) {
           setConsoleOutput([error.cause.stderr]);
         }
         return error.message;

@@ -188,6 +188,7 @@ export const themeVsDarkPlus: editor.IStandaloneThemeData = {
         { token: 'namespace', foreground: '4EC9B0' },
         { token: 'variable.mutable', fontStyle: 'underline' },
         { token: 'parameter.mutable', fontStyle: 'underline' },
+        { token: "comment", foreground: "737373" },
     ],
 };
 
