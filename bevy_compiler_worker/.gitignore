@@ -1,5 +1,0 @@
-.wrangler/
-build/
-node_modules/
-target/
-Cargo.lock

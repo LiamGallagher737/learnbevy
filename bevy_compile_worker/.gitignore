@@ -1,0 +1,4 @@
+.wrangler/
+node_modules/
+rust_minifier_wasm/Cargo.lock
+rust_minifier_wasm/target/
