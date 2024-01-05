@@ -78,7 +78,7 @@ export default function ClientPlayground(params: { code: string }) {
         await navigator.clipboard.writeText(
           `https://learnbevy.com/playground?share=${id}`
         );
-        router.push(`/playground?share=${id}`);
+        router.replace(`/playground?share=${id}`);
         return "Share link copied to clipboard";
       },
       error: "Error creating share link",
