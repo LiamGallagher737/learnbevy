@@ -1,0 +1,19 @@
+# fly.toml app configuration file generated for rustfmt-api on 2024-01-06T16:59:17+13:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "rustfmt-api"
+primary_region = "dfw"
+
+[build]
+
+[http_service]
+  internal_port = 46530
+  force_https = true
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
