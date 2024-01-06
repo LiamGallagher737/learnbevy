@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { Dispatch, SetStateAction, useEffect } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import { config, grammar, themeVsDarkPlus } from "@/lib/rustMonacoDef";
+import { editor } from "monaco-editor";
 
 const MODE_ID = "rusty";
 
 export function CodeEditor(props: {
   defaultValue: string;
-  onChange: (code: string) => void;
+  setEditor: Dispatch<SetStateAction<editor.IStandaloneCodeEditor | null>>;
 }) {
   useEffect(() => {
     loader.init().then((monaco) => {
@@ -33,7 +34,9 @@ export function CodeEditor(props: {
         minimap: { enabled: false },
         "semanticHighlighting.enabled": true,
       }}
-      onChange={(code) => props.onChange(code!)}
+      onMount={(editor) => {
+        props.setEditor(editor);
+      }}
     />
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Share } from "lucide-react";
+import { Copy, Share, Paintbrush } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -15,16 +15,21 @@ import { run } from "@/lib/runCode";
 import { toast } from "sonner";
 import { createShare } from "./create-share";
 import { useRouter } from "next/navigation";
+import { formatCode } from "./format";
+import { editor } from "monaco-editor";
 
 type State = "default" | "loadingGame" | "playingGame";
 
 export default function ClientPlayground(params: { code: string }) {
   const router = useRouter();
-  const [code, setCode] = useState(params.code);
   const gameCanvas = useRef<HTMLCanvasElement | null>(null);
   const wasm = useRef<{ __exit: () => void } | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
+  const [toolStderr, setToolStderr] = useState<string | null>(null);
   const [state, setState] = useState<State>("default");
+  const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(
+    null
+  );
 
   useEffect(() => {
     const originalConsoleLog = console.log;
@@ -44,10 +49,11 @@ export default function ClientPlayground(params: { code: string }) {
     if (wasm.current) wasm.current.__exit();
     if (gameCanvas.current) gameCanvas.current.remove();
     setConsoleOutput([]);
+    setToolStderr(null);
 
     setState("loadingGame");
 
-    toast.promise(run(code, "gameCard"), {
+    toast.promise(run(editor!.getValue(), "gameCard"), {
       loading: "Loading...",
       success: (result) => {
         setState("playingGame");
@@ -59,7 +65,7 @@ export default function ClientPlayground(params: { code: string }) {
       error: (error) => {
         setState("default");
         if (error.cause?.stderr) {
-          setConsoleOutput([error.cause.stderr]);
+          setToolStderr(error.cause.stderr);
         }
         return error.message;
       },
@@ -67,12 +73,12 @@ export default function ClientPlayground(params: { code: string }) {
   }
 
   async function copyCodeToClipboard() {
-    await navigator.clipboard.writeText(code);
+    await navigator.clipboard.writeText(editor!.getValue());
     toast.success("Code copied to clipboard");
   }
 
   async function share() {
-    toast.promise(createShare(code), {
+    toast.promise(createShare(editor!.getValue()), {
       loading: "Loading...",
       success: async ({ id }) => {
         await navigator.clipboard.writeText(
@@ -82,6 +88,42 @@ export default function ClientPlayground(params: { code: string }) {
         return "Share link copied to clipboard";
       },
       error: "Error creating share link",
+    });
+  }
+
+  async function format() {
+    setToolStderr(null);
+    const fmt = async (code: string) => {
+      let response = await formatCode(code);
+      if (response.kind === "Success") {
+        return response.formatted_code;
+      } else if (response.kind === "UserError") {
+        throw new Error("Code couldn't be formatted", {
+          cause: {
+            source: "User",
+            stderr: response.stderr.replace("<stdin>", "main.rs"),
+          },
+        });
+      } else {
+        throw new Error("A server error occurred", {
+          cause: { source: "Server" },
+        });
+      }
+    };
+    toast.promise(fmt(editor!.getValue()), {
+      loading: "Formatting...",
+      success: async (formatted_code) => {
+        editor?.setValue(formatted_code);
+        return "Formatted successfully";
+      },
+      error: (error) => {
+        if (error.cause.source === "User") {
+          setToolStderr(error.cause.stderr);
+          return "Your code could not be formatted";
+        } else {
+          return "Something went wrong...";
+        }
+      },
     });
   }
 
@@ -113,6 +155,9 @@ export default function ClientPlayground(params: { code: string }) {
             </Button>
           </div>
           <div className="flex flex-row gap-4">
+            <Button variant="outline" size="icon" onClick={format}>
+              <Paintbrush className="h-4 w-4" />
+            </Button>
             <Button variant="outline" size="icon" onClick={copyCodeToClipboard}>
               <Copy className="h-4 w-4" />
             </Button>
@@ -125,7 +170,7 @@ export default function ClientPlayground(params: { code: string }) {
         <Card className="p-4 h-full">
           <CodeEditor
             defaultValue={params.code}
-            onChange={(code) => setCode(code)}
+            setEditor={setEditor}
           ></CodeEditor>
         </Card>
       </ResizablePanel>
@@ -142,7 +187,7 @@ export default function ClientPlayground(params: { code: string }) {
         </Card>
 
         <Card className="flex-grow p-4 text-sm overflow-auto">
-          <Console logs={consoleOutput}></Console>
+          <Console logs={toolStderr ?? consoleOutput}></Console>
         </Card>
       </ResizablePanel>
     </ResizablePanelGroup>
