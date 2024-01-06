@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Bevy Playground",
+  description: "Experiment with Bevy apps in your browser"
 };
 
 export default async function Page({
