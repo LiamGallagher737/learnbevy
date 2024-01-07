@@ -17,6 +17,8 @@ import { createShare } from "./create-share";
 import { useRouter } from "next/navigation";
 import { formatCode } from "./format";
 import { editor } from "monaco-editor";
+import { VersionPicker } from "./version-picker";
+import { DEFAULT_VERSION, Version } from "@/lib/versions";
 
 type State = "default" | "loadingGame" | "playingGame";
 
@@ -26,6 +28,7 @@ export default function ClientPlayground(params: { code: string }) {
   const wasm = useRef<{ __exit: () => void } | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [toolStderr, setToolStderr] = useState<string | null>(null);
+  const version = useRef<Version>(DEFAULT_VERSION);
   const [state, setState] = useState<State>("default");
   const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(
     null
@@ -154,7 +157,12 @@ export default function ClientPlayground(params: { code: string }) {
               Play
             </Button>
           </div>
+
           <div className="flex flex-row gap-4">
+            <VersionPicker
+              initialValue={version.current}
+              onChange={(v) => (version.current = v)}
+            />
             <Button variant="outline" size="icon" onClick={format}>
               <Paintbrush className="h-4 w-4" />
             </Button>
