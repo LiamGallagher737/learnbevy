@@ -56,7 +56,7 @@ export default function ClientPlayground(params: { code: string }) {
 
     setState("loadingGame");
 
-    toast.promise(run(editor!.getValue(), "gameCard"), {
+    toast.promise(run(editor!.getValue(), version.current, "gameCard"), {
       loading: "Loading...",
       success: (result) => {
         setState("playingGame");

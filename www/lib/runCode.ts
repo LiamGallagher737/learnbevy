@@ -1,9 +1,11 @@
-export async function run(code: string, parentId: string) {
+import { Version } from "@/lib/versions";
+
+export async function run(code: string, version: Version, parentId: string) {
     const res = await fetch("https://compile.learnbevy.com/compile", {
         method: "POST",
         body: JSON.stringify({
             code,
-            version: "0.12",
+            version,
         }),
         headers: {
             "Content-Type": "application/json",
