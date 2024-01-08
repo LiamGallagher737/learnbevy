@@ -3,16 +3,15 @@ name = "bevy_compile_api"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+async-std = { version = "1.12", features = ["attributes"] }
 chrono = "0.4"
 fastmurmur3 = "0.2"
 fastrand = "2.0"
 fern = { version = "0.6", features = ["date-based"] }
-flate2 = "1.0"
 log = "0.4"
-rouille = { version = "3.6", features = ["rustls"] }
 rust_minify = "0.1"
-scopeguard = "1.2"
 serde = { version = "1.0", features = ["derive"] }
+tide = { version = "0.16", default-features = false, features = ["async-h1", "h1-server"] }
+tide-compress = { version = "0.11", default-features = false, features = ["gzip"] }
+tide-rustls = "0.3"

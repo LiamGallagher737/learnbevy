@@ -1,10 +1,9 @@
-/target
-/Cargo.lock
-/logs
-/cache
-*.pem
-*.key
-auth-token.txt
-cache-bypass-token.txt
+target/
+Cargo.lock
+logs/
+cache/
+*.token
 *.bat
 *.sh
+*.key
+*.pem
