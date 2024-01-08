@@ -78,7 +78,7 @@ export async function run(code: string, version: Version, parentId: string) {
         }
     });
 
-    const gameCanvas: HTMLCanvasElement | null = document.querySelector('canvas[alt="App"]');
+    const gameCanvas: HTMLCanvasElement | null = document.querySelector('canvas[alt="App"]') ?? document.querySelector('canvas[alt="Bevy App"]');
     if (!gameCanvas) {
         return { gameCanvas: null, wasm: refObj.wasm, stderr: stderrText };
     }
