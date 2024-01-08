@@ -73,8 +73,8 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     Ok({
         let mut response = Response::new(StatusCode::Ok);
         response.set_body(body);
-        response.insert_header("wasm-content-lenth", wasm_length.to_string());
-        response.insert_header("js-content-lenth", js_length.to_string());
+        response.insert_header("wasm-content-length", wasm_length.to_string());
+        response.insert_header("js-content-length", js_length.to_string());
         response.insert_header(CONTENT_TYPE, WASM);
         response.insert_ext(Lengths {
             wasm_length,
