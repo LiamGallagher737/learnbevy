@@ -2,6 +2,9 @@ export interface Env { }
 
 export default {
     async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+        if (request.method === "OPTIONS") {
+            return await fetch(request);
+        }
         if (request.method !== "POST") {
             return new Response("Method not allowed", { status: 405 });
         }

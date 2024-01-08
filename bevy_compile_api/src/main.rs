@@ -1,176 +1,187 @@
-use chrono::{DateTime, Utc};
-use flate2::Compression;
-use log::{error, info, trace};
-use rate_limit::RateLimitMap;
-use rouille::{Request, Response, Server};
-use serde::Serialize;
-use std::{
-    collections::HashSet,
-    fs,
-    net::IpAddr,
-    sync::{Arc, RwLock},
-    time::{Instant, SystemTime},
-};
+use log::error;
+use serde::{Deserialize, Serialize};
+use std::{future::Future, net::IpAddr, pin::Pin, str::FromStr};
+use tide::{http::headers::HeaderValue, utils::After, Body, Next, Request, Response, StatusCode};
+use tide_rustls::TlsListener;
 
 mod cache;
 mod compile;
-mod rate_limit;
+mod ip_lock;
+mod logging;
+mod rate_limiting;
 
-const ADDRESS: &str = "0.0.0.0:53740";
-const IMAGE: &str = "liamg737/comp";
-const AUTH_TOKEN: &str = include_str!("auth-token.txt");
-const CACHE_BYPASS_TOKEN: &str = include_str!("cache-bypass-token.txt");
-const COMPRESSION_LEVEL: Compression = Compression::fast();
+#[async_std::main]
+async fn main() -> Result<(), std::io::Error> {
+    cache::setup().await;
+    logging::setup().await;
+    let mut app = tide::new();
 
-const RATE_LIMIT_LENGTH_SUCCESSFUL: f32 = 5.0;
-const RATE_LIMIT_LENGTH_UNSUCCESSFUL: f32 = 1.0;
-const RATE_LIMIT_LENGTH_INVALID: f32 = 60.0 * 5.0;
+    app.with(
+        tide::security::CorsMiddleware::new()
+            .allow_methods(HeaderValue::from_str("POST").unwrap())
+            .expose_headers(
+                HeaderValue::from_str("wasm-content-length, js-content-length").unwrap(),
+            ),
+    );
+    app.with(peer_addr_middleware);
+    app.with(rate_limiting::RateLimitMiddleware::new());
+    app.with(ip_lock::IpLockMiddleware::new());
+    app.with(id_middleware);
+    app.with(logging::logging_middleware);
+    app.with(input_middleware);
+    app.with(disallowed_words_middleware);
+    app.with(hash_middleware);
+    app.with(cache::cache_middleware);
+    app.with(tide_compress::CompressMiddleware::new());
+    app.with(After(|response: Response| async move {
+        let Id(id) = response.ext().unwrap();
+        compile::cleanup(*id).await;
+        Ok(response)
+    }));
+    app.with(After(|mut response: Response| async {
+        let Id(id) = response.ext().unwrap();
+        if let Some(err) = response.error() {
+            error!("{id}: Failed with error: {err:?}");
+            response.set_body(Body::from_json(&Error::Internal)?);
+        }
+        Ok(response)
+    }));
+    app.with(transfer_id_middleware);
 
-#[cfg(target_os = "linux")]
-const LOG_FOLDER_PATH: &str = "/var/log/bca";
-#[cfg(not(target_os = "linux"))]
-const LOG_FOLDER_PATH: &str = "logs";
-const LOG_FILE_PREFIX: &str = "bca.log.";
-
-#[cfg(target_os = "linux")]
-const CACHE_FOLDER_PATH: &str = "/bca_cache";
-#[cfg(not(target_os = "linux"))]
-const CACHE_FOLDER_PATH: &str = "cache";
-
-fn main() {
-    fs::create_dir_all(LOG_FOLDER_PATH).expect("Failed to create log folder");
-    fs::create_dir_all(CACHE_FOLDER_PATH).expect("Failed to create cache folder");
-    fern::Dispatch::new()
-        .format(|out, message, record| {
-            out.finish(format_args!(
-                "[{} {} {}] {}",
-                DateTime::<Utc>::from(SystemTime::now()).format("%H:%M:%S"),
-                record.level(),
-                record.target(),
-                message
-            ));
-        })
-        .level(log::LevelFilter::Info)
-        .chain(
-            fern::DateBased::new(format!("{LOG_FOLDER_PATH}/{LOG_FILE_PREFIX}"), "%Y-%m-%d")
-                .utc_time(),
-        )
-        .chain(std::io::stdout())
-        .apply()
-        .expect("Failed to setup logging");
-
-    let rate_limits = RateLimitMap::default();
-    let active_ips = Arc::new(RwLock::new(HashSet::new()));
-
-    info!("Starting server on {ADDRESS}");
-
-    Server::new_ssl(
-        ADDRESS,
-        move |request| {
-            request_handler(request, rate_limits.clone(), active_ips.clone())
-                .with_additional_header("access-control-allow-origin", "*")
-        },
-        include_bytes!("cert.pem").to_vec(),
-        include_bytes!("cert.key").to_vec(),
+    app.at("/compile").post(compile::compile);
+    app.listen(
+        TlsListener::build()
+            .addrs("0.0.0.0:53740")
+            .cert("./cert.pem")
+            .key("./cert.key"),
     )
-    .expect("Failed to start server")
-    .run();
+    .await?;
 
-    error!("The server socket closed unexpectedly");
+    Ok(())
 }
 
-fn request_handler(
-    request: &Request,
-    rate_limits: RateLimitMap,
-    active_ips: Arc<RwLock<HashSet<IpAddr>>>,
-) -> Response {
-    if request.header("Cool-Auth") != Some(AUTH_TOKEN) {
-        trace!(
-            "Rejected request from {} because the auth header either did not exist or was incorrect",
-            request.remote_addr()
-        );
-        return Response::empty_404();
-    }
+#[derive(Clone)]
+struct PeerAddr(IpAddr);
+fn peer_addr_middleware<'a>(
+    mut request: Request<()>,
+    next: Next<'a, ()>,
+) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
+    Box::pin(async {
+        let ip = request
+            .header("CF-Connecting-IP")
+            .and_then(|addr| addr.as_str().parse::<IpAddr>().ok())
+            .ok_or(tide::Error::from_str(
+                StatusCode::BadRequest,
+                "Could not get peer address",
+            ))?;
+        request.set_ext(PeerAddr(ip));
+        Ok(next.run(request).await)
+    })
+}
 
-    let Some(ip_str) = request.header("CF-Connecting-IP") else {
-        trace!(
-            "Rejected request from {} because it did not contain a \"CF-Connecting-IP\" header",
-            request.remote_addr()
-        );
-        return Response::empty_404();
-    };
+#[derive(Clone, Copy)]
+struct Id(usize);
+fn id_middleware<'a>(
+    mut request: Request<()>,
+    next: Next<'a, ()>,
+) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
+    Box::pin(async {
+        let id = fastrand::usize(..);
+        request.set_ext(Id(id));
+        let mut response = next.run(request).await;
+        response.insert_header("refrence-number", id.to_string());
+        Ok(response)
+    })
+}
 
-    let Ok(ip) = ip_str.parse::<IpAddr>() else {
-        error!(
-            "Request's CF-Connecting-IP header could not parse to a valid IpAddr: {ip_str}"
-        );
-        return Response::empty_400();
-    };
+fn transfer_id_middleware<'a>(
+    request: Request<()>,
+    next: Next<'a, ()>,
+) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
+    Box::pin(async {
+        let id = request.ext::<Id>().unwrap().clone();
+        let mut response = next.run(request).await;
+        response.insert_ext(id);
+        Ok(response)
+    })
+}
 
-    if let Some(rate_limit) = rate_limits.get(&ip) {
-        let time_left = (rate_limit.length - rate_limit.start.elapsed().as_secs_f32()).ceil();
-        if time_left > 0.0 {
-            trace!("Rejected request from {ip} because of a rate limit");
-            return Response::json(&Error::RateLimit { time_left })
-                .with_status_code(429)
-                .with_additional_header("Retry-After", time_left.to_string());
-        } else {
-            rate_limits.remove(&ip);
+#[derive(Deserialize)]
+struct Input {
+    code: String,
+    version: Version,
+}
+fn input_middleware<'a>(
+    mut request: Request<()>,
+    next: Next<'a, ()>,
+) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
+    Box::pin(async {
+        let input: Input = request.body_json().await?;
+        request.set_ext(input);
+        Ok(next.run(request).await)
+    })
+}
+
+fn disallowed_words_middleware<'a>(
+    request: Request<()>,
+    next: Next<'a, ()>,
+) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
+    Box::pin(async {
+        let Input { code, version: _ } = request.ext().unwrap();
+        for word in DISALLOWED_WORDS {
+            if code.contains(word) {
+                return Ok(Response::builder(StatusCode::BadRequest)
+                    .body(Body::from_json(&Error::DisallowedWord { word })?)
+                    .build());
+            }
+        }
+        Ok(next.run(request).await)
+    })
+}
+
+#[derive(Clone)]
+struct MinifiedHash(Option<u128>);
+fn hash_middleware<'a>(
+    mut request: Request<()>,
+    next: Next<'a, ()>,
+) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
+    Box::pin(async {
+        let Input { code, version: _ } = request.ext().unwrap();
+        let minified_code = rust_minify::minify(code).ok();
+        let hash = minified_code.map(|code| fastmurmur3::hash(code.as_bytes()));
+        request.set_ext(MinifiedHash(hash));
+        let response = next.run(request).await;
+        Ok(response)
+    })
+}
+
+#[derive(Clone, Copy)]
+enum Version {
+    V0_12,
+    V0_11,
+    V0_10,
+}
+
+impl FromStr for Version {
+    type Err = &'static str;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "0.12" => Ok(Self::V0_12),
+            "0.11" => Ok(Self::V0_11),
+            "0.10" => Ok(Self::V0_10),
+            _ => Err("Invalid version"),
         }
     }
+}
 
-    if active_ips.read().unwrap().contains(&ip) {
-        trace!(
-            "Rejected request from {ip} because a request from this ip is already being processed"
-        );
-        return Response::json(&Error::ActiveRequestExists).with_status_code(429);
+impl<'de> Deserialize<'de> for Version {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        FromStr::from_str(&s).map_err(serde::de::Error::custom)
     }
-
-    if request.raw_url() != "/compile" {
-        trace!(
-            "Invalid path \"{}\" requested from {}",
-            request.raw_url(),
-            request.remote_addr()
-        );
-        rate_limits.insert(ip, RATE_LIMIT_LENGTH_INVALID);
-        return Response::empty_404();
-    }
-
-    if request.method() != "POST" {
-        trace!(
-            "Invalid mathod \"{}\" requested from {}",
-            request.method(),
-            request.remote_addr()
-        );
-        rate_limits.insert(ip, RATE_LIMIT_LENGTH_INVALID);
-        return Response::text("Only the POST method is allowed")
-            .with_status_code(405)
-            .with_additional_header("Allow", "POST");
-    }
-
-    active_ips.write().unwrap().insert(ip);
-
-    let id = fastrand::usize(..);
-    info!("{id}: Serving new request from {ip}");
-    let start = Instant::now();
-
-    let response = compile::compile(id, request).with_additional_header(
-        "access-control-expose-headers",
-        "wasm-content-length, js-content-length",
-    );
-
-    rate_limits.insert(
-        ip,
-        match response.status_code {
-            200 => RATE_LIMIT_LENGTH_SUCCESSFUL,
-            _ => RATE_LIMIT_LENGTH_UNSUCCESSFUL,
-        },
-    );
-
-    active_ips.write().unwrap().remove(&ip);
-
-    info!("{id}: Finished in {:.2?}", start.elapsed());
-    response
 }
 
 #[derive(Serialize)]
@@ -182,14 +193,21 @@ enum Error {
     #[allow(dead_code)]
     CFRateLimit,
     ActiveRequestExists,
-    InvalidBody,
     DisallowedWord {
         word: &'static str,
     },
     BuildFailed {
-        stdout: String,
         stderr: String,
     },
-    Overloaded,
     Internal,
 }
+
+const DISALLOWED_WORDS: &[&str] = &[
+    "include!",
+    "include_str!",
+    "include_bytes!",
+    "embedded_asset!",
+    "embedded_path",
+    "load_internal_asset",
+    "load_internal_binary_asset",
+];

@@ -1,7 +1,13 @@
 export async function run(code: string, parentId: string) {
     const res = await fetch("https://compile.learnbevy.com/compile", {
         method: "POST",
-        body: code,
+        body: JSON.stringify({
+            code,
+            version: "0.12",
+        }),
+        headers: {
+            "Content-Type": "application/json",
+        }
     });
 
     if (!res.ok) {

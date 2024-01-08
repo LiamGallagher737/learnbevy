@@ -5,8 +5,11 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.12", default-features = false, features = [
+    "animation",
     "bevy_asset",
     "bevy_audio",
+    "bevy_gilrs",
+    "bevy_scene",
     "bevy_winit",
     "bevy_core_pipeline",
     "bevy_pbr",
@@ -15,11 +18,13 @@ bevy = { version = "0.12", default-features = false, features = [
     "bevy_sprite",
     "bevy_text",
     "bevy_ui",
+    "png",
+    "hdr",
+    "vorbis",
     "bevy_gizmos",
+    "tonemapping_luts",
     "default_font",
     "webgl2",
-    "png",
-    "tonemapping_luts",
 ] }
 wasm-bindgen = "0.2"
 

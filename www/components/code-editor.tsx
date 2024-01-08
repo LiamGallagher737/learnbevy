@@ -22,7 +22,7 @@ export function CodeEditor(props: {
         monaco.languages.setMonarchTokensProvider(MODE_ID, grammar);
       });
     });
-  });
+  }, []);
 
   return (
     <Editor
