@@ -3,7 +3,7 @@ Cargo.lock
 logs/
 cache/
 *.token
-*.bat
-*.sh
+upload.bat
+replace_server.sh
 *.key
 *.pem
