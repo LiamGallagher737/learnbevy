@@ -55,6 +55,7 @@ export function VersionPicker(props: {
                 value={version.value}
                 onSelect={(currentValue) => {
                   setValue(currentValue as Version);
+                  props.onChange(currentValue as Version);
                   setOpen(false);
                 }}
               >
