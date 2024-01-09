@@ -101,7 +101,7 @@ fn transfer_id_middleware<'a>(
     next: Next<'a, ()>,
 ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
     Box::pin(async {
-        let id = request.ext::<Id>().unwrap().clone();
+        let id = *request.ext::<Id>().unwrap();
         let mut response = next.run(request).await;
         response.insert_ext(id);
         Ok(response)
