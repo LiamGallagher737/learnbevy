@@ -3,12 +3,14 @@ use serde::{Deserialize, Serialize};
 use std::{future::Future, net::IpAddr, pin::Pin, str::FromStr};
 use tide::{http::headers::HeaderValue, utils::After, Body, Next, Request, Response, StatusCode};
 use tide_rustls::TlsListener;
+use versions::Version;
 
 mod cache;
 mod compile;
 mod ip_lock;
 mod logging;
 mod rate_limiting;
+mod versions;
 
 #[async_std::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -146,42 +148,14 @@ fn hash_middleware<'a>(
     next: Next<'a, ()>,
 ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
     Box::pin(async {
-        let Input { code, version: _ } = request.ext().unwrap();
+        let Input { code, version } = request.ext().unwrap();
         let minified_code = rust_minify::minify(code).ok();
         let hash = minified_code.map(|code| fastmurmur3::hash(code.as_bytes()));
-        request.set_ext(MinifiedHash(hash));
+        let hash_with_version = hash.map(|hash| hash + *version as u128);
+        request.set_ext(MinifiedHash(hash_with_version));
         let response = next.run(request).await;
         Ok(response)
     })
-}
-
-#[derive(Clone, Copy)]
-enum Version {
-    V0_12,
-    V0_11,
-    V0_10,
-}
-
-impl FromStr for Version {
-    type Err = &'static str;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "0.12" => Ok(Self::V0_12),
-            "0.11" => Ok(Self::V0_11),
-            "0.10" => Ok(Self::V0_10),
-            _ => Err("Invalid version"),
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for Version {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        FromStr::from_str(&s).map_err(serde::de::Error::custom)
-    }
 }
 
 #[derive(Serialize)]

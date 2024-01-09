@@ -1,4 +1,4 @@
-use crate::{Error, Id, Input, Version};
+use crate::{versions, Error, Id, Input};
 use async_std::{fs, process::Command};
 use log::info;
 use std::{env, path::PathBuf};
@@ -12,11 +12,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     let Id(id) = request.ext().unwrap();
     let name_id = name_id(*id);
 
-    let mut modified_code = code.replace(
-        "App::new()",
-        "App::new().add_systems(Update, __check_exit_flag)",
-    );
-    modified_code.push_str(EXTRA_RUST);
+    let modified_code = versions::edit_code_for_version(code, *version);
 
     let dir = temp_dir(&name_id);
     fs::create_dir_all(&dir).await?;
@@ -29,7 +25,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
             &name_id,
             "-v",
             &format!("{}:/compile/src/", dir.display()),
-            image(*version),
+            versions::image_for_version(*version),
             "sh",
             "build.sh",
         ])
@@ -101,10 +97,6 @@ fn temp_dir(name: &str) -> PathBuf {
     env::temp_dir().join("bca").join(name)
 }
 
-fn image(_version: Version) -> &'static str {
-    "liamg737/comp"
-}
-
 fn modify_js(mut js: Vec<u8>) -> Vec<u8> {
     // Remove "export" from "export function __exit()"
     let search_bytes = b"export function __exit()";
@@ -137,15 +129,3 @@ pub struct Lengths {
     pub wasm_length: usize,
     pub js_length: usize,
 }
-
-const EXTRA_RUST: &str = r#"
-static __EXIT_FLAG: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn __exit() {
-    __EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
-}
-fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>) {
-    if __EXIT_FLAG.load(std::sync::atomic::Ordering::Relaxed) {
-        exit.send(bevy::app::AppExit);
-    }
-}"#;
