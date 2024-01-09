@@ -111,6 +111,7 @@ fn transfer_id_middleware<'a>(
 #[derive(Deserialize)]
 struct Input {
     code: String,
+    #[serde(default)]
     version: Version,
 }
 fn input_middleware<'a>(

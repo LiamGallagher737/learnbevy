@@ -45,10 +45,11 @@ fn edit_code_v10(code: &str) -> String {
 }
 
 // Newest versions go last so cache keys stay the same when adding new versions
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub enum Version {
     V0_10,
     V0_11,
+    #[default]
     V0_12,
 }
 
