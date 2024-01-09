@@ -45,7 +45,7 @@ async fn format(request: Request) -> Result<warp::reply::Json, std::io::Error> {
     if output.status.success() {
         let formatted_code = String::from_utf8(output.stdout)
             .map_err(|_| std::io::Error::new(ErrorKind::Other, "Stdout is invalid utf8"))?;
-        return Ok(warp::reply::json(&Response::Success { formatted_code }));
+        Ok(warp::reply::json(&Response::Success { formatted_code }))
     } else if output.status.code() == Some(1) {
         let stderr = String::from_utf8(output.stderr)
             .map_err(|_| std::io::Error::new(ErrorKind::Other, "Stderr is invalid utf8"))?;
