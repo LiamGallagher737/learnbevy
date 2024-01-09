@@ -1,7 +1,9 @@
 "use server";
 
-export async function createShare(code: string) {
-    const id = await hashString(code);
+import { Version } from "@/lib/versions";
+
+export async function createShare(code: string, version: Version) {
+    const id = await hashString(code + version);
     await process.env.SHARES.put(id, code);
     return { id };
 }

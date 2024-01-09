@@ -81,7 +81,7 @@ export default function ClientPlayground(params: { code: string }) {
   }
 
   async function share() {
-    toast.promise(createShare(editor!.getValue()), {
+    toast.promise(createShare(editor!.getValue(), version.current), {
       loading: "Loading...",
       success: async ({ id }) => {
         await navigator.clipboard.writeText(
