@@ -19,6 +19,7 @@ import { formatCode } from "./format";
 import { editor } from "monaco-editor";
 import { VersionPicker } from "./version-picker";
 import { DEFAULT_VERSION, Version } from "@/lib/versions";
+import { BasicTooltip } from "@/components/basic-tooltip";
 
 type State = "default" | "loadingGame" | "playingGame";
 
@@ -163,15 +164,28 @@ export default function ClientPlayground(params: { code: string }) {
               initialValue={version.current}
               onChange={(v) => (version.current = v)}
             />
-            <Button variant="outline" size="icon" onClick={format}>
-              <Paintbrush className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={copyCodeToClipboard}>
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={share}>
-              <Share className="h-4 w-4" />
-            </Button>
+
+            <BasicTooltip tooltip="Format">
+              <Button variant="outline" size="icon" onClick={format}>
+                <Paintbrush className="h-4 w-4" />
+              </Button>
+            </BasicTooltip>
+
+            <BasicTooltip tooltip="Copy">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={copyCodeToClipboard}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </BasicTooltip>
+
+            <BasicTooltip tooltip="Share">
+              <Button variant="outline" size="icon" onClick={share}>
+                <Share className="h-4 w-4" />
+              </Button>
+            </BasicTooltip>
           </div>
         </Card>
 
