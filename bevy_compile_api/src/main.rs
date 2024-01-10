@@ -1,16 +1,16 @@
+use config::{Channel, Version};
 use log::error;
 use serde::{Deserialize, Serialize};
 use std::{future::Future, net::IpAddr, pin::Pin, str::FromStr};
 use tide::{http::headers::HeaderValue, utils::After, Body, Next, Request, Response, StatusCode};
 use tide_rustls::TlsListener;
-use versions::Version;
 
 mod cache;
 mod compile;
+mod config;
 mod ip_lock;
 mod logging;
 mod rate_limiting;
-mod versions;
 
 #[async_std::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -113,6 +113,8 @@ struct Input {
     code: String,
     #[serde(default)]
     version: Version,
+    #[serde(default)]
+    channel: Channel,
 }
 fn input_middleware<'a>(
     mut request: Request<()>,
@@ -130,9 +132,9 @@ fn disallowed_words_middleware<'a>(
     next: Next<'a, ()>,
 ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
     Box::pin(async {
-        let Input { code, version: _ } = request.ext().unwrap();
+        let input = request.ext::<Input>().unwrap();
         for word in DISALLOWED_WORDS {
-            if code.contains(word) {
+            if input.code.contains(word) {
                 return Ok(Response::builder(StatusCode::BadRequest)
                     .body(Body::from_json(&Error::DisallowedWord { word })?)
                     .build());
@@ -149,11 +151,19 @@ fn hash_middleware<'a>(
     next: Next<'a, ()>,
 ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
     Box::pin(async {
-        let Input { code, version } = request.ext().unwrap();
-        let minified_code = rust_minify::minify(code).ok();
-        let hash = minified_code.map(|code| fastmurmur3::hash(code.as_bytes()));
-        let hash_with_version = hash.map(|hash| hash + *version as u128);
-        request.set_ext(MinifiedHash(hash_with_version));
+        let Input {
+            code,
+            version,
+            channel,
+        } = request.ext().unwrap();
+        let hash = rust_minify::minify(code).ok().map(|code| {
+            let mut hash = fastmurmur3::hash(code.as_bytes());
+            hash += *version as u128;
+            hash = hash.rotate_left(16);
+            hash += *channel as u128;
+            hash
+        });
+        request.set_ext(MinifiedHash(hash));
         let response = next.run(request).await;
         Ok(response)
     })

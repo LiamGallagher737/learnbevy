@@ -19,9 +19,9 @@ Versions.forEach((version) => {
         const dockerfile = `${directory}/${channel}.Dockerfile`;
         spawn('docker', ['build', '-t', tag, '-f', dockerfile, directory]).on('exit', () => {
             console.log(`Built ${tag}`);
-            // spawn('docker', ['push', tag]).on('exit', () => {
-            //     console.log(`Pushed ${tag}`);
-            // });
+            spawn('docker', ['push', tag]).on('exit', () => {
+                console.log(`Pushed ${tag}`);
+            });
         });
     });
 });

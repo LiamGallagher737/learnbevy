@@ -1,4 +1,4 @@
-use crate::{versions, Error, Id, Input};
+use crate::{config, Error, Id, Input};
 use async_std::{fs, process::Command};
 use log::info;
 use std::{env, path::PathBuf};
@@ -8,11 +8,11 @@ use tide::{
 };
 
 pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
-    let Input { code, version } = request.ext().unwrap();
+    let Input { code, version, channel } = request.ext().unwrap();
     let Id(id) = request.ext().unwrap();
     let name_id = name_id(*id);
 
-    let modified_code = versions::edit_code_for_version(code, *version);
+    let modified_code = config::edit_code_for_version(code, *version);
 
     let dir = temp_dir(&name_id);
     fs::create_dir_all(&dir).await?;
@@ -25,7 +25,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
             &name_id,
             "-v",
             &format!("{}:/compile/src/", dir.display()),
-            versions::image_for_version(*version),
+            &config::image_for_config(*version, *channel),
             "sh",
             "build.sh",
         ])

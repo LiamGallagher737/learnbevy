@@ -1,11 +1,15 @@
 use serde::Deserialize;
-use std::str::FromStr;
 
-pub fn image_for_version(version: Version) -> &'static str {
-    match version {
+pub fn image_for_config(version: Version, channel: Channel) -> String {
+    let with_version = match version {
         Version::V0_12 => "liamg737/comp-0-12",
         Version::V0_11 => "liamg737/comp-0-11",
         Version::V0_10 => "liamg737/comp-0-10",
+    }
+    .to_string();
+    match channel {
+        Channel::Stable => with_version + "-stable",
+        Channel::Nightly => with_version + "-nightly",
     }
 }
 
@@ -44,33 +48,23 @@ fn edit_code_v10(code: &str) -> String {
     modified_code
 }
 
+#[derive(Clone, Copy, Default, Deserialize)]
+pub enum Channel {
+    #[serde(rename = "stable")]
+    Stable,
+    #[default]
+    #[serde(rename = "nightly")]
+    Nightly,
+}
+
 // Newest versions go last so cache keys stay the same when adding new versions
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, Deserialize)]
 pub enum Version {
+    #[serde(rename = "0.10")]
     V0_10,
+    #[serde(rename = "0.11")]
     V0_11,
     #[default]
+    #[serde(rename = "0.12")]
     V0_12,
-}
-
-impl FromStr for Version {
-    type Err = &'static str;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "0.12" => Ok(Self::V0_12),
-            "0.11" => Ok(Self::V0_11),
-            "0.10" => Ok(Self::V0_10),
-            _ => Err("Invalid version"),
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for Version {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        FromStr::from_str(&s).map_err(serde::de::Error::custom)
-    }
 }
