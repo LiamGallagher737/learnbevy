@@ -17,9 +17,9 @@ import { createShare } from "./create-share";
 import { useRouter } from "next/navigation";
 import { formatCode } from "./format";
 import { editor } from "monaco-editor";
-import { VersionPicker } from "./version-picker";
-import { DEFAULT_VERSION, Version } from "@/lib/versions";
+import { DEFAULT_VERSION, VERSIONS, Version } from "@/lib/versions";
 import { BasicTooltip } from "@/components/basic-tooltip";
+import { Combobox } from "@/components/combobox";
 
 type State = "default" | "loadingGame" | "playingGame";
 
@@ -163,8 +163,13 @@ export default function ClientPlayground(params: { code: string }) {
           </div>
 
           <div className="flex flex-row gap-4">
-            <VersionPicker
+            {/* <VersionPicker
               initialValue={version.current}
+              onChange={(v) => (version.current = v)}
+            /> */}
+            <Combobox
+              initialValue={version.current}
+              values={VERSIONS}
               onChange={(v) => (version.current = v)}
             />
 
