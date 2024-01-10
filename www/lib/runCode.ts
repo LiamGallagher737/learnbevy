@@ -1,11 +1,13 @@
 import { Version } from "@/lib/versions";
+import { Channel } from "@/lib/channels";
 
-export async function run(code: string, version: Version, parentId: string) {
+export async function run(code: string, version: Version, channel: Channel, parentId: string) {
     const res = await fetch("https://compile.learnbevy.com/compile", {
         method: "POST",
         body: JSON.stringify({
             code,
             version,
+            channel,
         }),
         headers: {
             "Content-Type": "application/json",

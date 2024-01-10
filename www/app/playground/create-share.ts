@@ -1,9 +1,10 @@
 "use server";
 
+import { Channel } from "@/lib/channels";
 import { Version } from "@/lib/versions";
 
-export async function createShare(code: string, version: Version) {
-    const id = await hashString(code + version);
+export async function createShare(code: string, version: Version, channel: Channel) {
+    const id = await hashString(code + version + channel);
     await process.env.SHARES.put(id, code);
     return { id };
 }

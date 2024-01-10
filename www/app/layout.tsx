@@ -27,7 +27,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider delayDuration={200}>
+          <TooltipProvider delayDuration={0}>
             <div>{children}</div>
           </TooltipProvider>
           <Toaster />
