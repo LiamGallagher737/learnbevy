@@ -1,4 +1,4 @@
-FROM rustlang/rust:nightly-buster-slim
+FROM rustlang/rust:nightly-alpine
 
 RUN rustup target install wasm32-unknown-unknown
 RUN apk add --no-cache binaryen alsa-lib-dev eudev-dev musl-dev
