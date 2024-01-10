@@ -1,4 +1,4 @@
-FROM rust:latest
+FROM rust:slim-buster
 RUN rustup component add rustfmt
 
 WORKDIR /builder
