@@ -2,10 +2,15 @@
 
 import { Channel } from "@/lib/channels";
 import { Version } from "@/lib/versions";
+import { kv } from "@vercel/kv";
 
 export async function createShare(code: string, version: Version, channel: Channel) {
     const id = await hashString(code + version + channel);
-    await process.env.SHARES.put(id, code);
+    try {
+        await kv.set(id, { code, version, channel });
+    } catch {
+        throw new Error("Internal server error");
+    }
     return { id };
 }
 
