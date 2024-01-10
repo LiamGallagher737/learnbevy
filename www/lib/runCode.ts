@@ -34,15 +34,9 @@ export async function run(code: string, version: Version, channel: Channel, pare
             case "BuildFailed":
                 msg = "The code failed to build";
                 break;
-            case "Overloaded":
-                msg =
-                    "The server failed to process your request due to being overloaded";
-                break;
             case "Internal":
                 msg = "An internal server error occurred";
                 break;
-            default:
-                msg = "An error occurred: " + error.kind;
         }
         throw new Error(msg, {
             cause: {
@@ -97,7 +91,7 @@ export async function run(code: string, version: Version, channel: Channel, pare
     return { gameCanvas, wasm: refObj.wasm, stderr: stderrText };
 }
 
-type BcaError = RateLimitError | CFRateLimitError | ActiveRequestExistsError | InvalidBodyError | DisallowedWordError | BuildFailedError | OverloadedError | InternalError;
+type BcaError = RateLimitError | CFRateLimitError | ActiveRequestExistsError | DisallowedWordError | BuildFailedError | InternalError;
 
 type RateLimitError = {
     kind: "RateLimit";
@@ -112,10 +106,6 @@ type ActiveRequestExistsError = {
     kind: "ActiveRequestExists";
 }
 
-type InvalidBodyError = {
-    kind: "InvalidBody";
-}
-
 type DisallowedWordError = {
     kind: "DisallowedWord";
     word: string;
@@ -125,10 +115,6 @@ type BuildFailedError = {
     kind: "BuildFailed";
     stdout: string;
     stderr: string;
-}
-
-type OverloadedError = {
-    kind: "Overloaded";
 }
 
 type InternalError = {
