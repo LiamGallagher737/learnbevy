@@ -163,10 +163,6 @@ export default function ClientPlayground(params: { code: string }) {
           </div>
 
           <div className="flex flex-row gap-4">
-            {/* <VersionPicker
-              initialValue={version.current}
-              onChange={(v) => (version.current = v)}
-            /> */}
             <Combobox
               initialValue={version.current}
               values={VERSIONS}
