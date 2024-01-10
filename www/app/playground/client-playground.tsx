@@ -41,6 +41,7 @@ export default function ClientPlayground(params: { code: string }) {
       originalConsoleLog.apply(console, args);
       const message: string = args[0];
       if (
+        typeof message === "string" &&
         message?.startsWith("%c") &&
         !message?.includes("GPU lacks support")
       ) {
@@ -137,9 +138,11 @@ export default function ClientPlayground(params: { code: string }) {
       onLayout={() => {
         const canvas = gameCanvas.current;
         if (canvas) {
-          const parent = canvas.parentElement!;
-          canvas.style.width = `${parent.clientWidth}px`;
-          canvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
+          const parent = canvas.parentElement;
+          if (parent) {
+            canvas.style.width = `${parent.clientWidth}px`;
+            canvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
+          }
         }
       }}
     >
