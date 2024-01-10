@@ -6,8 +6,8 @@ RUN cargo install wasm-bindgen-cli
 
 WORKDIR /compile
 RUN cargo init --name game --vcs none
-COPY ./BaseCargo.toml ./Cargo.toml
-COPY ./config.toml ./.cargo/config.toml
+COPY ./v0.11/BaseCargo.toml ./Cargo.toml
+COPY ./nightly.config.toml ./.cargo/config.toml
 RUN cargo build --release --target wasm32-unknown-unknown
 
 RUN rm src/*.rs

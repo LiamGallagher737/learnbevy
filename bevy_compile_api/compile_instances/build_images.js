@@ -15,9 +15,8 @@ Versions.forEach((version) => {
     Channels.forEach((channel) => {
         const tag = `liamg737/comp-${version.replace('.', '-')}-${channel}`;
         console.log(`Building ${tag}`);
-        const directory = `./v${version}`;
-        const dockerfile = `${directory}/${channel}.Dockerfile`;
-        spawn('docker', ['build', '-t', tag, '-f', dockerfile, directory]).on('exit', () => {
+        const dockerfile = `./v${version}/${channel}.Dockerfile`;
+        spawn('docker', ['build', '-t', tag, '-f', dockerfile, '.']).on('exit', () => {
             console.log(`Built ${tag}`);
             spawn('docker', ['push', tag]).on('exit', () => {
                 console.log(`Pushed ${tag}`);
