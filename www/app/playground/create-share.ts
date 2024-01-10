@@ -5,7 +5,7 @@ import { Version } from "@/lib/versions";
 
 export async function createShare(code: string, version: Version, channel: Channel) {
     const id = await hashString(code + version + channel);
-    await process.env.SHARES.put(id, code);
+    await process.env.SHARES.put(id, JSON.stringify({ code, version, channel }));
     return { id };
 }
 

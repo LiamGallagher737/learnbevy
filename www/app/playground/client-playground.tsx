@@ -17,9 +17,9 @@ import { createShare } from "./create-share";
 import { useRouter } from "next/navigation";
 import { formatCode } from "./format";
 import { editor } from "monaco-editor";
-import { DEFAULT_VERSION, VERSIONS, Version } from "@/lib/versions";
+import { VERSIONS, Version } from "@/lib/versions";
+import { CHANNELS, Channel } from "@/lib/channels";
 import { BasicTooltip } from "@/components/basic-tooltip";
-import { CHANNELS, Channel, DEFAULT_CHANNEL } from "@/lib/channels";
 import {
   Popover,
   PopoverContent,
@@ -36,14 +36,18 @@ import {
 
 type State = "default" | "loadingGame" | "playingGame";
 
-export default function ClientPlayground(params: { code: string }) {
+export default function ClientPlayground(params: {
+  code: string;
+  version: Version;
+  channel: Channel;
+}) {
   const router = useRouter();
   const gameCanvas = useRef<HTMLCanvasElement | null>(null);
   const wasm = useRef<{ __exit: () => void } | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [toolStderr, setToolStderr] = useState<string | null>(null);
-  const [version, setVersion] = useState<Version>(DEFAULT_VERSION);
-  const [channel, setChannel] = useState<Channel>(DEFAULT_CHANNEL);
+  const [version, setVersion] = useState<Version>(params.version);
+  const [channel, setChannel] = useState<Channel>(params.channel);
   const [state, setState] = useState<State>("default");
   const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(
     null
