@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Share, Paintbrush } from "lucide-react";
+import { Copy, Share, Paintbrush, Settings, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -19,7 +19,20 @@ import { formatCode } from "./format";
 import { editor } from "monaco-editor";
 import { DEFAULT_VERSION, VERSIONS, Version } from "@/lib/versions";
 import { BasicTooltip } from "@/components/basic-tooltip";
-import { Combobox } from "@/components/combobox";
+import { CHANNELS, Channel, DEFAULT_CHANNEL } from "@/lib/channels";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type State = "default" | "loadingGame" | "playingGame";
 
@@ -29,7 +42,8 @@ export default function ClientPlayground(params: { code: string }) {
   const wasm = useRef<{ __exit: () => void } | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [toolStderr, setToolStderr] = useState<string | null>(null);
-  const version = useRef<Version>(DEFAULT_VERSION);
+  const [version, setVersion] = useState<Version>(DEFAULT_VERSION);
+  const [channel, setChannel] = useState<Channel>(DEFAULT_CHANNEL);
   const [state, setState] = useState<State>("default");
   const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(
     null
@@ -58,7 +72,7 @@ export default function ClientPlayground(params: { code: string }) {
 
     setState("loadingGame");
 
-    toast.promise(run(editor!.getValue(), version.current, "gameCard"), {
+    toast.promise(run(editor!.getValue(), version, channel, "gameCard"), {
       loading: "Loading...",
       success: (result) => {
         setState("playingGame");
@@ -83,7 +97,7 @@ export default function ClientPlayground(params: { code: string }) {
   }
 
   async function share() {
-    toast.promise(createShare(editor!.getValue(), version.current), {
+    toast.promise(createShare(editor!.getValue(), version, channel), {
       loading: "Loading...",
       success: async ({ id }) => {
         await navigator.clipboard.writeText(
@@ -163,12 +177,6 @@ export default function ClientPlayground(params: { code: string }) {
           </div>
 
           <div className="flex flex-row gap-4">
-            <Combobox
-              initialValue={version.current}
-              values={VERSIONS}
-              onChange={(v) => (version.current = v)}
-            />
-
             <BasicTooltip tooltip="Format">
               <Button variant="outline" size="icon" onClick={format}>
                 <Paintbrush className="h-4 w-4" />
@@ -190,6 +198,71 @@ export default function ClientPlayground(params: { code: string }) {
                 <Share className="h-4 w-4" />
               </Button>
             </BasicTooltip>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="flex flex-col gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium leading-none">Settings</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Set additional settings for the playground
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center gap-4">
+                    <Label>Version</Label>
+                    <Select
+                      onValueChange={(v) => setVersion(v as Version)}
+                      defaultValue={version}
+                    >
+                      <SelectTrigger className="w-[160px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VERSIONS.map((version) => (
+                          <SelectItem value={version} key={version}>
+                            {version}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-between items-center gap-4">
+                    <Label className="flex items-center">
+                      Channel
+                      <BasicTooltip tooltip="Nightly allows some experimental features for faster builds">
+                        <Button variant="link" size="icon">
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </BasicTooltip>
+                    </Label>
+                    <Select
+                      onValueChange={(v) => setChannel(v as Channel)}
+                      defaultValue={channel}
+                    >
+                      <SelectTrigger className="w-[160px] capitalize">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CHANNELS.map((channel) => (
+                          <SelectItem
+                            value={channel}
+                            key={channel}
+                            className="capitalize"
+                          >
+                            {channel}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </Card>
 
