@@ -54,7 +54,7 @@ pub fn cache_middleware<'a>(
 
         // Only cache successful and compressed responses
         if response.status() != StatusCode::Ok
-            && response.header(CONTENT_ENCODING).map(|v| v.as_str()) == Some("gzip")
+            || response.header(CONTENT_ENCODING).map(|v| v.as_str()) == Some("gzip")
         {
             return Ok(response);
         }
