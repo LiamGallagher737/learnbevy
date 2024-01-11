@@ -9,7 +9,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { CodeEditor } from "@/components/code-editor";
-import { Console } from "@/components/console";
+import { Console, ConsoleItem, LogLevel } from "@/components/console";
 import { useEffect, useRef, useState } from "react";
 import { run } from "@/lib/runCode";
 import { toast } from "sonner";
@@ -44,8 +44,7 @@ export default function ClientPlayground(params: {
   const router = useRouter();
   const gameCanvas = useRef<HTMLCanvasElement | null>(null);
   const wasm = useRef<{ __exit: () => void } | null>(null);
-  const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
-  const [toolStderr, setToolStderr] = useState<string | null>(null);
+  const [consoleOutput, setConsoleOutput] = useState<ConsoleItem[]>([]);
   const [version, setVersion] = useState<Version>(params.version);
   const [channel, setChannel] = useState<Channel>(params.channel);
   const [state, setState] = useState<State>("default");
@@ -63,7 +62,16 @@ export default function ClientPlayground(params: {
         message?.startsWith("%c") &&
         !message?.includes("GPU lacks support")
       ) {
-        setConsoleOutput((prev) => [...prev, message.replaceAll("%c", "")]);
+        const words = message.replaceAll("%c", "").split(" ");
+        setConsoleOutput((prev) => [
+          ...prev,
+          {
+            kind: "Log",
+            level: words[0] as LogLevel,
+            location: words[1],
+            message: words.slice(2).join(" "),
+          },
+        ]);
       }
     };
   }, []);
@@ -72,7 +80,6 @@ export default function ClientPlayground(params: {
     if (wasm.current) wasm.current.__exit();
     if (gameCanvas.current) gameCanvas.current.remove();
     setConsoleOutput([]);
-    setToolStderr(null);
 
     setState("loadingGame");
 
@@ -82,13 +89,13 @@ export default function ClientPlayground(params: {
         setState("playingGame");
         gameCanvas.current = result.gameCanvas;
         wasm.current = result.wasm;
-        setConsoleOutput([result.stderr]);
+        setConsoleOutput([{ kind: "Stdout", text: result.stderr }]);
         return "Built successfully";
       },
       error: (error) => {
         setState("default");
         if (error.cause?.stderr) {
-          setToolStderr(error.cause.stderr);
+          setConsoleOutput([{ kind: "Stdout", text: error.cause.stderr }]);
         }
         return error.message;
       },
@@ -115,7 +122,6 @@ export default function ClientPlayground(params: {
   }
 
   async function format() {
-    setToolStderr(null);
     const fmt = async (code: string) => {
       let response = await formatCode(code);
       if (response.kind === "Success") {
@@ -141,7 +147,10 @@ export default function ClientPlayground(params: {
       },
       error: (error) => {
         if (error.cause.source === "User") {
-          setToolStderr(error.cause.stderr);
+          setConsoleOutput((prev) => [
+            ...prev,
+            { kind: "Stdout", text: error.cause.stderr },
+          ]);
           return "Your code could not be formatted";
         } else {
           return "Something went wrong...";
@@ -290,7 +299,7 @@ export default function ClientPlayground(params: {
         </Card>
 
         <Card className="flex-grow p-4 text-sm overflow-auto">
-          <Console logs={toolStderr ?? consoleOutput}></Console>
+          <Console items={consoleOutput}></Console>
         </Card>
       </ResizablePanel>
     </ResizablePanelGroup>
