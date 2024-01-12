@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImperativePanelHandle } from "react-resizable-panels";
 
 type State = "default" | "loadingGame" | "playingGame";
 
@@ -51,6 +52,7 @@ export default function ClientPlayground(params: {
   const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(
     null
   );
+  const gamePanel = useRef<ImperativePanelHandle | null>(null);
 
   useEffect(() => {
     const originalConsoleLog = console.log;
@@ -76,9 +78,21 @@ export default function ClientPlayground(params: {
     };
   }, []);
 
+  function recalculateGameCanvasSize() {
+    const canvas = gameCanvas.current;
+    if (canvas) {
+      const parent = canvas.parentElement;
+      if (parent) {
+        canvas.style.width = `${parent.clientWidth}px`;
+        canvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
+      }
+    }
+  }
+
   async function play() {
     if (wasm.current) wasm.current.__exit();
     if (gameCanvas.current) gameCanvas.current.remove();
+    gamePanel.current?.expand();
     setConsoleOutput([]);
 
     setState("loadingGame");
@@ -162,16 +176,7 @@ export default function ClientPlayground(params: {
   return (
     <ResizablePanelGroup
       direction="horizontal"
-      onLayout={() => {
-        const canvas = gameCanvas.current;
-        if (canvas) {
-          const parent = canvas.parentElement;
-          if (parent) {
-            canvas.style.width = `${parent.clientWidth}px`;
-            canvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
-          }
-        }
-      }}
+      onLayout={recalculateGameCanvasSize}
     >
       <ResizablePanel
         defaultSize={60}
@@ -293,6 +298,9 @@ export default function ClientPlayground(params: {
         defaultSize={40}
         minSize={20}
         className="flex flex-col gap-4"
+        collapsible
+        ref={gamePanel}
+        onExpand={() => setTimeout(recalculateGameCanvasSize, 10)}
       >
         <Card className="aspect-video">
           <div id="gameCard" className="w-full h-full"></div>
