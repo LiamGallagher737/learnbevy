@@ -19,8 +19,6 @@ export async function run(code: string, version: Version, channel: Channel, pare
         }),
         headers: {
             "Content-Type": "application/json",
-            "CF-Connecting-IP": "101.188.67.134",
-            "cache-bypass": "YQf9ytoBwbI8Y1lB4Rmg",
         }
     });
 
