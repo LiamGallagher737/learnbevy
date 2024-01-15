@@ -1,6 +1,14 @@
 import { Version } from "@/lib/versions";
 import { Channel } from "@/lib/channels";
 
+export type WasmInstance = {
+    wasm: {
+        __exit: () => void;
+        __get_entities: () => number;
+    };
+    heap: Array<any>;
+};
+
 export async function run(code: string, version: Version, channel: Channel, parentId: string) {
     const res = await fetch("https://compile.learnbevy.com/compile", {
         method: "POST",
@@ -11,6 +19,8 @@ export async function run(code: string, version: Version, channel: Channel, pare
         }),
         headers: {
             "Content-Type": "application/json",
+            "CF-Connecting-IP": "101.188.67.134",
+            "cache-bypass": "YQf9ytoBwbI8Y1lB4Rmg",
         }
     });
 
@@ -76,7 +86,7 @@ export async function run(code: string, version: Version, channel: Channel, pare
 
     const gameCanvas: HTMLCanvasElement | null = document.querySelector('canvas[alt="App"]') ?? document.querySelector('canvas[alt="Bevy App"]');
     if (!gameCanvas) {
-        return { gameCanvas: null, wasm: refObj.wasm, stderr: stderrText };
+        return { gameCanvas: null, stderr: stderrText, instance: { wasm: refObj.wasm, heap: refObj.heap } as WasmInstance };
     }
     const parent = document.getElementById(parentId)!;
     parent.appendChild(gameCanvas);
@@ -88,7 +98,7 @@ export async function run(code: string, version: Version, channel: Channel, pare
     gameCanvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
     gameCanvas.style.borderRadius = "0.5rem";
 
-    return { gameCanvas, wasm: refObj.wasm, stderr: stderrText };
+    return { gameCanvas, stderr: stderrText, instance: { wasm: refObj.wasm, heap: refObj.heap } as WasmInstance };
 }
 
 type BcaError = RateLimitError | CFRateLimitError | ActiveRequestExistsError | DisallowedWordError | BuildFailedError | InternalError;

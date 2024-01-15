@@ -11,7 +11,7 @@ import {
 import { CodeEditor } from "@/components/code-editor";
 import { Console, ConsoleItem, LogLevel } from "@/components/console";
 import { useEffect, useRef, useState } from "react";
-import { run } from "@/lib/runCode";
+import { WasmInstance, run } from "@/lib/runCode";
 import { toast } from "sonner";
 import { createShare } from "./create-share";
 import { useRouter } from "next/navigation";
@@ -44,7 +44,7 @@ export default function ClientPlayground(params: {
 }) {
   const router = useRouter();
   const gameCanvas = useRef<HTMLCanvasElement | null>(null);
-  const wasm = useRef<{ __exit: () => void } | null>(null);
+  const instance = useRef<WasmInstance | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<ConsoleItem[]>([]);
   const [version, setVersion] = useState<Version>(params.version);
   const [channel, setChannel] = useState<Channel>(params.channel);
@@ -90,7 +90,7 @@ export default function ClientPlayground(params: {
   }
 
   async function play() {
-    if (wasm.current) wasm.current.__exit();
+    if (instance.current?.wasm) instance.current.wasm.__exit();
     if (gameCanvas.current) gameCanvas.current.remove();
     gamePanel.current?.expand();
     setConsoleOutput([]);
@@ -102,7 +102,7 @@ export default function ClientPlayground(params: {
       success: (result) => {
         setState("playingGame");
         gameCanvas.current = result.gameCanvas;
-        wasm.current = result.wasm;
+        instance.current = result.instance;
         setConsoleOutput([{ kind: "Stdout", text: result.stderr }]);
         return "Built successfully";
       },
@@ -195,6 +195,27 @@ export default function ClientPlayground(params: {
           </div>
 
           <div className="flex flex-row gap-4">
+            <BasicTooltip tooltip="Debug">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  const ret = instance.current!.wasm.__get_entities();
+                  console.log(ret);
+                  const entities = instance.current!.heap[ret] as Map<
+                    string,
+                    Array<string>
+                  >;
+                  entities.forEach((components, entity) => {
+                    console.log(entity);
+                    console.log(components);
+                  });
+                }}
+              >
+                D
+              </Button>
+            </BasicTooltip>
+
             <BasicTooltip tooltip="Format">
               <Button variant="outline" size="icon" onClick={format}>
                 <Paintbrush className="h-4 w-4" />

@@ -8,7 +8,11 @@ use tide::{
 };
 
 pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
-    let Input { code, version, channel } = request.ext().unwrap();
+    let Input {
+        code,
+        version,
+        channel,
+    } = request.ext().unwrap();
     let Id(id) = request.ext().unwrap();
     let name_id = name_id(*id);
 
@@ -98,22 +102,9 @@ fn temp_dir(name: &str) -> PathBuf {
 }
 
 fn modify_js(mut js: Vec<u8>) -> Vec<u8> {
-    // Remove "export" from "export function __exit()"
-    let search_bytes = b"export function __exit()";
-    let mut seen = 0;
-    let mut n = 0;
-    for byte in &js {
-        if *byte == search_bytes[seen] {
-            seen += 1;
-        } else {
-            seen = 0;
-        }
-        if seen == search_bytes.len() {
-            break;
-        }
-        n += 1;
-    }
-    js.drain(n - seen + 1..n - seen + 7);
+    remove_export_keyword(&mut js, b"export function __exit()");
+    remove_export_keyword(&mut js, b"export function __get_entities()");
+    remove_export_keyword(&mut js, b"export class __EntityInfo");
     // Remove two last lines of exports
     js.resize(js.len() - 47, 0);
     // Remove "import.meta.url" as it's not allowed outside a js module
@@ -121,6 +112,23 @@ fn modify_js(mut js: Vec<u8>) -> Vec<u8> {
     // Add on the extra js
     js.append(&mut include_bytes!("extra.js").to_vec());
     js
+}
+
+fn remove_export_keyword(js: &mut Vec<u8>, phrase: &[u8]) {
+    let mut seen = 0;
+    let mut n = 0;
+    for byte in &*js {
+        if *byte == phrase[seen] {
+            seen += 1;
+        } else {
+            seen = 0;
+        }
+        if seen == phrase.len() {
+            break;
+        }
+        n += 1;
+    }
+    js.drain(n - seen + 1..n - seen + 7);
 }
 
 /// Infomation in addition to the body to be stored with a cache (read by cache middleware)
