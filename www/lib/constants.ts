@@ -17,7 +17,7 @@ fn setup(mut commands: Commands) {
     error!("Here is an error");
 }
 
-fn change_clear_color(input: Res<Input<KeyCode>>, mut clear_color: ResMut<ClearColor>, mut state: Local<bool>) {
+fn change_clear_color(input: Res<ButtonInput<KeyCode>>, mut clear_color: ResMut<ClearColor>, mut state: Local<bool>) {
     if input.just_pressed(KeyCode::Space) {
         info!("Changing color");
         *state = !*state;
