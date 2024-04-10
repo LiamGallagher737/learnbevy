@@ -23,7 +23,7 @@ export const config: languages.LanguageConfiguration = {
         { open: '[', close: ']' },
         { open: '(', close: ')' },
         { open: '"', close: '"' },
-        { open: '\'', close: '\'' },
+        { open: "'", close: "'" },
     ],
     folding: {
         markers: {
@@ -38,30 +38,135 @@ export const grammar: languages.IMonarchLanguage = {
     // defaultToken: 'invalid',
 
     keywords: [
-        'as', 'break', 'const', 'crate', 'enum', 'extern', 'false', 'fn', 'impl', 'in',
-        'let', 'mod', 'move', 'mut', 'pub', 'ref', 'return', 'self', 'Self', 'static',
-        'struct', 'super', 'trait', 'true', 'type', 'unsafe', 'use', 'where',
+        'as',
+        'break',
+        'const',
+        'crate',
+        'enum',
+        'extern',
+        'false',
+        'fn',
+        'impl',
+        'in',
+        'let',
+        'mod',
+        'move',
+        'mut',
+        'pub',
+        'ref',
+        'return',
+        'self',
+        'Self',
+        'static',
+        'struct',
+        'super',
+        'trait',
+        'true',
+        'type',
+        'unsafe',
+        'use',
+        'where',
         'macro_rules',
     ],
 
-    controlFlowKeywords: [
-        'continue', 'else', 'for', 'if', 'while', 'loop', 'match',
-    ],
+    controlFlowKeywords: ['continue', 'else', 'for', 'if', 'while', 'loop', 'match'],
 
     typeKeywords: [
-        'Self', 'm32', 'm64', 'm128', 'f80', 'f16', 'f128', 'int', 'uint', 'float', 'char',
-        'bool', 'u8', 'u16', 'u32', 'u64', 'f32', 'f64', 'i8', 'i16', 'i32', 'i64', 'str',
-        'Option', 'Either', 'c_float', 'c_double', 'c_void', 'FILE', 'fpos_t', 'DIR', 'dirent',
-        'c_char', 'c_schar', 'c_uchar', 'c_short', 'c_ushort', 'c_int', 'c_uint', 'c_long', 'c_ulong',
-        'size_t', 'ptrdiff_t', 'clock_t', 'time_t', 'c_longlong', 'c_ulonglong', 'intptr_t',
-        'uintptr_t', 'off_t', 'dev_t', 'ino_t', 'pid_t', 'mode_t', 'ssize_t',
+        'Self',
+        'm32',
+        'm64',
+        'm128',
+        'f80',
+        'f16',
+        'f128',
+        'int',
+        'uint',
+        'float',
+        'char',
+        'bool',
+        'u8',
+        'u16',
+        'u32',
+        'u64',
+        'f32',
+        'f64',
+        'i8',
+        'i16',
+        'i32',
+        'i64',
+        'str',
+        'Option',
+        'Either',
+        'c_float',
+        'c_double',
+        'c_void',
+        'FILE',
+        'fpos_t',
+        'DIR',
+        'dirent',
+        'c_char',
+        'c_schar',
+        'c_uchar',
+        'c_short',
+        'c_ushort',
+        'c_int',
+        'c_uint',
+        'c_long',
+        'c_ulong',
+        'size_t',
+        'ptrdiff_t',
+        'clock_t',
+        'time_t',
+        'c_longlong',
+        'c_ulonglong',
+        'intptr_t',
+        'uintptr_t',
+        'off_t',
+        'dev_t',
+        'ino_t',
+        'pid_t',
+        'mode_t',
+        'ssize_t',
     ],
 
     operators: [
-        '=', '>', '<', '!', '~', '?', ':', '==', '<=', '>=', '!=',
-        '&&', '||', '++', '--', '+', '-', '*', '/', '&', '|', '^', '%',
-        '<<', '>>', '>>>', '+=', '-=', '*=', '/=', '&=', '|=', '^=',
-        '%=', '<<=', '>>=', '>>>=',
+        '=',
+        '>',
+        '<',
+        '!',
+        '~',
+        '?',
+        ':',
+        '==',
+        '<=',
+        '>=',
+        '!=',
+        '&&',
+        '||',
+        '++',
+        '--',
+        '+',
+        '-',
+        '*',
+        '/',
+        '&',
+        '|',
+        '^',
+        '%',
+        '<<',
+        '>>',
+        '>>>',
+        '+=',
+        '-=',
+        '*=',
+        '/=',
+        '&=',
+        '|=',
+        '^=',
+        '%=',
+        '<<=',
+        '>>=',
+        '>>>=',
     ],
 
     // we include these common regular expressions
@@ -76,20 +181,23 @@ export const grammar: languages.IMonarchLanguage = {
             [/r"/, { token: 'string.quote', next: '@rawstring0' }],
             [/r(#+)"/, { token: 'string.quote', next: '@rawstring1.$1' }],
             // identifiers and keywords
-            [/[a-z_$][\w$]*/, {
-                cases: {
-                    '@typeKeywords': 'type.identifier',
-                    '@keywords': {
-                        cases: {
-                            'fn': { token: 'keyword', next: '@func_decl' },
-                            '@default': 'keyword',
+            [
+                /[a-z_$][\w$]*/,
+                {
+                    cases: {
+                        '@typeKeywords': 'type.identifier',
+                        '@keywords': {
+                            cases: {
+                                fn: { token: 'keyword', next: '@func_decl' },
+                                '@default': 'keyword',
+                            },
                         },
+                        '@controlFlowKeywords': 'keyword.control',
+                        '@default': 'variable',
                     },
-                    '@controlFlowKeywords': 'keyword.control',
-                    '@default': 'variable',
                 },
-            }],
-            [/[A-Z][\w\$]*/, 'type.identifier'],  // to show class names nicely
+            ],
+            [/[A-Z][\w\$]*/, 'type.identifier'], // to show class names nicely
 
             // whitespace
             { include: '@whitespace' },
@@ -97,12 +205,15 @@ export const grammar: languages.IMonarchLanguage = {
             // delimiters and operators
             [/[{}()\[\]]/, '@brackets'],
             [/[<>](?!@symbols)/, '@brackets'],
-            [/@symbols/, {
-                cases: {
-                    '@operators': 'operator',
-                    '@default': '',
+            [
+                /@symbols/,
+                {
+                    cases: {
+                        '@operators': 'operator',
+                        '@default': '',
+                    },
                 },
-            }],
+            ],
 
             // @ annotations.
             // As an example, we emit a debugging log message on these tokens.
@@ -118,7 +229,7 @@ export const grammar: languages.IMonarchLanguage = {
             [/[;,.]/, 'delimiter'],
 
             // strings
-            [/"([^"\\]|\\.)*$/, 'string.invalid'],  // non-teminated string
+            [/"([^"\\]|\\.)*$/, 'string.invalid'], // non-teminated string
             [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
 
             // characters
@@ -129,19 +240,25 @@ export const grammar: languages.IMonarchLanguage = {
 
         comment: [
             [/[^\/*]+/, 'comment'],
-            [/\/\*/, 'comment', '@push'],    // nested comment
+            [/\/\*/, 'comment', '@push'], // nested comment
             ['\\*/', 'comment', '@pop'],
             [/[\/*]/, 'comment'],
         ],
 
-        rawstring0: [[/[^"]+/, 'string'], [/"/, { token: 'string.quote', next: '@pop' }]],
+        rawstring0: [
+            [/[^"]+/, 'string'],
+            [/"/, { token: 'string.quote', next: '@pop' }],
+        ],
         rawstring1: [
-            [/"(#+)/, {
-                cases: {
-                    '$1==$S2': { token: 'string.quote', next: '@pop' },
-                    '@default': { token: 'string' },
+            [
+                /"(#+)/,
+                {
+                    cases: {
+                        '$1==$S2': { token: 'string.quote', next: '@pop' },
+                        '@default': { token: 'string' },
+                    },
                 },
-            }],
+            ],
             [/./, 'string'],
         ],
         string: [
@@ -157,11 +274,7 @@ export const grammar: languages.IMonarchLanguage = {
             [/\/\/.*$/, 'comment'],
         ],
 
-        func_decl: [
-            [
-                /[a-z_$][\w$]*/, 'support.function', '@pop',
-            ],
-        ],
+        func_decl: [[/[a-z_$][\w$]*/, 'support.function', '@pop']],
     },
 };
 
@@ -169,7 +282,7 @@ export const themeVsDarkPlus: editor.IStandaloneThemeData = {
     base: 'vs-dark',
     inherit: true,
     colors: {
-        "editor.background": "#1c1917",
+        'editor.background': '#1c1917',
     },
     rules: [
         { token: 'keyword.control', foreground: 'C586C0' },
@@ -188,7 +301,7 @@ export const themeVsDarkPlus: editor.IStandaloneThemeData = {
         { token: 'namespace', foreground: '4EC9B0' },
         { token: 'variable.mutable', fontStyle: 'underline' },
         { token: 'parameter.mutable', fontStyle: 'underline' },
-        { token: "comment", foreground: "737373" },
+        { token: 'comment', foreground: '737373' },
     ],
 };
 

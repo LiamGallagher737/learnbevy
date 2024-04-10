@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
+    import { DEFAULT_CODE } from '$lib/default-code';
     import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
     const MODE_ID = 'rusty';
@@ -8,9 +9,12 @@
     let monaco: typeof Monaco;
     let editorContainer: HTMLElement;
 
+    export let code = DEFAULT_CODE;
+    export const layout = () => {
+        editor?.layout(); // Recalculates width and height
+    };
+
     onMount(async () => {
-        // Import our 'monaco.ts' file here
-        // (onMount() will only be executed in the browser, which is what we want)
         monaco = (await import('../monaco')).default;
         let rm = await import('$lib/rust-monaco');
         let themeVsDarkPlus = rm.themeVsDarkPlus;
@@ -26,16 +30,19 @@
             monaco.languages.setMonarchTokensProvider(MODE_ID, grammar);
         });
 
-        // Your monaco instance is ready, let's display some code!
-        const editor = monaco.editor.create(editorContainer, {
+        editor = monaco.editor.create(editorContainer, {
             theme: 'vscode-dark-plus',
+            minimap: { enabled: false },
         });
-        const model = monaco.editor.createModel(
-            'fn main() {\n\tprintln!("Hello, world!");\n}\n',
-            MODE_ID
-        );
+        const model = monaco.editor.createModel(code, MODE_ID);
+
+        editor.onDidChangeModelContent(() => (code = editor.getValue()));
 
         editor.setModel(model);
+    });
+
+    onMount(() => {
+        window.addEventListener('resize', layout);
     });
 
     onDestroy(() => {
@@ -44,13 +51,4 @@
     });
 </script>
 
-<div>
-    <div class="container" bind:this={editorContainer} />
-</div>
-
-<style>
-    .container {
-        width: 100%;
-        height: 600px;
-    }
-</style>
+<div class="h-full w-full" bind:this={editorContainer} />

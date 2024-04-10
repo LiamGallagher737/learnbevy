@@ -8,9 +8,9 @@ import * as monaco from 'monaco-editor';
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 
 self.MonacoEnvironment = {
-    getWorker: function(_: string, _label: string) {
+    getWorker: function (_: string, _label: string) {
         return new editorWorker();
-    }
+    },
 };
 
 export default monaco;

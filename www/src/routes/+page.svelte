@@ -1,5 +1,1 @@
-<script>
-    import Editor from '$lib/components/Editor.svelte';
-</script>
-
-<Editor />
+<h1>Hello, world!</h1>
