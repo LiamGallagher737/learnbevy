@@ -14,8 +14,6 @@
 </script>
 
 <script lang="ts">
-    import { browser } from '$app/environment';
-
     export let consoleItems: ConsoleItem[] = [];
 
     const logColors = {
@@ -25,6 +23,8 @@
         WARN: 'text-orange-500',
         ERROR: 'text-red-500',
     };
+
+    let consoleElement: HTMLDivElement;
 
     let defaultConsoleLog = console.log;
     console.log = (...args) => {
@@ -45,16 +45,12 @@
                     message: words.slice(2).join(' '),
                 },
             ];
+            consoleElement.scroll({ top: consoleElement.scrollHeight, behavior: 'smooth' });
         }
     };
-
-    let consoleElement: HTMLDivElement;
-
-    $: if (browser && consoleItems)
-        consoleElement?.scroll({ top: consoleElement.scrollHeight, behavior: 'smooth' });
 </script>
 
-<div bind:this={consoleElement}>
+<div bind:this={consoleElement} class="overflow-auto h-full">
     {#each consoleItems as item, n (n)}
         {#if item.kind === 'Stdout'}
             <pre>{item.text}</pre>
