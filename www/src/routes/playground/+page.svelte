@@ -13,8 +13,11 @@
     let code: string;
 
     let gameCanvas: HTMLCanvasElement | null = null;
+    let wasm: any | null = null;
 
     async function play() {
+        if (wasm) wasm.__exit();
+        if (gameCanvas) gameCanvas.remove();
         let result = await load({
             code,
             version: '0.13',
@@ -22,6 +25,7 @@
             parentId: gameCanvasParentId,
         });
         gameCanvas = result.gameCanvas;
+        wasm = result.wasm;
     }
 
     function resizeGameCanvas() {
