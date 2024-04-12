@@ -1,7 +1,7 @@
 <script lang="ts">
     import Editor from '$lib/components/Editor.svelte';
     import Actions from './Actions.svelte';
-    import Console, { type ConsoleItem } from './Console.svelte';
+    import Console, { type ConsoleItem, type LogLevel } from './Console.svelte';
     import { Button } from '$lib/components/ui/button';
     import { Card } from '$lib/components/ui/card';
     import * as Resizable from '$lib/components/ui/resizable';
@@ -17,6 +17,28 @@
     let wasm: any | null = null;
 
     let consoleItems: ConsoleItem[] = [];
+
+    let defaultConsoleLog = console.log;
+    console.log = (...args) => {
+      defaultConsoleLog.apply(console, args);
+      const message: string = args[0];
+      if (
+        typeof message === "string" &&
+        message?.startsWith("%c") &&
+        !message?.includes("GPU lacks support")
+      ) {
+        const words = message.replaceAll("%c", "").split(" ");
+        consoleItems = [
+          ...consoleItems,
+          {
+            kind: "Log",
+            level: words[0] as LogLevel,
+            location: words[1],
+            message: words.slice(2).join(" "),
+          },
+        ];
+      }
+    };
 
     async function play() {
         if (wasm) wasm.__exit();
