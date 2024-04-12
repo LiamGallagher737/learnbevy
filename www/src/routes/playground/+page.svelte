@@ -1,9 +1,10 @@
 <script lang="ts">
     import Editor from '$lib/components/Editor.svelte';
+    import Actions from './Actions.svelte';
+    import Console, { type ConsoleItem } from './Console.svelte';
     import { Button } from '$lib/components/ui/button';
     import { Card } from '$lib/components/ui/card';
     import * as Resizable from '$lib/components/ui/resizable';
-    import Actions from './Actions.svelte';
     import { play as load } from '$lib/play';
 
     const gameCanvasParentId = 'game-container';
@@ -15,9 +16,12 @@
     let gameCanvas: HTMLCanvasElement | null = null;
     let wasm: any | null = null;
 
+    let consoleItems: ConsoleItem[] = [];
+
     async function play() {
         if (wasm) wasm.__exit();
         if (gameCanvas) gameCanvas.remove();
+        consoleItems = [];
         let result = await load({
             code,
             version: '0.13',
@@ -26,6 +30,7 @@
         });
         gameCanvas = result.gameCanvas;
         wasm = result.wasm;
+        consoleItems = [...consoleItems, { kind: 'Stdout', text: result.stderr }];
     }
 
     function resizeGameCanvas() {
@@ -63,7 +68,9 @@
                     class="h-full w-full"
                 ></div>
             </Card>
-            <Card class="flex-grow overflow-auto p-4 text-sm"></Card>
+            <Card class="flex-grow overflow-auto p-4 font-mono text-sm">
+                <Console {consoleItems} />
+            </Card>
         </Resizable.Pane>
     </Resizable.PaneGroup>
 </div>
