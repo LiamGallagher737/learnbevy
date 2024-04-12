@@ -43,6 +43,7 @@
         "lucide-svelte": "^0.366.0",
         "mode-watcher": "^0.3.0",
         "paneforge": "^0.0.3",
+        "svelte-sonner": "^0.3.22",
         "tailwind-merge": "^2.2.2",
         "tailwind-variants": "^0.2.1"
     }

@@ -1,11 +1,12 @@
 <script lang="ts">
     import Editor from '$lib/components/Editor.svelte';
     import Actions from './Actions.svelte';
-    import Console, { type ConsoleItem, type LogLevel } from './Console.svelte';
+    import Console, { type ConsoleItem } from './Console.svelte';
     import { Button } from '$lib/components/ui/button';
     import { Card } from '$lib/components/ui/card';
     import * as Resizable from '$lib/components/ui/resizable';
     import { play as load } from '$lib/play';
+    import { toast } from 'svelte-sonner';
 
     const gameCanvasParentId = 'game-container';
     let gameCanvasParent: HTMLDivElement;
@@ -16,43 +17,36 @@
     let gameCanvas: HTMLCanvasElement | null = null;
     let wasm: any | null = null;
 
-    let consoleItems: ConsoleItem[] = [];
-
-    let defaultConsoleLog = console.log;
-    console.log = (...args) => {
-      defaultConsoleLog.apply(console, args);
-      const message: string = args[0];
-      if (
-        typeof message === "string" &&
-        message?.startsWith("%c") &&
-        !message?.includes("GPU lacks support")
-      ) {
-        const words = message.replaceAll("%c", "").split(" ");
-        consoleItems = [
-          ...consoleItems,
-          {
-            kind: "Log",
-            level: words[0] as LogLevel,
-            location: words[1],
-            message: words.slice(2).join(" "),
-          },
-        ];
-      }
-    };
+    let consoleItems: ConsoleItem[];
 
     async function play() {
         if (wasm) wasm.__exit();
         if (gameCanvas) gameCanvas.remove();
         consoleItems = [];
-        let result = await load({
-            code,
-            version: '0.13',
-            channel: 'nightly',
-            parentId: gameCanvasParentId,
+        const promise: Promise<void> = new Promise(async (resolve, reject) => {
+            let result = await load({
+                code,
+                version: '0.13',
+                channel: 'nightly',
+                parentId: gameCanvasParentId,
+            });
+            if (result.kind === 'Failed') {
+                if (result.stderr) consoleItems = [{ kind: 'Stdout', text: result.stderr }];
+                reject(result.message);
+            } else {
+                if (result.kind === 'Success') gameCanvas = result.gameCanvas;
+                wasm = result.wasm;
+                consoleItems = [{ kind: 'Stdout', text: result.stderr }];
+                resolve();
+            }
         });
-        gameCanvas = result.gameCanvas;
-        wasm = result.wasm;
-        consoleItems = [...consoleItems, { kind: 'Stdout', text: result.stderr }];
+        toast.promise(promise, {
+            loading: 'Loading...',
+            success: 'Built successfully',
+            error: (err) => {
+                return err as string;
+            },
+        });
     }
 
     function resizeGameCanvas() {
@@ -91,7 +85,7 @@
                 ></div>
             </Card>
             <Card class="flex-grow overflow-auto p-4 font-mono text-sm">
-                <Console {consoleItems} />
+                <Console bind:consoleItems />
             </Card>
         </Resizable.Pane>
     </Resizable.PaneGroup>

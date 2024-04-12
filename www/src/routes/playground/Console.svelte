@@ -4,7 +4,7 @@
         kind: 'Stdout';
         text: string;
     };
-    export type LogLevel = 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+    type LogLevel = 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
     type ConsoleLog = {
         kind: 'Log';
         level: LogLevel;
@@ -14,9 +14,9 @@
 </script>
 
 <script lang="ts">
-    import { browser } from "$app/environment";
+    import { browser } from '$app/environment';
 
-    export let consoleItems: ConsoleItem[];
+    export let consoleItems: ConsoleItem[] = [];
 
     const logColors = {
         TRACE: 'text-cyan-500',
@@ -26,15 +26,38 @@
         ERROR: 'text-red-500',
     };
 
-    let console: HTMLDivElement;
+    let defaultConsoleLog = console.log;
+    console.log = (...args) => {
+        defaultConsoleLog.apply(console, args);
+        const message: string = args[0];
+        if (
+            typeof message === 'string' &&
+            message?.startsWith('%c') &&
+            !message?.includes('GPU lacks support')
+        ) {
+            const words = message.replaceAll('%c', '').split(' ');
+            consoleItems = [
+                ...consoleItems,
+                {
+                    kind: 'Log',
+                    level: words[0] as LogLevel,
+                    location: words[1],
+                    message: words.slice(2).join(' '),
+                },
+            ];
+        }
+    };
 
-    $: if (browser && consoleItems) console?.scroll({ top: console.scrollHeight, behavior: 'smooth' });
+    let consoleElement: HTMLDivElement;
+
+    $: if (browser && consoleItems)
+        consoleElement?.scroll({ top: consoleElement.scrollHeight, behavior: 'smooth' });
 </script>
 
-<div bind:this={console}>
+<div bind:this={consoleElement}>
     {#each consoleItems as item, n (n)}
         {#if item.kind === 'Stdout'}
-            <p>{item.text}</p>
+            <pre>{item.text}</pre>
         {:else if item.kind === 'Log'}
             <div>
                 <span class={logColors[item.level]}>{item.level}</span>{' '}
