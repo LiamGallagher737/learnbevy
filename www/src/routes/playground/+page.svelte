@@ -7,6 +7,9 @@
     import * as Resizable from '$lib/components/ui/resizable';
     import { play as load } from '$lib/play';
     import { toast } from 'svelte-sonner';
+    import Settings from './Settings.svelte';
+    import type { Version } from '$lib/versions';
+    import type { Channel } from '$lib/channels';
 
     const gameCanvasParentId = 'game-container';
     let gameCanvasParent: HTMLDivElement;
@@ -18,6 +21,7 @@
     let wasm: any | null = null;
 
     let consoleItems: ConsoleItem[];
+    let settings: { version: Version, channel: Channel };
 
     async function play() {
         if (wasm) wasm.__exit();
@@ -26,8 +30,8 @@
         const promise: Promise<void> = new Promise(async (resolve, reject) => {
             let result = await load({
                 code,
-                version: '0.13',
-                channel: 'nightly',
+                version: settings.version,
+                channel: settings.channel,
                 parentId: gameCanvasParentId,
             });
             if (result.kind === 'Failed') {
@@ -69,7 +73,10 @@
         >
             <Card class="flex flex-row justify-between p-4">
                 <Button class="font-semibold" on:click={play}>Play</Button>
-                <Actions />
+                <div class="flex flex-row gap-4">
+                    <Actions />
+                    <Settings bind:settings />
+                </div>
             </Card>
             <Card class="h-full p-4">
                 <Editor bind:this={editor} bind:code />
