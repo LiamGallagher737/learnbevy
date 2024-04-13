@@ -8,6 +8,7 @@
     import { editorCode } from '$lib/components/editor';
     import { toast } from 'svelte-sonner';
     import { settings } from './Settings.svelte';
+    import { goto } from '$app/navigation';
 
     async function copyCodeToClipboard() {
         await navigator.clipboard.writeText($editorCode);
@@ -15,20 +16,28 @@
     }
 
     async function createCodeShare() {
-        let result = await fetch('/api/share', {
-            method: 'POST',
-            body: JSON.stringify({
-                code: $editorCode,
-                version: $settings.version,
-                channel: $settings.channel,
-            }),
+        const promise: Promise<void> = new Promise(async (resolve, reject) => {
+            let result = await fetch('/api/share', {
+                method: 'POST',
+                body: JSON.stringify({
+                    code: $editorCode,
+                    version: $settings.version,
+                    channel: $settings.channel,
+                }),
+            });
+            if (!result.ok) {
+                reject();
+            }
+            const id = await result.text();
+            await navigator.clipboard.writeText(`https://learnbevy.com/playground?share=${id}`);
+            await goto(`?share=${id}`);
+            resolve();
         });
-        if (!result.ok) {
-            console.log(await result.text());
-            return;
-        }
-        const id = await result.text();
-        await navigator.clipboard.writeText(`https://learnbevy.com/playground?share=${id}`);
+        toast.promise(promise, {
+            loading: 'Loading...',
+            success: "Copied url to clipboard",
+            error: "Failed to create share",
+        });
     }
 </script>
 
