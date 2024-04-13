@@ -7,11 +7,19 @@
     import * as Resizable from '$lib/components/ui/resizable';
     import { play as load } from '$lib/play';
     import { toast } from 'svelte-sonner';
-    import Settings from './Settings.svelte';
-    import type { Version } from '$lib/versions';
-    import type { Channel } from '$lib/channels';
+    import Settings, { settings } from './Settings.svelte';
     import { consoleItems } from '$lib/components/console';
     import { editorCode } from '$lib/components/editor';
+    import type { PageData } from './$types';
+    import { onMount } from 'svelte';
+
+    export let data: PageData;
+    if (data.code) editorCode.set(data.code);
+    if (data.version && data.channel)
+        settings.set({ version: data.version, channel: data.channel });
+    onMount(() => {
+        if (data.message) toast.error(data.message);
+    });
 
     const gameCanvasParentId = 'game-container';
     let gameCanvasParent: HTMLDivElement;
@@ -21,8 +29,6 @@
     let gameCanvas: HTMLCanvasElement | null = null;
     let wasm: any | null = null;
 
-    let settings: { version: Version, channel: Channel };
-
     async function play() {
         if (wasm) wasm.__exit();
         if (gameCanvas) gameCanvas.remove();
@@ -30,8 +36,8 @@
         const promise: Promise<void> = new Promise(async (resolve, reject) => {
             let result = await load({
                 code: $editorCode,
-                version: settings.version,
-                channel: settings.channel,
+                version: $settings.version,
+                channel: $settings.channel,
                 parentId: gameCanvasParentId,
             });
             if (result.kind === 'Failed') {
@@ -75,7 +81,7 @@
                 <Button class="font-semibold" on:click={play}>Play</Button>
                 <div class="flex flex-row gap-4">
                     <Actions />
-                    <Settings bind:settings />
+                    <Settings />
                 </div>
             </Card>
             <Card class="h-full p-4">
