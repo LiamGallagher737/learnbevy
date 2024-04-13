@@ -9,7 +9,13 @@ async fn main() {
         .and(warp::path("format"))
         .and(warp::body::json())
         .and_then(handler)
-        .with(warp::compression::brotli());
+        .with(warp::compression::brotli())
+        .with(
+            warp::cors()
+                .allow_any_origin()
+                .allow_method("POST")
+                .allow_header("content-type"),
+        );
     warp::serve(route).run(([0; 4], 46530)).await;
 }
 
