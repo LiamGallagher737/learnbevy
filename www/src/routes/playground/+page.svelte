@@ -66,6 +66,11 @@
     }
 </script>
 
+<svelte:head>
+    <title>Bevy Playground</title>
+    <meta name="description" content="Experiment with Bevy apps in your browser" />
+</svelte:head>
+
 <div class="h-screen p-4">
     <Resizable.PaneGroup direction="horizontal">
         <Resizable.Pane
