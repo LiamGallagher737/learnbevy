@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
-    import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
-    import { editorCode } from './editor';
+    import { onDestroy, onMount } from "svelte";
+    import type * as Monaco from "monaco-editor/esm/vs/editor/editor.api";
+    import { editorCode } from "./editor";
 
-    const MODE_ID = 'rusty';
+    const MODE_ID = "rusty";
 
     let editor: Monaco.editor.IStandaloneCodeEditor;
     let monaco: typeof Monaco;
@@ -14,13 +14,13 @@
     };
 
     onMount(async () => {
-        monaco = (await import('../monaco')).default;
-        let rm = await import('$lib/rust-monaco');
+        monaco = (await import("../monaco")).default;
+        let rm = await import("$lib/rust-monaco");
         let themeVsDarkPlus = rm.themeVsDarkPlus;
         let config = rm.config;
         let grammar = rm.grammar;
 
-        monaco.editor.defineTheme('vscode-dark-plus', themeVsDarkPlus);
+        monaco.editor.defineTheme("vscode-dark-plus", themeVsDarkPlus);
         monaco.languages.register({
             id: MODE_ID,
         });
@@ -30,18 +30,18 @@
         });
 
         editor = monaco.editor.create(editorContainer, {
-            theme: 'vscode-dark-plus',
+            theme: "vscode-dark-plus",
             minimap: { enabled: false },
         });
         const model = monaco.editor.createModel($editorCode, MODE_ID);
 
-        editor.onDidChangeModelContent(() => (editorCode.set(editor.getValue())));
+        editor.onDidChangeModelContent(() => editorCode.set(editor.getValue()));
 
         editor.setModel(model);
     });
 
     onMount(() => {
-        window.addEventListener('resize', layout);
+        window.addEventListener("resize", layout);
     });
 
     onDestroy(() => {

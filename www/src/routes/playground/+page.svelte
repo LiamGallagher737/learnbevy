@@ -1,17 +1,17 @@
 <script lang="ts">
-    import Editor from '$lib/components/Editor.svelte';
-    import Actions from './Actions.svelte';
-    import Console from '$lib/components/Console.svelte';
-    import { Button } from '$lib/components/ui/button';
-    import { Card } from '$lib/components/ui/card';
-    import * as Resizable from '$lib/components/ui/resizable';
-    import { play as load } from '$lib/play';
-    import { toast } from 'svelte-sonner';
-    import Settings, { settings } from './Settings.svelte';
-    import { consoleItems } from '$lib/components/console';
-    import { editorCode } from '$lib/components/editor';
-    import type { PageData } from './$types';
-    import { onMount } from 'svelte';
+    import Editor from "$lib/components/Editor.svelte";
+    import Actions from "./Actions.svelte";
+    import Console from "$lib/components/Console.svelte";
+    import { Button } from "$lib/components/ui/button";
+    import { Card } from "$lib/components/ui/card";
+    import * as Resizable from "$lib/components/ui/resizable";
+    import { play as load } from "$lib/play";
+    import { toast } from "svelte-sonner";
+    import Settings, { settings } from "./Settings.svelte";
+    import { consoleItems } from "$lib/components/console";
+    import { editorCode } from "$lib/components/editor";
+    import type { PageData } from "./$types";
+    import { onMount } from "svelte";
 
     export let data: PageData;
     if (data.code) editorCode.set(data.code);
@@ -21,7 +21,7 @@
         if (data.message) toast.error(data.message);
     });
 
-    const gameCanvasParentId = 'game-container';
+    const gameCanvasParentId = "game-container";
     let gameCanvasParent: HTMLDivElement;
 
     let editor: Editor;
@@ -40,19 +40,19 @@
                 channel: $settings.channel,
                 parentId: gameCanvasParentId,
             });
-            if (result.kind === 'Failed') {
-                if (result.stderr) consoleItems.set([{ kind: 'Stdout', text: result.stderr }]);
+            if (result.kind === "Failed") {
+                if (result.stderr) consoleItems.set([{ kind: "Stdout", text: result.stderr }]);
                 reject(result.message);
             } else {
-                if (result.kind === 'Success') gameCanvas = result.gameCanvas;
+                if (result.kind === "Success") gameCanvas = result.gameCanvas;
                 wasm = result.wasm;
-                consoleItems.set([{ kind: 'Stdout', text: result.stderr }]);
+                consoleItems.set([{ kind: "Stdout", text: result.stderr }]);
                 resolve();
             }
         });
         toast.promise(promise, {
-            loading: 'Loading...',
-            success: 'Built successfully',
+            loading: "Loading...",
+            success: "Built successfully",
             error: (err) => {
                 return err as string;
             },

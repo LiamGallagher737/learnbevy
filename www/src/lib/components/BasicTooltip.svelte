@@ -1,5 +1,5 @@
 <script lang="ts">
-    import * as Tooltip from '$lib/components/ui/tooltip';
+    import * as Tooltip from "$lib/components/ui/tooltip";
     export let tooltip: string;
 </script>
 

@@ -1,9 +1,9 @@
-import type { Channel } from '$lib/channels';
-import type { Version } from '$lib/versions';
-import type { PageServerLoad } from './$types';
+import type { Channel } from "$lib/channels";
+import type { Version } from "$lib/versions";
+import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ url, platform }) => {
-    const shareId = url.searchParams.get('share');
+    const shareId = url.searchParams.get("share");
     if (shareId === null) return;
     const share = await platform?.env?.SHARES.get(shareId);
     if (share) {
@@ -21,5 +21,4 @@ type Share = {
     code: string;
     version: Version;
     channel: Channel;
-}
-
+};

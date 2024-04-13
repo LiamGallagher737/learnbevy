@@ -8,10 +8,10 @@ declare global {
         // interface PageState {}
         interface Platform {
             env?: {
-                SHARES: KVNamespacel
-            }
+                SHARES: KVNamespacel;
+            };
         }
     }
 }
 
-export { };
+export {};

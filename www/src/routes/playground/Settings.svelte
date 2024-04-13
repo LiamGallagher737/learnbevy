@@ -1,20 +1,20 @@
 <script context="module" lang="ts">
-    import { writable } from 'svelte/store';
-    import { DEFAULT_VERSION } from '$lib/versions';
-    import { DEFAULT_CHANNEL } from '$lib/channels';
+    import { writable } from "svelte/store";
+    import { DEFAULT_VERSION } from "$lib/versions";
+    import { DEFAULT_CHANNEL } from "$lib/channels";
     export const settings = writable({ version: DEFAULT_VERSION, channel: DEFAULT_CHANNEL });
 </script>
 
 <script lang="ts">
-    import Settings from 'lucide-svelte/icons/settings';
-    import Info from 'lucide-svelte/icons/info';
-    import BasicTooltip from '$lib/components/BasicTooltip.svelte';
-    import { Button } from '$lib/components/ui/button';
-    import { Label } from '$lib/components/ui/label';
-    import * as Popover from '$lib/components/ui/popover';
-    import * as Select from '$lib/components/ui/select';
-    import { VERSIONS } from '$lib/versions';
-    import { CHANNELS } from '$lib/channels';
+    import Settings from "lucide-svelte/icons/settings";
+    import Info from "lucide-svelte/icons/info";
+    import BasicTooltip from "$lib/components/BasicTooltip.svelte";
+    import { Button } from "$lib/components/ui/button";
+    import { Label } from "$lib/components/ui/label";
+    import * as Popover from "$lib/components/ui/popover";
+    import * as Select from "$lib/components/ui/select";
+    import { VERSIONS } from "$lib/versions";
+    import { CHANNELS } from "$lib/channels";
 
     let selectedVersion = { label: $settings.version, value: $settings.version };
     let selectedChannel = { label: $settings.channel, value: $settings.channel };

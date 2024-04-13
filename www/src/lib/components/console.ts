@@ -1,13 +1,13 @@
-import { writable } from 'svelte/store';
+import { writable } from "svelte/store";
 
 export type ConsoleItem = Stdout | ConsoleLog;
 type Stdout = {
-    kind: 'Stdout';
+    kind: "Stdout";
     text: string;
 };
-export type LogLevel = 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+export type LogLevel = "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
 type ConsoleLog = {
-    kind: 'Log';
+    kind: "Log";
     level: LogLevel;
     location: string;
     message: string;
