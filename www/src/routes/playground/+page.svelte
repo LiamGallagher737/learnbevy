@@ -1,7 +1,7 @@
 <script lang="ts">
     import Editor from '$lib/components/Editor.svelte';
     import Actions from './Actions.svelte';
-    import Console, { type ConsoleItem } from './Console.svelte';
+    import Console from '$lib/components/Console.svelte';
     import { Button } from '$lib/components/ui/button';
     import { Card } from '$lib/components/ui/card';
     import * as Resizable from '$lib/components/ui/resizable';
@@ -10,37 +10,37 @@
     import Settings from './Settings.svelte';
     import type { Version } from '$lib/versions';
     import type { Channel } from '$lib/channels';
+    import { consoleItems } from '$lib/components/console';
+    import { editorCode } from '$lib/components/editor';
 
     const gameCanvasParentId = 'game-container';
     let gameCanvasParent: HTMLDivElement;
 
     let editor: Editor;
-    let code: string;
 
     let gameCanvas: HTMLCanvasElement | null = null;
     let wasm: any | null = null;
 
-    let consoleItems: ConsoleItem[];
     let settings: { version: Version, channel: Channel };
 
     async function play() {
         if (wasm) wasm.__exit();
         if (gameCanvas) gameCanvas.remove();
-        consoleItems = [];
+        consoleItems.set([]);
         const promise: Promise<void> = new Promise(async (resolve, reject) => {
             let result = await load({
-                code,
+                code: $editorCode,
                 version: settings.version,
                 channel: settings.channel,
                 parentId: gameCanvasParentId,
             });
             if (result.kind === 'Failed') {
-                if (result.stderr) consoleItems = [{ kind: 'Stdout', text: result.stderr }];
+                if (result.stderr) consoleItems.set([{ kind: 'Stdout', text: result.stderr }]);
                 reject(result.message);
             } else {
                 if (result.kind === 'Success') gameCanvas = result.gameCanvas;
                 wasm = result.wasm;
-                consoleItems = [{ kind: 'Stdout', text: result.stderr }];
+                consoleItems.set([{ kind: 'Stdout', text: result.stderr }]);
                 resolve();
             }
         });
@@ -79,7 +79,7 @@
                 </div>
             </Card>
             <Card class="h-full p-4">
-                <Editor bind:this={editor} bind:code />
+                <Editor bind:this={editor} />
             </Card>
         </Resizable.Pane>
         <Resizable.Handle withHandle class="mx-4" />
@@ -92,7 +92,7 @@
                 ></div>
             </Card>
             <Card class="flex-grow overflow-auto p-4 font-mono text-sm">
-                <Console bind:consoleItems />
+                <Console />
             </Card>
         </Resizable.Pane>
     </Resizable.PaneGroup>

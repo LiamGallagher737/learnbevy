@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { DEFAULT_CODE } from '$lib/default-code';
     import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
+    import { editorCode } from './editor';
 
     const MODE_ID = 'rusty';
 
@@ -9,7 +9,6 @@
     let monaco: typeof Monaco;
     let editorContainer: HTMLElement;
 
-    export let code = DEFAULT_CODE;
     export const layout = () => {
         editor?.layout(); // Recalculates width and height
     };
@@ -34,9 +33,9 @@
             theme: 'vscode-dark-plus',
             minimap: { enabled: false },
         });
-        const model = monaco.editor.createModel(code, MODE_ID);
+        const model = monaco.editor.createModel($editorCode, MODE_ID);
 
-        editor.onDidChangeModelContent(() => (code = editor.getValue()));
+        editor.onDidChangeModelContent(() => (editorCode.set(editor.getValue())));
 
         editor.setModel(model);
     });
@@ -48,6 +47,12 @@
     onDestroy(() => {
         monaco?.editor.getModels().forEach((model) => model.dispose());
         editor?.dispose();
+    });
+
+    editorCode.subscribe((code) => {
+        if (!editor) return;
+        if (editor.getValue() === code) return;
+        editor.setValue(code);
     });
 </script>
 

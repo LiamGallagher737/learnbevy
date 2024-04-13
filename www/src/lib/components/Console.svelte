@@ -1,20 +1,5 @@
-<script context="module" lang="ts">
-    export type ConsoleItem = Stdout | ConsoleLog;
-    type Stdout = {
-        kind: 'Stdout';
-        text: string;
-    };
-    type LogLevel = 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
-    type ConsoleLog = {
-        kind: 'Log';
-        level: LogLevel;
-        location: string;
-        message: string;
-    };
-</script>
-
 <script lang="ts">
-    export let consoleItems: ConsoleItem[] = [];
+    import { consoleItems, type LogLevel } from './console';
 
     const logColors = {
         TRACE: 'text-cyan-500',
@@ -36,22 +21,22 @@
             !message?.includes('GPU lacks support')
         ) {
             const words = message.replaceAll('%c', '').split(' ');
-            consoleItems = [
-                ...consoleItems,
+            consoleItems.update((items) => [
+                ...items,
                 {
                     kind: 'Log',
                     level: words[0] as LogLevel,
                     location: words[1],
                     message: words.slice(2).join(' '),
                 },
-            ];
+            ]);
             consoleElement.scroll({ top: consoleElement.scrollHeight, behavior: 'smooth' });
         }
     };
 </script>
 
-<div bind:this={consoleElement} class="overflow-auto h-full">
-    {#each consoleItems as item, n (n)}
+<div bind:this={consoleElement} class="h-full overflow-auto">
+    {#each $consoleItems as item, n (n)}
         {#if item.kind === 'Stdout'}
             <pre>{item.text}</pre>
         {:else if item.kind === 'Log'}
