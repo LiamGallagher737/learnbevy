@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tick } from 'svelte';
     import { consoleItems, type LogLevel } from './console';
 
     const logColors = {
@@ -30,9 +31,14 @@
                     message: words.slice(2).join(' '),
                 },
             ]);
-            consoleElement.scroll({ top: consoleElement.scrollHeight, behavior: 'smooth' });
+            scrollToBottomAfterTick();
         }
     };
+
+    async function scrollToBottomAfterTick() {
+        await tick();
+        consoleElement.scroll({ top: consoleElement.scrollHeight, behavior: 'smooth' });
+    }
 </script>
 
 <div bind:this={consoleElement} class="h-full overflow-auto">
