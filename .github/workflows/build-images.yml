@@ -1,0 +1,54 @@
+name: Build images
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: 0 0 * * *
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    name: Build ${{ matrix.version }} on ${{ matrix.channel }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version:
+          - main
+        channel:
+        - stable
+        - nightly
+    env:
+      IMAGE_NAME: ${{ github.repository }}-${{ matrix.version }}-${{ matrix.channel }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          build-args: version=${{ matrix.version }} channel=${{ matrix.channel }}
+          push: true
+          cache-from: type=gha,scope=${{ matrix.version }}-${{ matrix.channel }}
+          cache-to: type=gha,scope=${{ matrix.version }}-${{ matrix.channel }},mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
