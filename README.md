@@ -79,3 +79,11 @@ Most of the time a simple `npm run dev` will suffice however if you want to use 
 ```sh
 npm run build && npx wrangler pages dev .svelte-kit/cloudflare
 ```
+
+## ⚖️ License
+
+All code in this repository is dual-licensed under either of the following license at your option.
+
+- MIT License ([LICENSE-MIT](/LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0 ([LICENSE-APACHE](/LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+
