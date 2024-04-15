@@ -28,7 +28,7 @@ This is the program than compiles the code to wasm.
 
 #### How it works
 
-Each request spins up a new docker container, the images can be found [here](./bevy_compile_api/compile_instances). There is an image for each version and channel (nightly and stable). The same folder contains a [script](https://github.com/LiamGallagher737/learnbevy/blob/main/bevy_compile_api/compile_instances/build_images.js) for building all the images.
+Each request spins up a new docker container, see [images](#-images) for for infomation on them.
 
 The http server in use is [tide](https://github.com/http-rs/tide), I chose this due to its middleware which works quite well for this use case. Each stage is implmented as its own middleware.
 
@@ -41,6 +41,18 @@ Currently it is running on a single [Ryzen Pro VPS](https://hizakura.nl/vps/) fr
 ## 📂 bevy_compile_worker
 
 This is for caching responses on cloudflare. This is needed as there is no other way to cache POST requests.
+
+## 📂 images
+
+This is where the Dockfile is for the images used durning compiling. A single dockerfile is used taking both a Bevy version and Rust channel as arguments. The Cargo.toml files for each version are in the `manifests` directory, each version gets it's own file as the features change between versions.
+
+#### Building
+
+An image can be build like this, replace `0.13` and `stable` with options of your choice.
+
+```sh
+docker build --build-arg="version=0.13" --build-arg="channel=stable" --tag "liamg737/comp-0.13-stable" .
+```
 
 ## 📂 rustfmt_api
 
