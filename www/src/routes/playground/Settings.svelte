@@ -40,11 +40,11 @@
                 <Label>Version</Label>
                 <Select.Root bind:selected={selectedVersion}>
                     <Select.Trigger class="w-[160px]">
-                        <Select.Value />
+                        <Select.Value class="capitalize" />
                     </Select.Trigger>
                     <Select.Content>
                         {#each VERSIONS as version}
-                            <Select.Item value={version} label={version}>
+                            <Select.Item class="capitalize" value={version} label={version}>
                                 {version}
                             </Select.Item>
                         {/each}
