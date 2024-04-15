@@ -36,7 +36,7 @@ RUN cargo install wasm-bindgen-cli
 
 FROM toolchain as sources
 RUN cargo init --name game --vcs none /playground
-COPY ${version}.Cargo.toml /playground/Cargo.toml
+COPY manifests/${version}.Cargo.toml /playground/Cargo.toml
 COPY nightly.config.toml /playground/.config/config.toml
 RUN if [ "${channel}" = 'stable' ]; then rm -rf /playground/.config; fi
 RUN cargo fetch
