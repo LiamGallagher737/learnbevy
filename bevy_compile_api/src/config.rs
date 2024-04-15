@@ -2,6 +2,7 @@ use serde::Deserialize;
 
 pub fn image_for_config(version: Version, channel: Channel) -> String {
     let with_version = match version {
+        Version::Main => "liamg737/comp-main",
         Version::V0_13 => "liamg737/comp-0-13",
         Version::V0_12 => "liamg737/comp-0-12",
         Version::V0_11 => "liamg737/comp-0-11",
@@ -16,6 +17,7 @@ pub fn image_for_config(version: Version, channel: Channel) -> String {
 
 pub fn edit_code_for_version(code: &str, version: Version) -> String {
     match version {
+        Version::Main => edit_code_v11(code),
         Version::V0_13 => edit_code_v11(code),
         Version::V0_12 => edit_code_v11(code),
         Version::V0_11 => edit_code_v11(code),
@@ -62,6 +64,8 @@ pub enum Channel {
 // Newest versions go last so cache keys stay the same when adding new versions
 #[derive(Clone, Copy, Default, Deserialize)]
 pub enum Version {
+    #[serde(rename = "main")]
+    Main,
     #[serde(rename = "0.10")]
     V0_10,
     #[serde(rename = "0.11")]
