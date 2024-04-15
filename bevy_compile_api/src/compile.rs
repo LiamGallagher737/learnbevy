@@ -24,10 +24,8 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
             "--name",
             &name_id,
             "-v",
-            &format!("{}:/compile/src/", dir.display()),
+            &format!("{}:/playground/src/", dir.display()),
             &config::image_for_config(*version, *channel),
-            "sh",
-            "build.sh",
         ])
         .output()
         .await?;
