@@ -53,8 +53,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: /images
-          file: /images/Dockerfile
+          context: images
+          file: images/Dockerfile
           build-args: version=${{ matrix.version }} channel=${{ matrix.channel }}
           push: true
           cache-from: type=gha,scope=${{ matrix.version }}-${{ matrix.channel }}
