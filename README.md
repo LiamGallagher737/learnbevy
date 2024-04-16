@@ -99,3 +99,4 @@ All code in this repository is dual-licensed under either of the following licen
 - MIT License ([LICENSE-MIT](/LICENSE-MIT) or http://opensource.org/licenses/MIT)
 - Apache License, Version 2.0 ([LICENSE-APACHE](/LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
 
+The [assets](/www/static/assets) included in this repository are copied from the [Bevy repository](https://github.com/bevyengine/bevy/tree/2532447dcbc374c883fcb7919ad5cfb4291193c2/assets) and typically fall under different open licenses. See [CREDITS.md](/CREDITS.md) for the details of the licenses of those files.
