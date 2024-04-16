@@ -10,9 +10,9 @@ use tide::{
     Body, Next, Request, Response, Result, StatusCode,
 };
 
-#[cfg(target_os = "linux")]
+#[cfg(not(feature = "dev-mode"))]
 const CACHE_FOLDER_PATH: &str = "/bca_cache";
-#[cfg(not(target_os = "linux"))]
+#[cfg(feature = "dev-mode")]
 const CACHE_FOLDER_PATH: &str = "cache";
 
 pub async fn setup() {
