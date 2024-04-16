@@ -62,6 +62,6 @@ jobs:
           push: true
           cache-from: type=gha,scope=${{ matrix.version }}-${{ matrix.channel }}
           cache-to: type=gha,scope=${{ matrix.version }}-${{ matrix.channel }},mode=max
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ github.actor }}/${{ env.IMAGE_NAME }}
           labels: ${{ steps.meta.outputs.labels }}
 
