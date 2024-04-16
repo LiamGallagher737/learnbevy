@@ -1,6 +1,6 @@
 #!/bin/bash
 
-versions=("main", "0.13" "0.12" "0.11" "0.10")
+versions=("main" "0.13" "0.12" "0.11" "0.10")
 channels=("stable" "nightly")
 
 # Loop through each version and channel, and run the docker build command
