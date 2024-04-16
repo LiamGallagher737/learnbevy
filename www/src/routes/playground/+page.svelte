@@ -1,13 +1,14 @@
 <script lang="ts">
     import Editor from "$lib/components/Editor.svelte";
     import Actions from "./Actions.svelte";
+    import Settings, { settings } from "./Settings.svelte";
+    import Examples from "./Examples.svelte";
     import Console from "$lib/components/Console.svelte";
     import { Button } from "$lib/components/ui/button";
     import { Card } from "$lib/components/ui/card";
     import * as Resizable from "$lib/components/ui/resizable";
     import { play as load } from "$lib/play";
     import { toast } from "svelte-sonner";
-    import Settings, { settings } from "./Settings.svelte";
     import { consoleItems } from "$lib/components/console";
     import { editorCode } from "$lib/components/editor";
     import type { PageData } from "./$types";
@@ -85,6 +86,7 @@
             <Card class="flex flex-row justify-between p-4">
                 <Button class="font-semibold" on:click={play}>Play</Button>
                 <div class="flex flex-row gap-4">
+                    <Examples />
                     <Actions />
                     <Settings />
                 </div>
