@@ -6,7 +6,7 @@ channels=("stable" "nightly")
 # Loop through each version and channel, and run the docker build command
 for version in "${versions[@]}"; do
     for channel in "${channels[@]}"; do
-        tag="liamg737/comp-${version}-${channel}"
+        tag="learnbevy-${version}-${channel}"
 
         # Run the Docker build command
         echo "Building Docker image for version ${version} and channel ${channel}..."

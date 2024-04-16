@@ -14,6 +14,9 @@ for version in "${versions[@]}"; do
         echo "Tagging Docker image for version ${version} and channel ${channel}..."
         docker tag ghcr.io/liamgallagher737/${tag}:main ${tag}:latest
 
+        echo "Removing old Docker image for version ${version} and channel ${channel}..."
+        docker rmi ghcr.io/liamgallagher737/${tag}:main
+
         # Check if the build was successful
         if [[ $? -eq 0 ]]; then
             echo "Successfully pulled ${tag}"

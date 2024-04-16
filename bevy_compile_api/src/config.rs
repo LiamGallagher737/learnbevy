@@ -2,11 +2,11 @@ use serde::Deserialize;
 
 pub fn image_for_config(version: Version, channel: Channel) -> String {
     let with_version = match version {
-        Version::Main => "liamg737/comp-main",
-        Version::V0_13 => "liamg737/comp-0.13",
-        Version::V0_12 => "liamg737/comp-0.12",
-        Version::V0_11 => "liamg737/comp-0.11",
-        Version::V0_10 => "liamg737/comp-0.10",
+        Version::Main => "learnbevy-main",
+        Version::V0_13 => "learnbevy-0.13",
+        Version::V0_12 => "learnbevy-0.12",
+        Version::V0_11 => "learnbevy-0.11",
+        Version::V0_10 => "learnbevy-0.10",
     }
     .to_string();
     match channel {
