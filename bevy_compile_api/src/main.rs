@@ -21,6 +21,7 @@ async fn main() -> Result<(), std::io::Error> {
     app.with(
         tide::security::CorsMiddleware::new()
             .allow_methods(HeaderValue::from_str("POST").unwrap())
+            .allow_headers(HeaderValue::from_str("content-type").unwrap())
             .expose_headers(
                 HeaderValue::from_str("wasm-content-length, js-content-length").unwrap(),
             ),
