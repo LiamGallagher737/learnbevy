@@ -55,7 +55,9 @@ jobs:
         with:
           context: images
           file: images/Dockerfile
-          build-args: version=${{ matrix.version }} channel=${{ matrix.channel }}
+          build-args: |
+            version=${{ matrix.version }}
+            channel=${{ matrix.channel }}
           push: true
           cache-from: type=gha,scope=${{ matrix.version }}-${{ matrix.channel }}
           cache-to: type=gha,scope=${{ matrix.version }}-${{ matrix.channel }},mode=max
