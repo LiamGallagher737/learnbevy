@@ -38,6 +38,26 @@ To keep the service avaliable for everyone to use there is rate limiting which a
 
 Currently it is running on a single [Ryzen Pro VPS](https://hizakura.nl/vps/) from Hizakura. I chose this due to it's great single threaded performance which seems to be the most important for incrimental builds. The server is protected behind Cloudflare's proxy for ddos protection, caching and basic rate limiting.
 
+#### Local Development
+
+The program has a `dev-mode` feature which will use local paths rather than the server ones and will remove cloudflare specific behaviour. It can be run in dev mode like this.
+
+```sh
+cargo run --features dev-mode
+```
+
+Most likely you will need root privileges to spin up docker containers. To run the program as sudo you can use the following.
+
+```sh
+cargo build --features dev-mode && sudo target/debug/bevy_compile_api
+```
+
+You will also need to generate an ssl certificate `cert.pem` and `cart.key` for ssl to work. The following command will ask some questions, put whatever info you want in here.
+
+```
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout cert.key -out cert.pem
+```
+
 ## 📂 bevy_compile_worker
 
 This is for caching responses on cloudflare. This is needed as there is no other way to cache POST requests.
@@ -91,6 +111,15 @@ Most of the time a simple `npm run dev` will suffice however if you want to use 
 ```sh
 npm run build && npx wrangler pages dev .svelte-kit/cloudflare
 ```
+
+If you want the website to use a locally running compile server you can specify a url in your .env file.
+
+```env
+PUBLIC_COMPILE_HOST=https://localhost:53740
+```
+
+If your running the compile server with ssl then most likely your browser will block the request when you try to compile due to an untrusted self-signed certificate. To trust it on Firefox you can go to https://localhost:53740/compile and click on the Advanced then Accept the Risk. Other browser should be very simular.
+
 
 ## ⚖️ License
 
