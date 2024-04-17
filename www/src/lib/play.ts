@@ -1,5 +1,6 @@
 import type { Version } from "$lib/versions";
 import type { Channel } from "$lib/channels";
+import { env } from "$env/dynamic/public";
 
 type CompileArgs = {
     code: string;
@@ -9,7 +10,8 @@ type CompileArgs = {
 };
 
 export async function play(args: CompileArgs): Promise<PlayResponse> {
-    const res = await fetch("https://compile.learnbevy.com/compile", {
+    const host = env.PUBLIC_COMPILE_HOST ?? "https://compile.learnbevy.com";
+    const res = await fetch(host + "/compile", {
         method: "POST",
         body: JSON.stringify({
             code: args.code,
