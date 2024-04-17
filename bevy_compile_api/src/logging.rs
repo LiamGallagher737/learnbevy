@@ -10,9 +10,9 @@ use tide::{Next, Request};
 
 use crate::{Id, PeerAddr};
 
-#[cfg(target_os = "linux")]
+#[cfg(not(feature = "dev-mode"))]
 const LOG_FOLDER_PATH: &str = "/var/log/bca";
-#[cfg(not(target_os = "linux"))]
+#[cfg(feature = "dev-mode")]
 const LOG_FOLDER_PATH: &str = "logs";
 const LOG_FILE_PREFIX: &str = "bca.log.";
 
