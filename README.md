@@ -18,6 +18,9 @@ Here is a list of current and planned features
 - [X] Selectable Bevy version and rust channel (nightly and stable)
 - [X] Formatting code
 - [X] Sharing code
+- [X] Bevy example selector
+- [X] Assets for testing with
+- [X] Popular crates
 - [ ] Entity hierarchy
 - [ ] Entity inspector
 - [ ] Rust analyzer running in the browser ([it's possible](https://github.com/rust-analyzer/rust-analyzer-wasm))
