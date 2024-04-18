@@ -16,13 +16,19 @@
     let value = "";
 
     async function loadExampleData(version: Version) {
-        const result = (await import(`../../lib/examples/${version}.examples.ts`)).examples;
-        examples = result;
+        if (version !== "main") {
+            const result = (await import(`../../lib/examples/${version}.examples.ts`)).examples;
+            examples = result;
+        } else {
+            const result = await fetch("/api/examples-main").then((res) => res.json());
+            examples = result;
+        }
     }
 
     async function loadExampleCode() {
         const promise: Promise<void> = new Promise(async (resolve, reject) => {
-            const url = `https://raw.githubusercontent.com/bevyengine/bevy/v${$settings.version}.0/examples/${value}`;
+            const branch = $settings.version !== "main" ? `v${$settings.version}.0` : "main";
+            const url = `https://raw.githubusercontent.com/bevyengine/bevy/${branch}/examples/${value}`;
             const response = await fetch(url);
             if (!response.ok) {
                 reject();
@@ -119,4 +125,3 @@
         </Command.Root>
     </Popover.Content>
 </Popover.Root>
-
