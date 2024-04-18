@@ -28,7 +28,8 @@ export const GET: RequestHandler = async () => {
 
     return new Response(JSON.stringify(examples), {
         headers: {
-            'content-type': 'application/json'
+            'content-type': 'application/json',
+            'cache-control': 'public, max-age=14400',
         }
     });
 };
