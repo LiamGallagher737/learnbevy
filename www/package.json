@@ -39,6 +39,8 @@
     },
     "type": "module",
     "dependencies": {
+        "@octokit/core": "^6.1.2",
+        "@octokit/types": "^13.4.1",
         "bits-ui": "^0.21.3",
         "clsx": "^2.1.0",
         "cmdk-sv": "^0.0.17",
