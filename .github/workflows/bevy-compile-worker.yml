@@ -1,4 +1,4 @@
-name: Website CI
+name: Bevy Compile Worker CI
 
 on:
   push:
