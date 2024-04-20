@@ -1,18 +1,11 @@
-name: Rust CI
+name: Bevy Compile Api CI
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'bevy_compile_api/**'
-      - 'rustfmt_api/**'
-      - '.github/workflows/rust-ci.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'bevy_compile_api/**'
-      - 'rustfmt_api/**'
-      - '.github/workflows/rust-ci.yml'
+  workflow_call:
+    inputs:
+      working-dir:
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
@@ -22,8 +15,6 @@ jobs:
   test:
     name: Runs Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix: { dir: ['bevy_compile_api', 'rustfmt_api'] }
     timeout-minutes: 30
     steps:
       - name: Checkout sources
@@ -37,19 +28,17 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('${ inputs.working-dir }/Cargo.toml') }}
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run cargo test
-        working-directory: ${{ matrix.dir }}
+        working-directory: ${{ inputs.working-dir }}
         run: cargo test
 
   # Run cargo clippy -- -D warnings
   clippy_check:
     name: Check Clippy
     runs-on: ubuntu-latest
-    strategy:
-      matrix: { dir: ['bevy_compile_api', 'rustfmt_api'] }
     timeout-minutes: 30
     steps:
       - name: Checkout sources
@@ -63,21 +52,19 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('${ inputs.working-dir }/Cargo.toml') }}
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       - name: Run clippy
-        working-directory: ${{ matrix.dir }}
+        working-directory: ${{ inputs.working-dir }}
         run: cargo clippy -- -D warnings
 
   # Run cargo fmt --all -- --check
   format:
     name: Check Formatting
     runs-on: ubuntu-latest
-    strategy:
-      matrix: { dir: ['bevy_compile_api', 'rustfmt_api'] }
     timeout-minutes: 30
     steps:
       - name: Checkout sources
@@ -87,5 +74,5 @@ jobs:
         with:
           components: rustfmt
       - name: Run cargo fmt
-        working-directory: ${{ matrix.dir }}
+        working-directory: ${{ inputs.working-dir }}
         run: cargo fmt --all -- --check
