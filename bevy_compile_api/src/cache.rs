@@ -15,6 +15,8 @@ const CACHE_FOLDER_PATH: &str = "/bca_cache";
 #[cfg(feature = "dev-mode")]
 const CACHE_FOLDER_PATH: &str = "cache";
 
+const CACHE_BYPASS_TOKEN: Option<&'static str> = option_env!("CACHE_BYPASS_TOKEN");
+
 pub async fn setup() {
     fs::create_dir_all(CACHE_FOLDER_PATH)
         .await
@@ -31,8 +33,8 @@ pub fn cache_middleware<'a>(
             return Ok(next.run(request).await);
         };
 
-        let cache_bypass = request.header("cache-bypass").map(|v| v.as_str())
-            == Some(include_str!("cache-bypass.token"));
+        let cache_bypass = CACHE_BYPASS_TOKEN.is_some()
+            && request.header("cache-bypass").map(|v| v.as_str()) == CACHE_BYPASS_TOKEN;
 
         if !cache_bypass {
             if let Ok(Some(cache)) = get_cache(hash).await {
