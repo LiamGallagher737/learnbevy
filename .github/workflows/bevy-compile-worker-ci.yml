@@ -1,0 +1,30 @@
+name: Bevy Compile Worker CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+    - 'bevy_compile_worker/**'
+    - '.github/workflows/bevy-compile-worker-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+    - 'bevy_compile_worker/**'
+    - '.github/workflows/bevy-compile-worker-ci.yml'
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    name: Check Formatting
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setp
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: Install Dependencies
+        working-directory: bevy_compile_worker
+        run: npm ci
+      - name: Check
+        working-directory: bevy_compile_worker
+        run: npx prettier --check .
