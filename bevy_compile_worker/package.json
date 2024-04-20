@@ -1,15 +1,17 @@
 {
-  "name": "bevy-compile-worker",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231218.0",
-    "typescript": "^5.0.4",
-    "wrangler": "^3.0.0"
-  }
+    "name": "bevy-compile-worker",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "deploy": "wrangler deploy",
+        "dev": "wrangler dev",
+        "start": "wrangler dev",
+        "format": "prettier --write ."
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20231218.0",
+        "prettier": "^3.2.5",
+        "typescript": "^5.0.4",
+        "wrangler": "^3.0.0"
+    }
 }

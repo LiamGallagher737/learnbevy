@@ -72,12 +72,12 @@ fn peer_addr_middleware<'a>(
     Box::pin(async {
         let ip = if !cfg!(feature = "dev-mode") {
             request
-            .header("CF-Connecting-IP")
-            .and_then(|addr| addr.as_str().parse::<IpAddr>().ok())
-            .ok_or(tide::Error::from_str(
-                StatusCode::BadRequest,
-                "Could not get peer address",
-            ))?
+                .header("CF-Connecting-IP")
+                .and_then(|addr| addr.as_str().parse::<IpAddr>().ok())
+                .ok_or(tide::Error::from_str(
+                    StatusCode::BadRequest,
+                    "Could not get peer address",
+                ))?
         } else {
             "1.1.1.1".parse::<IpAddr>().unwrap()
         };
