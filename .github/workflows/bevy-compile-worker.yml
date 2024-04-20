@@ -5,12 +5,12 @@ on:
     branches: [main]
     paths:
     - 'bevy_compile_worker/**'
-    - '.github/workflows/bevy_compile_worker-ci.yml'
+    - '.github/workflows/bevy-compile-worker-ci.yml'
   pull_request:
     branches: [main]
     paths:
     - 'bevy_compile_worker/**'
-    - '.github/workflows/bevy_compile_worker-ci.yml'
+    - '.github/workflows/bevy-compile-worker-ci.yml'
 
 jobs:
   format:
