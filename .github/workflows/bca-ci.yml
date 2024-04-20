@@ -37,7 +37,7 @@ jobs:
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Create Dummy Token
-        run: touch cache-bypass.token
+        run: touch bevy_compile_api/cache-bypass.token
       - name: Run cargo test
         working-directory: bevy_compile_api
         run: cargo test
@@ -65,7 +65,7 @@ jobs:
         with:
           components: clippy
       - name: Create Dummy Token
-        run: touch cache-bypass.token
+        run: touch bevy_compile_api/cache-bypass.token
       - name: Run clippy
         working-directory: bevy_compile_api
         run: cargo clippy -- -D warnings
