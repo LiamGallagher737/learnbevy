@@ -20,11 +20,11 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - main
-          - 0.13
-          - 0.12
-          - 0.11
-          - 0.10
+          - 'main'
+          - '0.13'
+          - '0.12'
+          - '0.11'
+          - '0.10'
         channel:
         - stable
         - nightly
