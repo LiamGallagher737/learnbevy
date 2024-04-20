@@ -21,8 +21,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      - run: npm ci
-      - run: npm run check
+      - name: Install Dependencies
+        working-directory: www
+        run: npm ci
+      - name: Check
+        working-directory: www
+        run: npm run check
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -31,5 +35,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      - run: npm ci
-      - run: npm run lint
+      - name: Install Dependencies
+        working-directory: www
+        run: npm ci
+      - name: Lint
+        working-directory: www
+        run: npm run lint
