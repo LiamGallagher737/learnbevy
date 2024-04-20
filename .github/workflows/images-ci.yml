@@ -29,7 +29,7 @@ jobs:
         - stable
         - nightly
     env:
-      IMAGE_NAME: ${{ github.sha }}-${{ matrix.version }}-${{ matrix.channel }}
+      IMAGE_NAME: ${{ ggithub.repository }}-${{ matrix.version }}-${{ matrix.channel }}-${{ github.sha }}
     permissions:
       contents: read
       packages: write
