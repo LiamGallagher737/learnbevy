@@ -5,12 +5,12 @@ on:
     branches: [main]
     paths:
     - 'rustfmt_api/**'
-    - '.github/workflows/fmt-api-ci.yml'
+    - '.github/workflows/rustfmt-api-ci.yml'
   pull_request:
     branches: [main]
     paths:
     - 'rustfmt_api/**'
-    - '.github/workflows/fmt-api-ci.yml'
+    - '.github/workflows/rustfmt-api-ci.yml'
 
 env:
   CARGO_TERM_COLOR: always

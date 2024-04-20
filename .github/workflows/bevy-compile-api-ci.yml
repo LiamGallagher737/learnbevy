@@ -5,12 +5,12 @@ on:
     branches: [main]
     paths:
     - 'bevy_compile_api/**'
-    - '.github/workflows/bca-ci.yml'
+    - '.github/workflows/bevy-compile-api-ci.yml'
   pull_request:
     branches: [main]
     paths:
     - 'bevy_compile_api/**'
-    - '.github/workflows/bca-ci.yml'
+    - '.github/workflows/bevy-compile-api-ci.yml'
 
 env:
   CARGO_TERM_COLOR: always
