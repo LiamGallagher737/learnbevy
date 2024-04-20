@@ -5,22 +5,79 @@ on:
     branches: [main]
     paths:
     - 'bevy_compile_api/**'
-    - '.github/workflows/rust-ci.yml'
     - '.github/workflows/bca-ci.yml'
   pull_request:
     branches: [main]
     paths:
     - 'bevy_compile_api/**'
-    - '.github/workflows/rust-ci.yml'
     - '.github/workflows/bca-ci.yml'
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  ci:
+  # Run cargo test
+  test:
+    name: Runs Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-    - uses: actions/checkout@v4
-      name: Checkout
-    - uses: ./.github/actions/rust-ci
-      name: CI
-      with:
-        working-dir: 'bevy_compile_api'
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('bevy_compile_api/Cargo.toml') }}
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run cargo test
+        working-directory: bevy_compile_api
+        run: cargo test
+
+  # Run cargo clippy -- -D warnings
+  clippy_check:
+    name: Check Clippy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('bevy_compile_api/Cargo.toml') }}
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Run clippy
+        working-directory: bevy_compile_api
+        run: cargo clippy -- -D warnings
+
+  # Run cargo fmt --all -- --check
+  format:
+    name: Check Formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Run cargo fmt
+        working-directory: bevy_compile_api
+        run: cargo fmt --all -- --check
