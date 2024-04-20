@@ -8,7 +8,11 @@ use tide::{
 };
 
 pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
-    let Input { code, version, channel } = request.ext().unwrap();
+    let Input {
+        code,
+        version,
+        channel,
+    } = request.ext().unwrap();
     let Id(id) = request.ext().unwrap();
     let name_id = name_id(*id);
 
