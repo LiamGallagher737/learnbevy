@@ -1,0 +1,22 @@
+on:
+  push:
+    branches: [main]
+    paths:
+    - 'bevy_compile_api/**'
+    - '.github/workflows/rust-ci.yml'
+    - '.github/workflows/bca-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+    - 'bevy_compile_api/**'
+    - '.github/workflows/rust-ci.yml'
+    - '.github/workflows/bca-ci.yml'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: ./.github/actions/rust-ci
+      name: CI
+      with:
+        working-dir: 'bevy_compile_api'
