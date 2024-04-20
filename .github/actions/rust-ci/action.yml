@@ -28,11 +28,11 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-test-${{ hashFiles('${ inputs.working-dir }/Cargo.toml') }}
+          key: ${{ github.event.runner.os }}-cargo-test-${{ hashFiles('${ github.event.inputs.working-dir }/Cargo.toml') }}
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run cargo test
-        working-directory: ${{ inputs.working-dir }}
+        working-directory: ${{ github.event.inputs.working-dir }}
         run: cargo test
 
   # Run cargo clippy -- -D warnings
@@ -52,13 +52,13 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('${ inputs.working-dir }/Cargo.toml') }}
+          key: ${{ github.event.runner.os }}-cargo-clippy-${{ hashFiles('${ github.event.inputs.working-dir }/Cargo.toml') }}
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       - name: Run clippy
-        working-directory: ${{ inputs.working-dir }}
+        working-directory: ${{ github.event.inputs.working-dir }}
         run: cargo clippy -- -D warnings
 
   # Run cargo fmt --all -- --check
@@ -74,5 +74,5 @@ jobs:
         with:
           components: rustfmt
       - name: Run cargo fmt
-        working-directory: ${{ inputs.working-dir }}
+        working-directory: ${{ github.event.inputs.working-dir }}
         run: cargo fmt --all -- --check
