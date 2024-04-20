@@ -36,6 +36,8 @@ jobs:
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('bevy_compile_api/Cargo.toml') }}
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
+      - name: Create Dummy Token
+        run: touch cache-bypass.token
       - name: Run cargo test
         working-directory: bevy_compile_api
         run: cargo test
@@ -62,6 +64,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+      - name: Create Dummy Token
+        run: touch cache-bypass.token
       - name: Run clippy
         working-directory: bevy_compile_api
         run: cargo clippy -- -D warnings
