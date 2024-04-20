@@ -16,7 +16,9 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-    - uses: ./.github/actions/rust-ci
+    - uses: actions/checkout@v4
+      name: Checkout
+    - uses: ./.github/actions/rust-ci.yml
       name: CI
       with:
         working-dir: 'bevy_compile_api'
