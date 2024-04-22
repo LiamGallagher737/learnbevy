@@ -1,195 +1,91 @@
-use config::{Channel, Version};
-use log::error;
-use serde::{Deserialize, Serialize};
-use std::{future::Future, net::IpAddr, pin::Pin, str::FromStr};
-use tide::{http::headers::HeaderValue, utils::After, Body, Next, Request, Response, StatusCode};
-use tide_rustls::TlsListener;
+use serde::Serialize;
+use tracing_appender::rolling;
+use tracing_subscriber::fmt::writer::MakeWriterExt;
+use warp::{reject::Rejection, Filter};
 
-mod cache;
 mod compile;
 mod config;
-mod ip_lock;
-mod logging;
-mod rate_limiting;
 
-#[async_std::main]
-async fn main() -> Result<(), std::io::Error> {
-    cache::setup().await;
-    logging::setup().await;
-    let mut app = tide::new();
+const HOST: ([u8; 4], u16) = ([0, 0, 0, 0], 53740);
 
-    app.with(
-        tide::security::CorsMiddleware::new()
-            .allow_methods(HeaderValue::from_str("POST").unwrap())
-            .allow_headers(HeaderValue::from_str("content-type").unwrap())
-            .expose_headers(
-                HeaderValue::from_str("wasm-content-length, js-content-length").unwrap(),
-            ),
-    );
-    app.with(peer_addr_middleware);
-    app.with(rate_limiting::RateLimitMiddleware::new());
-    app.with(ip_lock::IpLockMiddleware::new());
-    app.with(id_middleware);
-    app.with(logging::logging_middleware);
-    app.with(input_middleware);
-    app.with(disallowed_words_middleware);
-    app.with(hash_middleware);
-    app.with(cache::cache_middleware);
-    app.with(tide_compress::CompressMiddleware::new());
-    app.with(After(|response: Response| async move {
-        let Id(id) = response.ext().unwrap();
-        compile::cleanup(*id).await;
-        Ok(response)
-    }));
-    app.with(After(|mut response: Response| async {
-        let Id(id) = response.ext().unwrap();
-        if let Some(err) = response.error() {
-            error!("{id}: Failed with error: {err:?}");
-            response.set_body(Body::from_json(&Error::Internal)?);
-        }
-        Ok(response)
-    }));
-    app.with(transfer_id_middleware);
+#[tokio::main]
+async fn main() {
+    let log_file_writer =
+        rolling::hourly("./logs/info", "log").with_max_level(tracing::Level::INFO);
+    let important_file_writer =
+        rolling::daily("./logs/important", "important").with_max_level(tracing::Level::WARN);
 
-    app.at("/compile").post(compile::compile);
-    app.listen(
-        TlsListener::build()
-            .addrs("0.0.0.0:53740")
-            .cert("./cert.pem")
-            .key("./cert.key"),
-    )
-    .await?;
+    let writer = log_file_writer
+        .and(important_file_writer)
+        .and(std::io::stdout);
+    tracing_subscriber::fmt()
+        .with_writer(writer)
+        .with_ansi(false)
+        .init();
 
-    Ok(())
+    let route = warp::post()
+        .and(warp::path("compile"))
+        .and(warp::body::content_length_limit(1024 * 16)) // 16kb
+        .map(|| fastrand::u64(..)) // Generate random id
+        .and(input_body())
+        .and_then(compile::compile)
+        .recover(handle_rejection)
+        .with(warp::trace::request())
+        .with(
+            warp::cors()
+                .allow_any_origin()
+                .allow_method("POST")
+                .allow_header("content-type")
+                .expose_headers(["wasm-content-length", "js-content-length"]),
+        );
+
+    warp::serve(route)
+        .tls()
+        .cert_path("cert.pem")
+        .key_path("cert.key")
+        .run(HOST)
+        .await;
 }
 
-#[derive(Clone)]
-struct PeerAddr(IpAddr);
-fn peer_addr_middleware<'a>(
-    mut request: Request<()>,
-    next: Next<'a, ()>,
-) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-    Box::pin(async {
-        let ip = if !cfg!(feature = "dev-mode") {
-            request
-                .header("CF-Connecting-IP")
-                .and_then(|addr| addr.as_str().parse::<IpAddr>().ok())
-                .ok_or(tide::Error::from_str(
-                    StatusCode::BadRequest,
-                    "Could not get peer address",
-                ))?
-        } else {
-            "1.1.1.1".parse::<IpAddr>().unwrap()
-        };
-        request.set_ext(PeerAddr(ip));
-        Ok(next.run(request).await)
-    })
-}
-
-#[derive(Clone, Copy)]
-struct Id(usize);
-fn id_middleware<'a>(
-    mut request: Request<()>,
-    next: Next<'a, ()>,
-) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-    Box::pin(async {
-        let id = fastrand::usize(..);
-        request.set_ext(Id(id));
-        let mut response = next.run(request).await;
-        response.insert_header("refrence-number", id.to_string());
-        Ok(response)
-    })
-}
-
-fn transfer_id_middleware<'a>(
-    request: Request<()>,
-    next: Next<'a, ()>,
-) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-    Box::pin(async {
-        let id = *request.ext::<Id>().unwrap();
-        let mut response = next.run(request).await;
-        response.insert_ext(id);
-        Ok(response)
-    })
-}
-
-#[derive(Deserialize)]
-struct Input {
-    code: String,
-    #[serde(default)]
-    version: Version,
-    #[serde(default)]
-    channel: Channel,
-}
-fn input_middleware<'a>(
-    mut request: Request<()>,
-    next: Next<'a, ()>,
-) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-    Box::pin(async {
-        let input: Input = request.body_json().await?;
-        request.set_ext(input);
-        Ok(next.run(request).await)
-    })
-}
-
-fn disallowed_words_middleware<'a>(
-    request: Request<()>,
-    next: Next<'a, ()>,
-) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-    Box::pin(async {
-        let input = request.ext::<Input>().unwrap();
-        for word in DISALLOWED_WORDS {
-            if input.code.contains(word) {
-                return Ok(Response::builder(StatusCode::BadRequest)
-                    .body(Body::from_json(&Error::DisallowedWord { word })?)
-                    .build());
-            }
-        }
-        Ok(next.run(request).await)
-    })
-}
-
-#[derive(Clone)]
-struct MinifiedHash(Option<u128>);
-fn hash_middleware<'a>(
-    mut request: Request<()>,
-    next: Next<'a, ()>,
-) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-    Box::pin(async {
-        let Input {
-            code,
-            version,
-            channel,
-        } = request.ext().unwrap();
-        let hash = rust_minify::minify(code).ok().map(|code| {
-            let mut hash = fastmurmur3::hash(code.as_bytes());
-            hash += *version as u128;
-            hash = hash.rotate_left(16);
-            hash += *channel as u128;
-            hash
-        });
-        request.set_ext(MinifiedHash(hash));
-        let response = next.run(request).await;
-        Ok(response)
-    })
-}
-
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 #[serde(tag = "kind")]
 enum Error {
-    RateLimit {
-        time_left: f32,
-    },
-    #[allow(dead_code)]
-    CFRateLimit,
+    RateLimit { time_left: f32 },
     ActiveRequestExists,
-    DisallowedWord {
-        word: &'static str,
-    },
-    BuildFailed {
-        stderr: String,
-    },
+    DisallowedWord { word: &'static str },
+    BuildFailed { stderr: String },
     Internal,
+}
+impl warp::reject::Reject for Error {}
+
+async fn handle_rejection(rejection: warp::Rejection) -> Result<impl warp::Reply, Rejection> {
+    if let Some(error) = rejection.find::<Error>() {
+        let status = match error {
+            Error::RateLimit { time_left: _ } => warp::http::StatusCode::TOO_MANY_REQUESTS,
+            Error::ActiveRequestExists => warp::http::StatusCode::TOO_MANY_REQUESTS,
+            Error::DisallowedWord { word: _ } => warp::http::StatusCode::BAD_REQUEST,
+            Error::BuildFailed { stderr: _ } => warp::http::StatusCode::BAD_REQUEST,
+            Error::Internal => warp::http::StatusCode::INTERNAL_SERVER_ERROR,
+        };
+        let body = warp::reply::json(error);
+        let reply = warp::reply::with_status(body, status);
+        return Ok(reply);
+    }
+
+    Err(rejection)
+}
+
+fn input_body() -> impl Filter<Extract = (compile::Input,), Error = warp::Rejection> + Clone {
+    warp::any()
+        .and(warp::body::json::<compile::Input>())
+        .and_then(|input: compile::Input| async move {
+            for &word in DISALLOWED_WORDS.iter() {
+                if input.code.contains(word) {
+                    return Err(warp::reject::custom(Error::DisallowedWord { word }));
+                }
+            }
+            Ok(input)
+        })
 }
 
 const DISALLOWED_WORDS: &[&str] = &[

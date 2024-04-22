@@ -1,62 +1,61 @@
-use crate::{config, Error, Id, Input};
-use async_std::{fs, process::Command};
-use log::info;
-use std::{env, path::PathBuf};
-use tide::{
-    http::{headers::CONTENT_TYPE, mime::WASM},
-    Body, Request, Response, StatusCode,
+use std::env;
+
+use serde::Deserialize;
+use tokio::{fs, process::Command};
+use tracing::{error, info};
+
+use crate::{
+    config::{self, Channel, Version},
+    Error,
 };
 
-pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
-    let Input {
-        code,
-        version,
-        channel,
-    } = request.ext().unwrap();
-    let Id(id) = request.ext().unwrap();
-    let name_id = name_id(*id);
+#[derive(Deserialize)]
+pub struct Input {
+    pub code: String,
+    pub channel: Channel,
+    pub version: Version,
+}
 
-    let modified_code = config::edit_code_for_version(code, *version);
+pub async fn compile(id: u64, input: Input) -> Result<impl warp::Reply, warp::Rejection> {
+    let id_str = id.to_string();
+    let modified_code = config::edit_code_for_version(&input.code, input.version);
 
-    let dir = temp_dir(&name_id);
-    fs::create_dir_all(&dir).await?;
-    fs::write(dir.join("main.rs"), modified_code).await?;
+    let dir = env::temp_dir().join("bevy_compile_api").join(&id_str);
+    fs::create_dir_all(&dir).await.unwrap();
+    fs::write(dir.join("main.rs"), modified_code).await.unwrap();
 
     let output = Command::new("docker")
         .args([
             "run",
             "--name",
-            &name_id,
+            &id_str,
             "-v",
             &format!("{}:/playground/src/", dir.display()),
-            &config::image_for_config(*version, *channel),
+            &config::image_for_config(input.version, input.channel),
         ])
         .output()
-        .await?;
+        .await
+        .unwrap();
 
     // 101 is the rust compilers status code for failed to build (user error)
     if output.status.code() == Some(101) {
         info!("{id}: Build failed (user error)");
-        return Ok(Response::builder(StatusCode::BadRequest)
-            .body(Body::from_json(&Error::BuildFailed {
-                stderr: String::from_utf8(output.stderr)
-                    .unwrap_or("Contained invalid utf8".to_owned()),
-            })?)
-            .build());
+        let stderr = String::from_utf8(output.stderr).unwrap_or("Invalid utf8".to_string());
+        return Err(Error::BuildFailed { stderr }.into());
     }
 
     if !output.status.success() {
         let stderr =
-            String::from_utf8(output.stderr).unwrap_or("Contained invalid utf8".to_string());
-        let message = format!("Build failed with {}. Stderr: {stderr}", output.status);
-        return Err(tide::Error::from_str(
-            StatusCode::InternalServerError,
-            message,
-        ));
+            String::from_utf8(output.stderr).unwrap_or("Invalid utf8".to_string());
+        error!(
+            "{id}: Build failed with {}. Stdeer: {stderr}",
+            output.status
+        );
+        return Err(Error::Internal.into());
     }
 
-    let wasm = fs::read(dir.join("game_bg.wasm")).await?;
-    let js = fs::read(dir.join("game.js")).await?;
+    let wasm = fs::read(dir.join("game_bg.wasm")).await.unwrap();
+    let js = fs::read(dir.join("game.js")).await.unwrap();
     let mut modified_js = modify_js(js);
 
     let mut stderr = output.stderr;
@@ -68,35 +67,13 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     body.append(&mut modified_js);
     body.append(&mut stderr);
 
-    Ok({
-        let mut response = Response::new(StatusCode::Ok);
-        response.set_body(body);
-        response.insert_header("wasm-content-length", wasm_length.to_string());
-        response.insert_header("js-content-length", js_length.to_string());
-        response.insert_header(CONTENT_TYPE, WASM);
-        response.insert_ext(Lengths {
-            wasm_length,
-            js_length,
-        });
-        response
-    })
-}
-
-pub async fn cleanup(id: usize) {
-    let name_id = name_id(id);
-    let _ = fs::remove_dir_all(temp_dir(&name_id)).await;
-    let _ = Command::new("docker")
-        .args(["container", "rm", &name_id])
-        .output()
-        .await;
-}
-
-fn name_id(id: usize) -> String {
-    format!("bca.{id}")
-}
-
-fn temp_dir(name: &str) -> PathBuf {
-    env::temp_dir().join("bca").join(name)
+    let response = warp::http::Response::builder()
+        .status(200)
+        .header("wasm-content-length", wasm_length)
+        .header("js-content-length", js_length)
+        .header("content-type", "application/wasm")
+        .body(body);
+    Ok(response)
 }
 
 fn modify_js(mut js: Vec<u8>) -> Vec<u8> {
@@ -123,11 +100,4 @@ fn modify_js(mut js: Vec<u8>) -> Vec<u8> {
     // Add on the extra js
     js.append(&mut include_bytes!("extra.js").to_vec());
     js
-}
-
-/// Infomation in addition to the body to be stored with a cache (read by cache middleware)
-#[derive(Clone)]
-pub struct Lengths {
-    pub wasm_length: usize,
-    pub js_length: usize,
 }
