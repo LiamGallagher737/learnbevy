@@ -1,9 +1,13 @@
-use crate::{config, Error, Id, Input};
-use async_std::{fs, process::Command};
+use crate::{cache::CacheEntry, config, Error, Id, Input};
+use async_compression::futures::write::GzipEncoder;
+use async_std::{fs, io::WriteExt as _, process::Command};
 use log::info;
 use std::{env, path::PathBuf};
 use tide::{
-    http::{headers::CONTENT_TYPE, mime::WASM},
+    http::{
+        headers::{CONTENT_ENCODING, CONTENT_TYPE},
+        mime::WASM,
+    },
     Body, Request, Response, StatusCode,
 };
 
@@ -68,15 +72,22 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     body.append(&mut modified_js);
     body.append(&mut stderr);
 
+    let mut compressed_body = Vec::with_capacity(body.len() / 4);
+    let mut writer =
+        GzipEncoder::with_quality(&mut compressed_body, async_compression::Level::Fastest);
+    writer.write_all(&body[..]).await.unwrap();
+
     Ok({
         let mut response = Response::new(StatusCode::Ok);
-        response.set_body(body);
+        response.set_body(compressed_body.clone());
         response.insert_header("wasm-content-length", wasm_length.to_string());
         response.insert_header("js-content-length", js_length.to_string());
         response.insert_header(CONTENT_TYPE, WASM);
-        response.insert_ext(Lengths {
+        response.insert_header(CONTENT_ENCODING, "gzip");
+        response.insert_ext(CacheEntry {
             wasm_length,
             js_length,
+            body: compressed_body,
         });
         response
     })
@@ -123,11 +134,4 @@ fn modify_js(mut js: Vec<u8>) -> Vec<u8> {
     // Add on the extra js
     js.append(&mut include_bytes!("extra.js").to_vec());
     js
-}
-
-/// Infomation in addition to the body to be stored with a cache (read by cache middleware)
-#[derive(Clone)]
-pub struct Lengths {
-    pub wasm_length: usize,
-    pub js_length: usize,
 }

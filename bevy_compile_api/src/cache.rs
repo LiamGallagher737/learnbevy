@@ -1,4 +1,4 @@
-use crate::{compile::Lengths, Id, MinifiedHash};
+use crate::{Id, MinifiedHash};
 use async_std::{fs, stream::StreamExt};
 use log::{error, info, warn};
 use std::{future::Future, pin::Pin};
@@ -61,26 +61,11 @@ pub fn cache_middleware<'a>(
             return Ok(response);
         }
 
-        let Some(Lengths {
-            wasm_length,
-            js_length,
-        }) = response.ext().cloned()
-        else {
+        let Some(entry) = response.ext::<CacheEntry>().cloned() else {
             return Ok(response);
         };
 
-        let body = response.take_body();
-        let bytes = body.into_bytes().await.unwrap();
-        insert_cache(
-            hash,
-            CacheEntry {
-                wasm_length,
-                js_length,
-                body: bytes.clone(),
-            },
-        )
-        .await;
-        response.set_body(Body::from_bytes(bytes));
+        insert_cache(hash, entry).await;
         response.insert_header(
             "origin-cache-status",
             if !cache_bypass { "MISS" } else { "BYPASS" },
@@ -90,6 +75,7 @@ pub fn cache_middleware<'a>(
     })
 }
 
+#[derive(Clone)]
 pub struct CacheEntry {
     pub wasm_length: usize,
     pub js_length: usize,

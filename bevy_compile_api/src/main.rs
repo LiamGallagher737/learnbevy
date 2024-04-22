@@ -35,7 +35,6 @@ async fn main() -> Result<(), std::io::Error> {
     app.with(disallowed_words_middleware);
     app.with(hash_middleware);
     app.with(cache::cache_middleware);
-    app.with(tide_compress::CompressMiddleware::new());
     app.with(After(|response: Response| async move {
         let Id(id) = response.ext().unwrap();
         compile::cleanup(*id).await;
