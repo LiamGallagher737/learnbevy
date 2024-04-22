@@ -31,6 +31,7 @@ async fn main() {
         .and_then(compile::compile)
         .recover(handle_rejection)
         .with(warp::trace::request())
+        .with(warp::compression::gzip())
         .with(
             warp::cors()
                 .allow_any_origin()
