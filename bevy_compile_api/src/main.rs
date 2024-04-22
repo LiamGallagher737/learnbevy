@@ -23,6 +23,12 @@ async fn main() {
         .with_ansi(false)
         .init();
 
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_method("POST")
+        .allow_header("content-type")
+        .expose_headers(["wasm-content-length", "js-content-length"]);
+
     let route = warp::post()
         .and(warp::path("compile"))
         .and(warp::body::content_length_limit(1024 * 16)) // 16kb
@@ -30,15 +36,9 @@ async fn main() {
         .and(input_body())
         .and_then(compile::compile)
         .recover(handle_rejection)
-        .with(warp::trace::request())
         .with(warp::compression::gzip())
-        .with(
-            warp::cors()
-                .allow_any_origin()
-                .allow_method("POST")
-                .allow_header("content-type")
-                .expose_headers(["wasm-content-length", "js-content-length"]),
-        );
+        .with(cors)
+        .with(warp::trace::request());
 
     warp::serve(route)
         .tls()
