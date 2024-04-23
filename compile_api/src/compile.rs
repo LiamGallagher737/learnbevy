@@ -11,6 +11,7 @@ use tide::{
     Body, Request, Response, StatusCode,
 };
 
+/// The function that handles a compile.
 pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     let Input {
         code,
@@ -92,6 +93,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     })
 }
 
+/// Deletes the temp directory and docker container once the request has completed.
 pub async fn cleanup(id: usize) {
     let name_id = name_id(id);
     let _ = fs::remove_dir_all(temp_dir(&name_id)).await;
@@ -109,6 +111,9 @@ fn temp_dir(name: &str) -> PathBuf {
     env::temp_dir().join("bca").join(name)
 }
 
+/// Any "export" tokens will cause the code to be invalid on the frontend as it's run as a function
+/// and JavaScript functions cannot contain exports. This removes the export token for the __exit()
+/// method
 fn modify_js(mut js: Vec<u8>) -> Vec<u8> {
     // Remove "export" from "export function __exit()"
     let search_bytes = b"export function __exit()";

@@ -10,15 +10,20 @@ use tide::{
     Body, Next, Request, Response, Result, StatusCode,
 };
 
+/// The directory where the cached responses are stored on the filesystem
 const CACHE_FOLDER_PATH: &str = "cache";
 const CACHE_BYPASS_TOKEN: Option<&'static str> = option_env!("CACHE_BYPASS_TOKEN");
 
+/// Creates the directory defined by [CACHE_FOLDER_PATH].
 pub async fn setup() {
     fs::create_dir_all(CACHE_FOLDER_PATH)
         .await
         .expect("Failed to create log folder");
 }
 
+/// This middleware first checks for existing caches using the [MinifiedHash] extention, if
+/// none are found then the build is run. Once the build completes the output is cached on the
+/// filesystem in the directory defined by [CACHE_FOLDER_PATH].
 pub fn cache_middleware<'a>(
     request: Request<()>,
     next: Next<'a, ()>,
@@ -78,6 +83,7 @@ pub struct CacheEntry {
     pub body: Vec<u8>,
 }
 
+/// Attempts to load a cache using a hash. If none exists then [None] is returned.
 async fn get_cache(hash: u128) -> Result<Option<CacheEntry>> {
     let hash_string = hash.to_string();
     let mut entries = fs::read_dir(CACHE_FOLDER_PATH).await?;
@@ -100,6 +106,8 @@ async fn get_cache(hash: u128) -> Result<Option<CacheEntry>> {
     Ok(None)
 }
 
+/// Writes a response to the filesystem. If an error occurs it is logged but will not fail the
+/// request.
 async fn insert_cache(hash: u128, entry: CacheEntry) {
     let mut data = entry.body;
     data.append(&mut entry.wasm_length.to_be_bytes().to_vec());
