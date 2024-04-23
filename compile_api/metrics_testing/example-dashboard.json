@@ -155,7 +155,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "rate(cahe_hit_total[5m]) * 300",
+          "expr": "rate(cache_hit_total[5m]) * 300",
           "hide": false,
           "instant": false,
           "legendFormat": "Cache Hits",

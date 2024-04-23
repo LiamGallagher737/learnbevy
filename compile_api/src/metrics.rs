@@ -16,7 +16,7 @@ lazy_static::lazy_static! {
     .unwrap();
 
     pub static ref CACHE_HIT_COUNTER: Counter = register_counter!(opts!(
-        "cahe_hit_total",
+        "cache_hit_total",
         "Number of HTTP requests that served by a cache.",
     )).unwrap();
 
