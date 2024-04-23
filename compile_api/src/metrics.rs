@@ -29,6 +29,11 @@ lazy_static::lazy_static! {
         "ip_locked_requests_total",
         "Number of HTTP requests that have been ip locked.",
     )).unwrap();
+
+    pub static ref INTERNAL_ERROR_COUNTER: Counter = register_counter!(opts!(
+        "internal_error_total",
+        "Number of HTTP requests that resulted in an internal server error.",
+    )).unwrap();
 }
 
 pub fn metrics_counter_middleware<'a>(
