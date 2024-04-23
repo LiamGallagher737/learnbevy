@@ -1,8 +1,8 @@
 use crate::{cache::CacheEntry, config, Error, Id, Input};
-use async_compression::futures::write::GzipEncoder;
-use async_std::{fs, io::WriteExt as _, process::Command};
+use async_std::{fs, process::Command};
+use flate2::{write::GzEncoder, Compression};
 use log::info;
-use std::{env, path::PathBuf};
+use std::{env, io::Write as _, path::PathBuf};
 use tide::{
     http::{
         headers::{CONTENT_ENCODING, CONTENT_TYPE},
@@ -72,10 +72,9 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     body.append(&mut modified_js);
     body.append(&mut stderr);
 
-    let mut compressed_body = Vec::with_capacity(body.len() / 4);
-    let mut writer =
-        GzipEncoder::with_quality(&mut compressed_body, async_compression::Level::Fastest);
-    writer.write_all(&body[..]).await.unwrap();
+    let mut encoder = GzEncoder::new(Vec::with_capacity(body.len() / 3), Compression::new(2));
+    encoder.write_all(&body[..]).unwrap();
+    let compressed_body = encoder.finish().unwrap();
 
     Ok({
         let mut response = Response::new(StatusCode::Ok);
