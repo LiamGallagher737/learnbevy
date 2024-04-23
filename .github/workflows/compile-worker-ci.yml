@@ -1,4 +1,4 @@
-name: Bevy Compile Worker CI
+name: Compile Worker CI
 
 on:
   push:

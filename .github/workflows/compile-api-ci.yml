@@ -1,4 +1,4 @@
-name: Bevy Compile Api CI
+name: Compile Api CI
 
 on:
   push:
