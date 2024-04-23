@@ -25,7 +25,7 @@ async fn handler(request: Request) -> Result<warp::reply::Response, Infallible> 
         .map(|json| json.into_response())
         .map_err(|err| eprintln!("Error: {err:?}")) // Print errors to stderr
         .unwrap_or({
-            // In the case of an error, respond with generic 500 error, the error message is not sent
+            // In the case of an error, respond with generic 500 error, the lerror message is not sent
             let mut response = warp::reply::json(&Response::ServerError).into_response();
             *response.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
             response
@@ -33,7 +33,7 @@ async fn handler(request: Request) -> Result<warp::reply::Response, Infallible> 
 }
 
 async fn format(request: Request) -> Result<warp::reply::Json, std::io::Error> {
-    // Soawn a new rustfmt child process
+    // Spawn a new rustfmt child process
     let mut command = Command::new("rustfmt")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
