@@ -187,6 +187,19 @@
           "legendFormat": "IP Locked",
           "range": true,
           "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(internal_error_total[5m]) * 300",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Internal Server Error",
+          "range": true,
+          "refId": "E"
         }
       ],
       "title": "Requets every 5 minutes",
@@ -363,20 +376,20 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "",
+  "refresh": "5s",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Compile Api",
   "uid": "edjkwo06oa3ggf",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
