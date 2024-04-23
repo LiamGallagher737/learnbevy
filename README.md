@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://raw.githubusercontent.com/LiamGallagher737/learnbevy/logo/www/static/logo.png" width="200" height="200" >
+
 # Bevy Playground (for now)
 
 An online web app for playing around with Bevy in the browser.
