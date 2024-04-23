@@ -23,8 +23,9 @@ async fn handler(request: Request) -> Result<warp::reply::Response, Infallible> 
     Ok(format(request)
         .await
         .map(|json| json.into_response())
-        .map_err(|err| eprintln!("Error: {err:?}"))
+        .map_err(|err| eprintln!("Error: {err:?}")) // Print errors to stderr
         .unwrap_or({
+            // In the case of an error, respond with generic 500 error, the error message is not sent
             let mut response = warp::reply::json(&Response::ServerError).into_response();
             *response.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
             response
@@ -32,6 +33,7 @@ async fn handler(request: Request) -> Result<warp::reply::Response, Infallible> 
 }
 
 async fn format(request: Request) -> Result<warp::reply::Json, std::io::Error> {
+    // Soawn a new rustfmt child process
     let mut command = Command::new("rustfmt")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -39,6 +41,7 @@ async fn format(request: Request) -> Result<warp::reply::Json, std::io::Error> {
         .kill_on_drop(true)
         .spawn()?;
 
+    // Write the requests code to the stdin of the rustfmt process
     command
         .stdin
         .take()
@@ -46,8 +49,10 @@ async fn format(request: Request) -> Result<warp::reply::Json, std::io::Error> {
         .write_all(request.code.as_bytes())
         .await?;
 
+    // Wait for rustfmt to complete and collect the output
     let output = command.wait_with_output().await?;
 
+    // Respond based on result of rustfmt
     if output.status.success() {
         let formatted_code = String::from_utf8(output.stdout)
             .map_err(|_| std::io::Error::new(ErrorKind::Other, "Stdout is invalid utf8"))?;
