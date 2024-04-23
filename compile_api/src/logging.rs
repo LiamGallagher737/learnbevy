@@ -10,9 +10,12 @@ use tide::{Next, Request};
 
 use crate::{Id, PeerAddr};
 
+/// The directory where the logs are stored on the filesystem
 const LOG_FOLDER_PATH: &str = "logs";
+/// The prefix for the log files
 const LOG_FILE_PREFIX: &str = "bca.log.";
 
+/// Sets up a new [fern::Dispatch] and creates the log directory defined by [LOG_FOLDER_PATH].
 pub async fn setup() {
     fs::create_dir_all(LOG_FOLDER_PATH)
         .await
@@ -37,6 +40,7 @@ pub async fn setup() {
         .expect("Failed to setup logging");
 }
 
+/// Logs each request with its id and the duration of the request.
 pub fn logging_middleware<'a>(
     request: Request<()>,
     next: Next<'a, ()>,

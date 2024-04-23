@@ -8,9 +8,13 @@ use std::{
 };
 use tide::{Body, Middleware, Next, Request, Response, Result, StatusCode};
 
+/// The duration the user must wait before making another request after having a successful one.
 const SUCCESS_RATE_LIMIT: Duration = Duration::from_secs(5);
+/// The duration the user must wait before making another request after having an unsuccessful one.
 const UNSUCCESS_RATE_LIMIT: Duration = Duration::from_secs(1);
 
+/// This middleware will reject and requests that have an active rate limit. It will also put in
+/// place limits after the request has completed.
 #[derive(Default)]
 pub struct RateLimitMiddleware {
     limits: Arc<Mutex<HashMap<IpAddr, RateLimit>>>,
@@ -22,6 +26,7 @@ impl RateLimitMiddleware {
     }
 }
 
+// Implementation for RateLimitMiddleware
 #[tide::utils::async_trait]
 impl<State: Clone + Send + Sync + 'static> Middleware<State> for RateLimitMiddleware {
     async fn handle(&self, req: Request<State>, next: Next<'_, State>) -> Result {
@@ -57,6 +62,7 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for RateLimitMiddle
     }
 }
 
+/// A rate limits start time and duration
 struct RateLimit {
     start: Instant,
     duration: Duration,
