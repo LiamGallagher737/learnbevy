@@ -1,15 +1,15 @@
-name: Bevy Compile Worker CI
+name: Compile Worker CI
 
 on:
   push:
     branches: [main]
     paths:
-    - 'bevy_compile_worker/**'
+    - 'compile_worker/**'
     - '.github/workflows/bevy-compile-worker-ci.yml'
   pull_request:
     branches: [main]
     paths:
-    - 'bevy_compile_worker/**'
+    - 'compile_worker/**'
     - '.github/workflows/bevy-compile-worker-ci.yml'
 
 jobs:
@@ -23,8 +23,8 @@ jobs:
         with:
           node-version: '20.x'
       - name: Install Dependencies
-        working-directory: bevy_compile_worker
+        working-directory: compile_worker
         run: npm ci
       - name: Check
-        working-directory: bevy_compile_worker
+        working-directory: compile_worker
         run: npx prettier --check .

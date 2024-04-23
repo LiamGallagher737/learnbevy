@@ -1,4 +1,4 @@
-use crate::{compile::Lengths, Id, MinifiedHash};
+use crate::{metrics::CACHE_HIT_COUNTER, Id, MinifiedHash};
 use async_std::{fs, stream::StreamExt};
 use log::{error, info, warn};
 use std::{future::Future, pin::Pin};
@@ -10,19 +10,23 @@ use tide::{
     Body, Next, Request, Response, Result, StatusCode,
 };
 
-#[cfg(not(feature = "dev-mode"))]
-const CACHE_FOLDER_PATH: &str = "/bca_cache";
-#[cfg(feature = "dev-mode")]
+/// The directory where the cached responses are stored on the filesystem
 const CACHE_FOLDER_PATH: &str = "cache";
-
 const CACHE_BYPASS_TOKEN: Option<&'static str> = option_env!("CACHE_BYPASS_TOKEN");
 
+/// Creates the directory defined by [CACHE_FOLDER_PATH].
 pub async fn setup() {
+    if CACHE_BYPASS_TOKEN.is_none() && !cfg!(feature = "dev-mode") {
+        warn!("CACHE_BYPASS_TOKEN is not set.");
+    }
     fs::create_dir_all(CACHE_FOLDER_PATH)
         .await
         .expect("Failed to create log folder");
 }
 
+/// This middleware first checks for existing caches using the [MinifiedHash] extention, if
+/// none are found then the build is run. Once the build completes the output is cached on the
+/// filesystem in the directory defined by [CACHE_FOLDER_PATH].
 pub fn cache_middleware<'a>(
     request: Request<()>,
     next: Next<'a, ()>,
@@ -39,6 +43,7 @@ pub fn cache_middleware<'a>(
         if !cache_bypass {
             if let Ok(Some(cache)) = get_cache(hash).await {
                 info!("{id}: Responded with cache");
+                CACHE_HIT_COUNTER.inc();
                 return Ok(Response::builder(StatusCode::Ok)
                     .body(Body::from_bytes(cache.body))
                     .header("wasm-content-length", cache.wasm_length.to_string())
@@ -56,31 +61,16 @@ pub fn cache_middleware<'a>(
 
         // Only cache successful and compressed responses
         if response.status() != StatusCode::Ok
-            || response.header(CONTENT_ENCODING).map(|v| v.as_str()) == Some("gzip")
+            || response.header(CONTENT_ENCODING).map(|v| v.as_str()) != Some("gzip")
         {
             return Ok(response);
         }
 
-        let Some(Lengths {
-            wasm_length,
-            js_length,
-        }) = response.ext().cloned()
-        else {
+        let Some(entry) = response.ext::<CacheEntry>().cloned() else {
             return Ok(response);
         };
 
-        let body = response.take_body();
-        let bytes = body.into_bytes().await.unwrap();
-        insert_cache(
-            hash,
-            CacheEntry {
-                wasm_length,
-                js_length,
-                body: bytes.clone(),
-            },
-        )
-        .await;
-        response.set_body(Body::from_bytes(bytes));
+        insert_cache(hash, entry).await;
         response.insert_header(
             "origin-cache-status",
             if !cache_bypass { "MISS" } else { "BYPASS" },
@@ -90,12 +80,14 @@ pub fn cache_middleware<'a>(
     })
 }
 
+#[derive(Clone)]
 pub struct CacheEntry {
     pub wasm_length: usize,
     pub js_length: usize,
     pub body: Vec<u8>,
 }
 
+/// Attempts to load a cache using a hash. If none exists then [None] is returned.
 async fn get_cache(hash: u128) -> Result<Option<CacheEntry>> {
     let hash_string = hash.to_string();
     let mut entries = fs::read_dir(CACHE_FOLDER_PATH).await?;
@@ -118,6 +110,8 @@ async fn get_cache(hash: u128) -> Result<Option<CacheEntry>> {
     Ok(None)
 }
 
+/// Writes a response to the filesystem. If an error occurs it is logged but will not fail the
+/// request.
 async fn insert_cache(hash: u128, entry: CacheEntry) {
     let mut data = entry.body;
     data.append(&mut entry.wasm_length.to_be_bytes().to_vec());

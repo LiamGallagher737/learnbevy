@@ -10,7 +10,9 @@ type CompileArgs = {
 };
 
 export async function play(args: CompileArgs): Promise<PlayResponse> {
+    // Use the provided host if given
     const host = env.PUBLIC_COMPILE_HOST ?? "https://compile.learnbevy.com";
+    // Make the request
     const res = await fetch(host + "/compile", {
         method: "POST",
         body: JSON.stringify({
@@ -23,6 +25,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
         },
     });
 
+    // Handle any errors
     if (!res.ok) {
         const error: BcaError = await res.json();
         let msg = "";
@@ -59,14 +62,16 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
 
     const body = await res.blob();
 
+    // Split the response in to its parts
     const wasm = body.slice(0, wasmSize, "application/wasm");
     const js = body.slice(wasmSize, wasmSize + jsSize, "application/javascript");
     const stderr = body.slice(wasmSize + jsSize, -1, "text/plain");
 
+    // Convert js and stderr from bytes to strings
     const jsText = await js.text();
     const stderrText = await stderr.text();
 
-    // for some reason the js will never return so i have to use this object to get the nessessery values out :(
+    // For some reason the js will never return so I have to use this object to get the nessessery values out :(
     let refObj: any = new Object();
     const AsyncFunction: any = async function () {}.constructor;
     const load = new AsyncFunction("wasm_blob", "ref_obj", jsText);
@@ -80,14 +85,19 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
         }
     });
 
+    // Get the spawned canvas element if it exists
     const gameCanvas: HTMLCanvasElement | null =
         document.querySelector('canvas[alt="App"]') ??
         document.querySelector('canvas[alt="Bevy App"]');
+
+    // Return if no canvas was spawned
     if (!gameCanvas) {
         return { kind: "ConsoleOnly", wasm: refObj.wasm, stderr: stderrText };
     }
+    // Set the canvas's parent to the element with the given parentId
     const parent = document.getElementById(args.parentId)!;
     parent.appendChild(gameCanvas);
+    // Add a new listener that resizes the canvas when the windows changes size
     window.addEventListener("resize", () => {
         gameCanvas.style.width = `${parent.clientWidth}px`;
         gameCanvas.style.height = `${parent.clientWidth * (9 / 16)}px`;

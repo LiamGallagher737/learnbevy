@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'compile_api'
+    scheme: https
+    static_configs:
+      - targets: ['localhost:53740']
+    tls_config:
+      insecure_skip_verify: true
