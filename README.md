@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/LiamGallagher737/learnbevy/logo/www/static/logo.png" width="200" height="200" >
+<img src="https://raw.githubusercontent.com/LiamGallagher737/learnbevy/main/www/static/logo.png" width="200" height="200" >
 
 # Bevy Playground (for now)
 
