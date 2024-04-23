@@ -10,11 +10,7 @@ use tide::{
     Body, Next, Request, Response, Result, StatusCode,
 };
 
-#[cfg(not(feature = "dev-mode"))]
-const CACHE_FOLDER_PATH: &str = "/bca_cache";
-#[cfg(feature = "dev-mode")]
 const CACHE_FOLDER_PATH: &str = "cache";
-
 const CACHE_BYPASS_TOKEN: Option<&'static str> = option_env!("CACHE_BYPASS_TOKEN");
 
 pub async fn setup() {

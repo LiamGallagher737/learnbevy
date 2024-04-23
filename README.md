@@ -43,7 +43,7 @@ Currently it is running on a single [Ryzen Pro VPS](https://hizakura.nl/vps/) fr
 
 #### Local Development
 
-The program has a `dev-mode` feature which will use local paths rather than the server ones and will remove cloudflare specific behaviour. It can be run in dev mode like this.
+The program has a `dev-mode` feature which will remove cloudflare specific behaviour. It can be run in dev mode like this.
 
 ```sh
 cargo run --features dev-mode
