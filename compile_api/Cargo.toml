@@ -1,5 +1,5 @@
 [package]
-name = "bevy_compile_api"
+name = "compile_api"
 version = "0.1.0"
 edition = "2021"
 
