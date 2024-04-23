@@ -14,8 +14,8 @@ mod rate_limiting;
 
 #[async_std::main]
 async fn main() -> Result<(), std::io::Error> {
-    cache::setup().await;
     logging::setup().await;
+    cache::setup().await;
     let mut app = tide::new();
 
     app.with(
