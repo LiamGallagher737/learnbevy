@@ -48,7 +48,11 @@ pub fn metrics_duration_middleware<'a>(
     Box::pin(async {
         let timer = REQUEST_DURATION_HISTOGRAM.start_timer();
         let response = next.run(request).await;
-        timer.observe_duration();
+        if response.status() == StatusCode::Ok {
+            timer.observe_duration();
+        } else {
+            timer.stop_and_discard();
+        }
         Ok(response)
     })
 }
