@@ -2,7 +2,7 @@ export interface Env {}
 
 export default {
     async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-        if (request.method === "OPTIONS") {
+        if (request.method === "OPTIONS" || request.method === "GET") {
             return await fetch(request);
         }
         if (request.method !== "POST") {
