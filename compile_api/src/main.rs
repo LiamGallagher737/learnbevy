@@ -1,5 +1,6 @@
 use config::{Channel, Version};
 use log::error;
+use metrics::INTERNAL_ERROR_COUNTER;
 use serde::{Deserialize, Serialize};
 use std::{future::Future, net::IpAddr, pin::Pin, str::FromStr};
 use tide::{http::headers::HeaderValue, utils::After, Body, Next, Request, Response, StatusCode};
@@ -10,6 +11,7 @@ mod compile;
 mod config;
 mod ip_lock;
 mod logging;
+mod metrics;
 mod rate_limiting;
 
 #[async_std::main]
@@ -20,38 +22,45 @@ async fn main() -> Result<(), std::io::Error> {
 
     app.with(
         tide::security::CorsMiddleware::new()
-            .allow_methods(HeaderValue::from_str("POST").unwrap())
+            .allow_methods(HeaderValue::from_str("GET,POST").unwrap())
             .allow_headers(HeaderValue::from_str("content-type").unwrap())
             .expose_headers(
                 // These headers need to be accessible by the frontend to decode the response
                 HeaderValue::from_str("wasm-content-length, js-content-length").unwrap(),
             ),
     );
-    app.with(peer_addr_middleware);
-    app.with(rate_limiting::RateLimitMiddleware::new());
-    app.with(ip_lock::IpLockMiddleware::new());
-    app.with(id_middleware);
-    app.with(logging::logging_middleware);
-    app.with(input_middleware);
-    app.with(disallowed_words_middleware);
-    app.with(hash_middleware);
-    app.with(cache::cache_middleware);
-    app.with(After(|response: Response| async move {
-        let Id(id) = response.ext().unwrap();
-        compile::cleanup(*id).await;
-        Ok(response)
-    }));
-    app.with(After(|mut response: Response| async {
-        let Id(id) = response.ext().unwrap();
-        if let Some(err) = response.error() {
-            error!("{id}: Failed with error: {err:?}");
-            response.set_body(Body::from_json(&Error::Internal)?);
-        }
-        Ok(response)
-    }));
-    app.with(transfer_id_middleware);
 
-    app.at("/compile").post(compile::compile);
+    app.at("/compile")
+        .with(peer_addr_middleware)
+        .with(metrics::metrics_counter_middleware)
+        .with(rate_limiting::RateLimitMiddleware::new())
+        .with(ip_lock::IpLockMiddleware::new())
+        .with(id_middleware)
+        .with(logging::logging_middleware)
+        .with(input_middleware)
+        .with(disallowed_words_middleware)
+        .with(hash_middleware)
+        .with(cache::cache_middleware)
+        .with(After(|response: Response| async move {
+            let Id(id) = response.ext().unwrap();
+            compile::cleanup(*id).await;
+            Ok(response)
+        }))
+        .with(After(|mut response: Response| async {
+            let Id(id) = response.ext().unwrap();
+            if let Some(err) = response.error() {
+                error!("{id}: Failed with error: {err:?}");
+                INTERNAL_ERROR_COUNTER.inc();
+                response.set_body(Body::from_json(&Error::Internal)?);
+            }
+            Ok(response)
+        }))
+        .with(transfer_id_middleware)
+        .with(metrics::metrics_duration_middleware)
+        .post(compile::compile);
+
+    app.at("/metrics").get(metrics::metrics_handler);
+
     app.listen(
         TlsListener::build()
             .addrs("0.0.0.0:53740")

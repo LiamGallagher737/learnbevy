@@ -10,7 +10,9 @@ fastmurmur3 = "0.2"
 fastrand = "2.0"
 fern = { version = "0.6", features = ["date-based"] }
 flate2 = "1.0"
+lazy_static = "1.4.0"
 log = "0.4"
+prometheus = "0.13"
 rust_minify = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 tide = { version = "0.16", default-features = false, features = ["async-h1", "h1-server"] }

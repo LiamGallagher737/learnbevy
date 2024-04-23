@@ -1,4 +1,4 @@
-use crate::{Error, PeerAddr};
+use crate::{metrics::IP_LOCK_COUNTER, Error, PeerAddr};
 use async_std::sync::Mutex;
 use std::{collections::HashSet, net::IpAddr, sync::Arc};
 use tide::{Body, Middleware, Next, Request, Response, Result, StatusCode};
@@ -23,6 +23,7 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for IpLockMiddlewar
         let PeerAddr(peer_ip) = req.ext().cloned().unwrap();
         let mut active_ips = self.active_ips.lock().await;
         if active_ips.contains(&peer_ip) {
+            IP_LOCK_COUNTER.inc();
             return Ok(Response::builder(StatusCode::TooManyRequests)
                 .body(Body::from_json(&Error::ActiveRequestExists)?)
                 .build());
