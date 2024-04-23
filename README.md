@@ -25,7 +25,7 @@ Here is a list of current and planned features
 - [ ] Entity inspector
 - [ ] Rust analyzer running in the browser ([it's possible](https://github.com/rust-analyzer/rust-analyzer-wasm))
 
-## 📂 bevy_compile_api
+## 📂 compile_api
 
 This is the program than compiles the code to wasm.
 
@@ -61,7 +61,7 @@ You will also need to generate an ssl certificate `cert.pem` and `cart.key` for 
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout cert.key -out cert.pem
 ```
 
-## 📂 bevy_compile_worker
+## 📂 compile_worker
 
 This is for caching responses on cloudflare. This is needed as there is no other way to cache POST requests.
 

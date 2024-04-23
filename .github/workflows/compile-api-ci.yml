@@ -1,15 +1,15 @@
-name: Bevy Compile Api CI
+name: Compile Api CI
 
 on:
   push:
     branches: [main]
     paths:
-    - 'bevy_compile_api/**'
+    - 'compile_api/**'
     - '.github/workflows/bevy-compile-api-ci.yml'
   pull_request:
     branches: [main]
     paths:
-    - 'bevy_compile_api/**'
+    - 'compile_api/**'
     - '.github/workflows/bevy-compile-api-ci.yml'
 
 env:
@@ -33,11 +33,11 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-test-${{ hashFiles('bevy_compile_api/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('compile_api/Cargo.toml') }}
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run cargo test
-        working-directory: bevy_compile_api
+        working-directory: compile_api
         run: cargo test
 
   # Run cargo clippy -- -D warnings
@@ -57,13 +57,13 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('bevy_compile_api/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('compile_api/Cargo.toml') }}
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       - name: Run clippy
-        working-directory: bevy_compile_api
+        working-directory: compile_api
         run: cargo clippy -- -D warnings
 
   # Run cargo fmt --all -- --check
@@ -79,5 +79,5 @@ jobs:
         with:
           components: rustfmt
       - name: Run cargo fmt
-        working-directory: bevy_compile_api
+        working-directory: compile_api
         run: cargo fmt --all -- --check
