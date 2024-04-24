@@ -25,6 +25,8 @@
     const gameCanvasParentId = "game-container";
     let gameCanvasParent: HTMLDivElement;
 
+    let processingRequest = false;
+
     let editor: Editor;
 
     let gameCanvas: HTMLCanvasElement | null = null;
@@ -34,6 +36,7 @@
         if (wasm) wasm.__exit();
         if (gameCanvas) gameCanvas.remove();
         consoleItems.set([]);
+        processingRequest = true;
         const promise: Promise<void> = new Promise(async (resolve, reject) => {
             let result = await load({
                 code: $editorCode,
@@ -41,6 +44,7 @@
                 channel: $settings.channel,
                 parentId: gameCanvasParentId,
             });
+            processingRequest = false;
             if (result.kind === "Failed") {
                 if (result.stderr) consoleItems.set([{ kind: "Stdout", text: result.stderr }]);
                 reject(result.message);
@@ -84,7 +88,11 @@
             class="flex flex-col gap-4"
         >
             <Card class="flex flex-row justify-between p-4">
-                <Button class="font-semibold" on:click={play}>Play</Button>
+                <Button
+                    class="font-semibold transition"
+                    bind:disabled={processingRequest}
+                    on:click={play}>Play</Button
+                >
                 <div class="flex flex-row gap-4">
                     <Examples />
                     <Actions />
