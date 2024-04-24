@@ -1,4 +1,4 @@
-use crate::{metrics::RATE_LIMIT_COUNTER, Error, PeerAddr};
+use crate::{metrics::count_request, Error, PeerAddr};
 use async_std::sync::Mutex;
 use std::{
     collections::HashMap,
@@ -34,7 +34,7 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for RateLimitMiddle
         let mut limits = self.limits.lock().await;
         if let Some(rate_limit) = limits.get(&peer_ip) {
             if rate_limit.start.elapsed() < rate_limit.duration {
-                RATE_LIMIT_COUNTER.inc();
+                count_request("rate_limited");
                 let time_left = (rate_limit.duration - rate_limit.start.elapsed())
                     .as_secs_f32()
                     .ceil();

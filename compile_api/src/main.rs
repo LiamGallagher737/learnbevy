@@ -1,6 +1,6 @@
 use config::{Channel, Version};
 use log::error;
-use metrics::INTERNAL_ERROR_COUNTER;
+use metrics::count_request;
 use serde::{Deserialize, Serialize};
 use std::{future::Future, net::IpAddr, pin::Pin, str::FromStr};
 use tide::{http::headers::HeaderValue, utils::After, Body, Next, Request, Response, StatusCode};
@@ -32,7 +32,6 @@ async fn main() -> Result<(), std::io::Error> {
 
     app.at("/compile")
         .with(peer_addr_middleware)
-        .with(metrics::metrics_counter_middleware)
         .with(rate_limiting::RateLimitMiddleware::new())
         .with(ip_lock::IpLockMiddleware::new())
         .with(id_middleware)
@@ -50,7 +49,7 @@ async fn main() -> Result<(), std::io::Error> {
             let Id(id) = response.ext().unwrap();
             if let Some(err) = response.error() {
                 error!("{id}: Failed with error: {err:?}");
-                INTERNAL_ERROR_COUNTER.inc();
+                count_request("internal_server_error");
                 response.set_body(Body::from_json(&Error::Internal)?);
             }
             Ok(response)

@@ -1,12 +1,15 @@
-use prometheus::{opts, register_counter, register_histogram, Counter, Histogram, TextEncoder};
+use prometheus::{register_counter_vec, register_histogram, CounterVec, Histogram, TextEncoder};
 use std::{future::Future, pin::Pin};
 use tide::{Next, Request, Response, StatusCode};
 
+const LABEL_NAMES: [&str; 1] = ["status"];
+
 lazy_static::lazy_static! {
-    static ref REQUEST_COUNTER: Counter = register_counter!(opts!(
+    static ref REQUEST_COUNTER: CounterVec = register_counter_vec!(
         "compile_requests_total",
         "Number of HTTP requests made.",
-    )).unwrap();
+        &LABEL_NAMES,
+    ).unwrap();
 
     static ref REQUEST_DURATION_HISTOGRAM: Histogram = register_histogram!(
         "compile_request_duration_seconds",
@@ -14,36 +17,10 @@ lazy_static::lazy_static! {
         vec![2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
     )
     .unwrap();
-
-    pub static ref CACHE_HIT_COUNTER: Counter = register_counter!(opts!(
-        "cache_hit_total",
-        "Number of HTTP requests that served by a cache.",
-    )).unwrap();
-
-    pub static ref RATE_LIMIT_COUNTER: Counter = register_counter!(opts!(
-        "rate_limited_requests_total",
-        "Number of HTTP requests that have been rate limited.",
-    )).unwrap();
-
-    pub static ref IP_LOCK_COUNTER: Counter = register_counter!(opts!(
-        "ip_locked_requests_total",
-        "Number of HTTP requests that have been ip locked.",
-    )).unwrap();
-
-    pub static ref INTERNAL_ERROR_COUNTER: Counter = register_counter!(opts!(
-        "internal_error_total",
-        "Number of HTTP requests that resulted in an internal server error.",
-    )).unwrap();
 }
 
-pub fn metrics_counter_middleware<'a>(
-    request: Request<()>,
-    next: Next<'a, ()>,
-) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-    Box::pin(async {
-        REQUEST_COUNTER.inc();
-        Ok(next.run(request).await)
-    })
+pub fn count_request(status: &'static str) {
+    REQUEST_COUNTER.with_label_values(&[status]).inc();
 }
 
 pub fn metrics_duration_middleware<'a>(
