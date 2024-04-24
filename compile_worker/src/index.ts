@@ -31,7 +31,9 @@ export default {
 
         if (!response) {
             response = await fetch(request);
-            ctx.waitUntil(cache.put(cacheKey, response.clone()));
+            if (response.status === 200) {
+                ctx.waitUntil(cache.put(cacheKey, response.clone()));
+            }
         }
         return response;
     },
