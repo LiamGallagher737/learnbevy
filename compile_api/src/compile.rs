@@ -1,4 +1,4 @@
-use crate::{cache::CacheEntry, config, Error, Id, Input};
+use crate::{cache::CacheEntry, config, metrics::count_request, Error, Id, Input};
 use async_std::{fs, process::Command};
 use flate2::{write::GzEncoder, Compression};
 use log::info;
@@ -76,6 +76,8 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     let mut encoder = GzEncoder::new(Vec::with_capacity(body.len() / 3), Compression::new(2));
     encoder.write_all(&body[..]).unwrap();
     let compressed_body = encoder.finish().unwrap();
+
+    count_request("successful");
 
     Ok({
         let mut response = Response::new(StatusCode::Ok);

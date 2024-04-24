@@ -1,4 +1,4 @@
-use crate::{metrics::CACHE_HIT_COUNTER, Id, MinifiedHash};
+use crate::{metrics::count_request, Id, MinifiedHash};
 use async_std::{fs, stream::StreamExt};
 use log::{error, info, warn};
 use std::{future::Future, pin::Pin};
@@ -43,7 +43,7 @@ pub fn cache_middleware<'a>(
         if !cache_bypass {
             if let Ok(Some(cache)) = get_cache(hash).await {
                 info!("{id}: Responded with cache");
-                CACHE_HIT_COUNTER.inc();
+                count_request("hit_cache");
                 return Ok(Response::builder(StatusCode::Ok)
                     .body(Body::from_bytes(cache.body))
                     .header("wasm-content-length", cache.wasm_length.to_string())
