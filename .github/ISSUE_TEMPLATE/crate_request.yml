@@ -1,5 +1,5 @@
-name: Crate Request
-description: Request for a crate to be made avaliable for use in the playground
+name: "Crate Request"
+description: "Request for a crate to be made avaliable for use in the playground"
 labels: ["A-Compiler", "C-Crate-Request"]
 title: "feat(images): add crate <crate>"
 
