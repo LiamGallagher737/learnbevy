@@ -1,7 +1,8 @@
 <script lang="ts">
+    import AssetExplorer from "./AssetExplorer.svelte";
     import Editor from "$lib/components/Editor.svelte";
     import Actions from "./Actions.svelte";
-    import Sidebar from "./Sidebar.svelte";
+    import Sidebar, { selectedTab } from "./Sidebar.svelte";
     import Settings, { settings } from "./Settings.svelte";
     import Examples from "./Examples.svelte";
     import Console from "$lib/components/Console.svelte";
@@ -13,7 +14,7 @@
     import { consoleItems } from "$lib/components/console";
     import { editorCode } from "$lib/components/editor";
     import type { PageData } from "./$types";
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
 
     export let data: PageData;
     if (data.code) editorCode.set(data.code);
@@ -29,6 +30,13 @@
     let processingRequest = false;
 
     let editor: Editor;
+    onMount(() => {
+        selectedTab.subscribe(async (newValue) => {
+            if (newValue !== "editor") return;
+            await tick();
+            editor.layout();
+        });
+    });
 
     let gameCanvas: HTMLCanvasElement | null = null;
     let wasm: any | null = null;
@@ -104,9 +112,14 @@
                 <Card class="h-full w-12">
                     <Sidebar />
                 </Card>
-                <!-- The 4rem in calc() comes from 3rem sidebar + 1rem gap -->
+                <!-- The 4rem in calc() comes from 3rem sidebar + 1rem gap,
+                flex-grow won't work because of the editor -->
                 <Card class="h-full w-[calc(100%-4rem)] p-4">
-                    <Editor bind:this={editor} />
+                    {#if $selectedTab === "editor"}
+                        <Editor bind:this={editor} />
+                    {:else if $selectedTab === "assets"}
+                        <AssetExplorer />
+                    {/if}
                 </Card>
             </div>
         </Resizable.Pane>
