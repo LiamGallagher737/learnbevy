@@ -42,6 +42,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     // 101 is the rust compilers status code for failed to build (user error)
     if output.status.code() == Some(101) {
         info!("{id}: Build failed (user error)");
+        count_request("user_error");
         return Ok(Response::builder(StatusCode::BadRequest)
             .body(Body::from_json(&Error::BuildFailed {
                 stderr: String::from_utf8(output.stderr)
