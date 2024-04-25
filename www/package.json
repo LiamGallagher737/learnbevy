@@ -41,7 +41,7 @@
     "dependencies": {
         "@octokit/core": "^6.1.2",
         "@octokit/types": "^13.4.1",
-        "bits-ui": "^0.21.3",
+        "bits-ui": "^0.21.4",
         "clsx": "^2.1.0",
         "cmdk-sv": "^0.0.17",
         "lucide-svelte": "^0.366.0",

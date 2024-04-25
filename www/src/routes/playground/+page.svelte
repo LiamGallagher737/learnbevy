@@ -1,6 +1,7 @@
 <script lang="ts">
     import Editor from "$lib/components/Editor.svelte";
     import Actions from "./Actions.svelte";
+    import Sidebar from "./Sidebar.svelte";
     import Settings, { settings } from "./Settings.svelte";
     import Examples from "./Examples.svelte";
     import Console from "$lib/components/Console.svelte";
@@ -79,8 +80,8 @@
 <div class="h-screen p-4">
     <Resizable.PaneGroup direction="horizontal">
         <Resizable.Pane
-            defaultSize={60}
-            minSize={20}
+            defaultSize={70}
+            minSize={40}
             onResize={() => {
                 editor.layout();
                 resizeGameCanvas();
@@ -99,12 +100,18 @@
                     <Settings />
                 </div>
             </Card>
-            <Card class="h-full p-4">
-                <Editor bind:this={editor} />
-            </Card>
+            <div class="flex h-full w-full gap-4">
+                <Card class="h-full w-12">
+                    <Sidebar />
+                </Card>
+                <!-- The 4rem in calc() comes from 3rem sidebar + 1rem gap -->
+                <Card class="h-full w-[calc(100%-4rem)] p-4">
+                    <Editor bind:this={editor} />
+                </Card>
+            </div>
         </Resizable.Pane>
         <Resizable.Handle withHandle class="mx-4" />
-        <Resizable.Pane defaultSize={40} minSize={20} class="flex flex-col gap-4">
+        <Resizable.Pane defaultSize={30} minSize={20} class="flex flex-col gap-4">
             <Card class="aspect-video">
                 <div
                     bind:this={gameCanvasParent}
