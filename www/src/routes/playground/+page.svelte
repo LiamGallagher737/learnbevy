@@ -108,7 +108,7 @@
                     <Settings />
                 </div>
             </Card>
-            <div class="flex h-full w-full gap-4">
+            <div class="flex h-full w-full gap-4 overflow-hidden">
                 <Card class="h-full w-12">
                     <Sidebar />
                 </Card>

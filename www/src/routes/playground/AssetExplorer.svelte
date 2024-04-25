@@ -42,7 +42,7 @@
         </Select.Content>
     </Select.Root>
 </Card.Header>
-<Card.Content class="h-[calc(100%-170px)]">
+<Card.Content class="h-[calc(100%-90px)]">
     <ScrollArea class="h-full">
         <Table.Root>
             <Table.Body>
