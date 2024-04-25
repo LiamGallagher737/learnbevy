@@ -22,7 +22,13 @@
         <Card.Title>Asset Explorer</Card.Title>
         <Card.Description>All the assets avaliable to use in the playground.</Card.Description>
     </div>
-    {#await assets then a}
+    {#await assets}
+        <Select.Root disabled>
+            <Select.Trigger class="w-[200px]">
+                <Select.Value class="capitalize" placeholder="Loading..." />
+            </Select.Trigger>
+        </Select.Root>
+    {:then a}
         <Select.Root bind:selected={selectedFolder}>
             <Select.Trigger class="w-[200px]">
                 <Select.Value class="capitalize" />
@@ -39,6 +45,4 @@
         </Select.Root>
     {/await}
 </Card.Header>
-<Card.Content>
-    
-</Card.Content>
+<Card.Content></Card.Content>
