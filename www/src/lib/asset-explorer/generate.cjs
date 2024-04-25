@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const basePath = '../../../static'; // Set the base path
+const basePath = '../../../static/assets/'; // Set the base path
 
 // Function to recursively traverse the directory and create a list of file paths
 function createFileList(directory) {
