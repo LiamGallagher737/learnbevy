@@ -21,12 +21,14 @@ body:
       value: |
         Bevy support tables are found on most crates in the README and will look something like this.
         If you can't find it then link to the repository instead.
+        
         \| bevy \| bevy_mod_picking \|
         \| ---- \| ---------------- \|
         \| 0.13 \| 0.18             \|
         \| 0.12 \| 0.17             \|
         \| 0.11 \| 0.15, 0.16       \|
         \| 0.10 \| 0.12, 0.13, 0.14 \|
+        
   - type: textarea
     attributes:
       label: "Any extra info? (Optional)"
