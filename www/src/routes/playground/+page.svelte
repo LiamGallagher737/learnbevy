@@ -91,7 +91,7 @@
             defaultSize={70}
             minSize={40}
             onResize={() => {
-                editor.layout();
+                if ($selectedTab === "editor") editor.layout();
                 resizeGameCanvas();
             }}
             class="flex flex-col gap-4"
