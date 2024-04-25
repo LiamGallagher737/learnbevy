@@ -15,6 +15,7 @@ body:
   - type: input
     attributes:
       label: "Link to its Bevy support table"
+      placeholder: "https://github.com/aevyrie/bevy_mod_picking#bevy-version-support"
     validations:
       required: true
       
@@ -23,10 +24,6 @@ body:
       value: |
         Bevy support tables are found on most crates in the README and will look something like this.
         If you can't find it then link to the repository instead.
-        
-  - type: markdown
-    attributes:
-      value: |
         | bevy | bevy_mod_picking |
         | ---- | ---------------- |
         | 0.13 | 0.18             |
