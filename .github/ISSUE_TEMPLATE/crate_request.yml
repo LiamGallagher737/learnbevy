@@ -18,7 +18,7 @@ body:
       required: true
   - type: markdown
     attributes:
-    values: |
+    value: |
       Bevy support tables are found on most crates in the README and will look something like this.
       If you can't find it then link to the repository instead.
       | bevy | bevy_mod_picking |
