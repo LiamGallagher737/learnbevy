@@ -1,6 +1,8 @@
 <script lang="ts">
+    import AssetExplorer from "./AssetExplorer.svelte";
     import Editor from "$lib/components/Editor.svelte";
     import Actions from "./Actions.svelte";
+    import Sidebar, { selectedTab } from "./Sidebar.svelte";
     import Settings, { settings } from "./Settings.svelte";
     import Examples from "./Examples.svelte";
     import Console from "$lib/components/Console.svelte";
@@ -12,7 +14,7 @@
     import { consoleItems } from "$lib/components/console";
     import { editorCode } from "$lib/components/editor";
     import type { PageData } from "./$types";
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
 
     export let data: PageData;
     if (data.code) editorCode.set(data.code);
@@ -28,6 +30,13 @@
     let processingRequest = false;
 
     let editor: Editor;
+    onMount(() => {
+        selectedTab.subscribe(async (newValue) => {
+            if (newValue !== "editor") return;
+            await tick();
+            editor.layout();
+        });
+    });
 
     let gameCanvas: HTMLCanvasElement | null = null;
     let wasm: any | null = null;
@@ -79,10 +88,10 @@
 <div class="h-screen p-4">
     <Resizable.PaneGroup direction="horizontal">
         <Resizable.Pane
-            defaultSize={60}
-            minSize={20}
+            defaultSize={70}
+            minSize={40}
             onResize={() => {
-                editor.layout();
+                if ($selectedTab === "editor") editor.layout();
                 resizeGameCanvas();
             }}
             class="flex flex-col gap-4"
@@ -99,12 +108,23 @@
                     <Settings />
                 </div>
             </Card>
-            <Card class="h-full p-4">
-                <Editor bind:this={editor} />
-            </Card>
+            <div class="flex h-full w-full gap-4 overflow-hidden">
+                <Card class="h-full w-12">
+                    <Sidebar />
+                </Card>
+                <!-- The 4rem in calc() comes from 3rem sidebar + 1rem gap,
+                flex-grow won't work because of the editor -->
+                <Card class="h-full w-[calc(100%-4rem)] p-4">
+                    {#if $selectedTab === "editor"}
+                        <Editor bind:this={editor} />
+                    {:else if $selectedTab === "assets"}
+                        <AssetExplorer />
+                    {/if}
+                </Card>
+            </div>
         </Resizable.Pane>
         <Resizable.Handle withHandle class="mx-4" />
-        <Resizable.Pane defaultSize={40} minSize={20} class="flex flex-col gap-4">
+        <Resizable.Pane defaultSize={30} minSize={20} class="flex flex-col gap-4">
             <Card class="aspect-video">
                 <div
                     bind:this={gameCanvasParent}

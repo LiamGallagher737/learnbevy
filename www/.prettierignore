@@ -4,3 +4,4 @@ package-lock.json
 yarn.lock
 static/assets
 *.examples.ts
+asset-map.ts
