@@ -28,4 +28,5 @@ body:
         | 0.11 | 0.15, 0.16       |
         | 0.10 | 0.12, 0.13, 0.14 |
   - type: textarea
-    label: "Any extra info? (Optional)"
+    attributes:
+      label: "Any extra info? (Optional)"
