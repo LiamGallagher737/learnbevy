@@ -43,6 +43,8 @@ To keep the service avaliable for everyone to use there is rate limiting which a
 
 Currently it is running on a single [Ryzen Pro VPS](https://hizakura.nl/vps/) from Hizakura. I chose this due to it's great single threaded performance which seems to be the most important for incrimental builds. The server is protected behind Cloudflare's proxy for ddos protection, caching and basic rate limiting.
 
+[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v1/monitor/zd53.svg)](https://status.learnbevy.com)
+
 #### Local Development
 
 The program has a `dev-mode` feature which will remove cloudflare specific behaviour. It can be run in dev mode like this.
@@ -95,6 +97,8 @@ There are three instances of this server running on [fly.io](https://fly.io)'s f
 - Sydney, Australia 🇦🇺
 - Amsterdam, Netherlands 🇳🇱
 
+[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v1/monitor/zvnt.svg)](https://status.learnbevy.com)
+
 ## 📂 www
 
 This is the website https://learnbevy.com
@@ -106,6 +110,8 @@ It is a [SvelteKit](https://kit.svelte.dev/) 4 app that uses tailwind for stylin
 #### Hosting
 
 The website is hosted on [Cloudflare Pages](https://pages.cloudflare.com/) for free. The shares are stored in a [Cloudlflare KV](https://developers.cloudflare.com/kv/) database which is also free.
+
+[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v1/monitor/zd4y.svg)](https://status.learnbevy.com)
 
 The program can be built with the following command
 
