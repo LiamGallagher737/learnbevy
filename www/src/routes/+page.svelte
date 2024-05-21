@@ -4,7 +4,6 @@
         name="description"
         content="The best place for learning how to make games with the Bevy game engine"
     />
-    <link rel="me" href="https://mastodon.social/@liam737" />
 </svelte:head>
 
 <main class="flex h-screen flex-col items-center justify-center">
