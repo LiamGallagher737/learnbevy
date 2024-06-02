@@ -41,13 +41,33 @@ fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>
     if __EXIT_FLAG.load(std::sync::atomic::Ordering::Relaxed) {
         exit.send(bevy::app::AppExit);
     }
-}"#;
+}
+
+fn select_resource(
+    world: &bevy::ecs::world::World,
+) {
+    let type_registry = world.resource::<bevy::prelude::AppTypeRegistry>();
+    let type_registry = type_registry.read();
+    let mut resources: Vec<_> = type_registry
+        .iter()
+        .filter(|registration| registration.data::<ReflectResource>().is_some())
+        .map(|registration| {
+            (
+                registration.type_info().type_path_table().short_path(),
+                registration.type_id(),
+            )
+        })
+        .collect();
+    resources.sort_by(|(name_a, _), (name_b, _)| name_a.cmp(name_b));
+    info!("{resources:?}");
+}
+"#;
 
 /// Monifies the code in Bevy 0.11's style. Used by [edit_code_for_version].
 fn edit_code_v11(code: &str) -> String {
     let mut modified_code = code.replace(
         "App::new()",
-        "App::new().add_systems(Update, __check_exit_flag)",
+        "App::new().add_systems(Update, (__check_exit_flag, select_resource))",
     );
     modified_code.push_str(EXTRA_RUST);
     modified_code
