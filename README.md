@@ -67,10 +67,6 @@ You will also need to generate an ssl certificate `cert.pem` and `cart.key` for 
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout cert.key -out cert.pem
 ```
 
-## 📂 compile_worker
-
-This is for caching responses on cloudflare. This is needed as there is no other way to cache POST requests.
-
 ## 📂 images
 
 This is where the Dockfile is for the images used durning compiling. A single dockerfile is used taking both a Bevy version and Rust channel as arguments. The Cargo.toml files for each version are in the `manifests` directory, each version gets it's own file as the features change between versions.
