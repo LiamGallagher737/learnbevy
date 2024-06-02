@@ -41,7 +41,11 @@ To keep the service avaliable for everyone to use there is rate limiting which a
 
 #### Hosting
 
-Currently it is running on a single [Ryzen Pro VPS](https://hizakura.nl/vps/) from Hizakura. I chose this due to it's great single threaded performance which seems to be the most important for incrimental builds. The server is protected behind Cloudflare's proxy for ddos protection, caching and basic rate limiting.
+Currently it is running on a single [7950 VDS 1]([https://hizakura.nl/vps/](https://my.hosteons.com/store/ryzen-7950x-based-hybrid-dedicated-server)) from HostENOS in Salt Lake City. I chose this due to it's great single threaded performance which seems to be the most important for incrimental builds. The server is protected behind Cloudflare's proxy for ddos protection and basic rate limiting.
+
+#### Metrics / Uptime
+
+The server collects metrics about the number of requests, their statuses and how long they take. A public grafana dashboard is avaliable to view at https://metrics.learnbevy.com. I also have uptime messuarements using [Better Stack](https://betterstack.com), the public status page can be found at https://status.learnbevy.com.
 
 #### Local Development
 
@@ -97,7 +101,7 @@ There are three instances of this server running on [fly.io](https://fly.io)'s f
 
 ## 📂 www
 
-This is the website https://learnbevy.com
+This is the website https://learnbevy.com.
 
 #### How it works
 
