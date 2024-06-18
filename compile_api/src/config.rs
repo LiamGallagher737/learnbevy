@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-/// Returns the docker image for the given a [Version] and [Channel].
+/// Returns the image for the given a [Version] and [Channel].
 pub fn image_for_config(version: Version, channel: Channel) -> String {
     let with_version = match version {
         Version::Main => "learnbevy-main",

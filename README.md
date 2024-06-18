@@ -33,7 +33,7 @@ This is the program than compiles the code to wasm.
 
 #### How it works
 
-Each request spins up a new docker container, see [images](#-images) for for infomation on them.
+Each request spins up a new podman container, see [images](#-images) for for infomation on them.
 
 The http server in use is [tide](https://github.com/http-rs/tide), I chose this due to its middleware which works quite well for this use case. Each stage is implmented as its own middleware.
 
@@ -76,7 +76,7 @@ This is where the Dockfile is for the images used durning compiling. A single do
 An image can be build like this, replace `0.13` and `stable` with options of your choice.
 
 ```sh
-docker build --build-arg="version=0.13" --build-arg="channel=stable" --tag "liamg737/comp-0.13-stable" .
+podman build --build-arg="version=0.13" --build-arg="channel=stable" --tag "liamg737/comp-0.13-stable" .
 ```
 
 ## 📂 rustfmt_api

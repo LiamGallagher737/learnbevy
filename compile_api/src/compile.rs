@@ -96,7 +96,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     })
 }
 
-/// Deletes the temp directory and docker container once the request has completed.
+/// Deletes the temp directory and container once the request has completed.
 pub async fn cleanup(id: usize) {
     let name_id = name_id(id);
     let _ = fs::remove_dir_all(temp_dir(&name_id)).await;

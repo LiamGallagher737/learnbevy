@@ -3,19 +3,19 @@
 versions=("main" "0.13")
 channels=("stable" "nightly")
 
-# Loop through each version and channel, and run the docker pull command
+# Loop through each version and channel, and run the podman pull command
 for version in "${versions[@]}"; do
     for channel in "${channels[@]}"; do
         tag="learnbevy-${version}-${channel}"
 
-        echo "Pulling Docker image for version ${version} and channel ${channel}..."
-        docker  pull ghcr.io/liamgallagher737/${tag}:main
+        echo "Pulling Podman image for version ${version} and channel ${channel}..."
+        podman  pull ghcr.io/liamgallagher737/${tag}:main
 
-        echo "Tagging Docker image for version ${version} and channel ${channel}..."
-        docker tag ghcr.io/liamgallagher737/${tag}:main ${tag}:latest
+        echo "Tagging Podman image for version ${version} and channel ${channel}..."
+        podman tag ghcr.io/liamgallagher737/${tag}:main ${tag}:latest
 
-        echo "Removing old Docker image for version ${version} and channel ${channel}..."
-        docker rmi ghcr.io/liamgallagher737/${tag}:main
+        echo "Removing old Podman image for version ${version} and channel ${channel}..."
+        podman rmi ghcr.io/liamgallagher737/${tag}:main
 
         # Check if the build was successful
         if [[ $? -eq 0 ]]; then
