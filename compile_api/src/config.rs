@@ -41,7 +41,38 @@ fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>
     if __EXIT_FLAG.load(std::sync::atomic::Ordering::Relaxed) {
         exit.send(bevy::app::AppExit);
     }
-}"#;
+}
+
+use __playground_dbg::dbg;
+mod __playground_dbg {
+    use wasm_bindgen::prelude::*;
+
+    #[wasm_bindgen]
+    extern "C" {
+        #[wasm_bindgen(js_namespace = console)]
+        pub fn log(s: &str);
+    }
+
+    macro_rules! dbg {
+        () => {
+            __playground_dbg::log(&format_args!("%d{}:{}:{}", file!(), line!(), column!())).to_string()
+        };
+        ($val:expr $(,)?) => {
+            match $val {
+                tmp => {
+                    __playground_dbg::log(&format_args!("%d{}:{}:{} {} = {:?}",
+                        file!(), line!(), column!(), stringify!($val), &tmp).to_string());
+                    tmp
+                }
+            }
+        };
+        ($($val:expr),+ $(,)?) => {
+            ($(dbg!($val)),+,)
+        };
+    }
+    pub(crate) use dbg;
+}
+"#;
 
 /// Monifies the code in Bevy 0.11's style. Used by [edit_code_for_version].
 fn edit_code_v11(code: &str) -> String {

@@ -16,22 +16,32 @@
     console.log = (...args) => {
         defaultConsoleLog.apply(console, args);
         const message: string = args[0];
-        if (
-            typeof message === "string" &&
-            message?.startsWith("%c") &&
-            !message?.includes("GPU lacks support")
-        ) {
-            const words = message.replaceAll("%c", "").split(" ");
-            consoleItems.update((items) => [
-                ...items,
-                {
-                    kind: "Log",
-                    level: words[0] as LogLevel,
-                    location: words[1],
-                    message: words.slice(2).join(" "),
-                },
-            ]);
-            scrollToBottomAfterTick();
+        if (typeof message === "string" && !message?.includes("GPU lacks support")) {
+            if (message?.startsWith("%c")) {
+                const words = message.replaceAll("%c", "").split(" ");
+                consoleItems.update((items) => [
+                    ...items,
+                    {
+                        kind: "Log",
+                        level: words[0] as LogLevel,
+                        location: words[1],
+                        message: words.slice(2).join(" "),
+                    },
+                ]);
+                scrollToBottomAfterTick();
+            } else if (message?.startsWith("%d")) {
+                const words = message.replaceAll("%d", "").split(" ");
+                consoleItems.update((items) => [
+                    ...items,
+                    {
+                        kind: "Log",
+                        level: "DEBUG",
+                        location: words[0],
+                        message: words.slice(1).join(" "),
+                    },
+                ]);
+                scrollToBottomAfterTick();
+            }
         }
     };
 
