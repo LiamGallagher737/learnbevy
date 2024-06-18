@@ -33,7 +33,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
             "--name",
             &name_id,
             "-v",
-            &format!("{}:/playground/src/", dir.display()),
+            &format!("{}:/playground/src/:z", dir.display()),
             &config::image_for_config(*version, *channel),
         ])
         .output()
