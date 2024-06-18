@@ -155,7 +155,7 @@ fn input_middleware<'a>(
 }
 
 /// Rejects any requests with [DISALLOWED_WORDS].
-/// To avoid users including file from the docker container, if any macro which could possible include
+/// To avoid users including file from the container, if any macro which could possible include
 /// files at build time is found, the request is rejected.
 fn disallowed_words_middleware<'a>(
     request: Request<()>,

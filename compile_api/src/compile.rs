@@ -27,13 +27,13 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     fs::create_dir_all(&dir).await?;
     fs::write(dir.join("main.rs"), modified_code).await?;
 
-    let output = Command::new("docker")
+    let output = Command::new("podman")
         .args([
             "run",
             "--name",
             &name_id,
             "-v",
-            &format!("{}:/playground/src/", dir.display()),
+            &format!("{}:/playground/src/:z", dir.display()),
             &config::image_for_config(*version, *channel),
         ])
         .output()
@@ -96,11 +96,11 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     })
 }
 
-/// Deletes the temp directory and docker container once the request has completed.
+/// Deletes the temp directory and container once the request has completed.
 pub async fn cleanup(id: usize) {
     let name_id = name_id(id);
     let _ = fs::remove_dir_all(temp_dir(&name_id)).await;
-    let _ = Command::new("docker")
+    let _ = Command::new("podman")
         .args(["container", "rm", &name_id])
         .output()
         .await;

@@ -3,14 +3,14 @@
 versions=("main" "0.13" "0.12" "0.11" "0.10")
 channels=("stable" "nightly")
 
-# Loop through each version and channel, and run the docker build command
+# Loop through each version and channel, and run the podman build command
 for version in "${versions[@]}"; do
     for channel in "${channels[@]}"; do
         tag="learnbevy-${version}-${channel}"
 
-        # Run the Docker build command
-        echo "Building Docker image for version ${version} and channel ${channel}..."
-        docker build --build-arg="version=${version}" --build-arg="channel=${channel}" --tag "${tag}" .
+        # Run the Podman build command
+        echo "Building Podman image for version ${version} and channel ${channel}..."
+        podman build --build-arg="version=${version}" --build-arg="channel=${channel}" --tag "${tag}" .
 
         # Check if the build was successful
         if [[ $? -eq 0 ]]; then
