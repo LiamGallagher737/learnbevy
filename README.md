@@ -55,12 +55,6 @@ The program has a `dev-mode` feature which will remove cloudflare specific behav
 cargo run --features dev-mode
 ```
 
-Most likely you will need root privileges to spin up docker containers. To run the program as sudo you can use the following.
-
-```sh
-cargo build --features dev-mode && sudo target/debug/bevy_compile_api
-```
-
 You will also need to generate an ssl certificate `cert.pem` and `cart.key` for ssl to work. The following command will ask some questions, put whatever info you want in here.
 
 ```
