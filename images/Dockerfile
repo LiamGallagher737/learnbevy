@@ -2,9 +2,6 @@
 
 FROM ubuntu:20.04 as toolchain
 
-ARG version
-ARG channel
-
 ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt-get update && apt-get install -y g++ pkg-config libx11-dev libasound2-dev libudev-dev libxkbcommon-x11-0 curl
@@ -14,6 +11,8 @@ RUN usermod -p '!!' root # Disable all passwords for root
 
 ENV PATH=/root/.cargo/bin:$PATH
 WORKDIR /playground
+
+ARG channel
 
 # Ensure that we are using the latest stable version of rustup and the
 # latest version of the current channel. A new manifest will trigger
@@ -36,6 +35,9 @@ RUN cargo install wasm-bindgen-cli
 
 FROM toolchain as sources
 RUN cargo init --name game --vcs none /playground
+
+ARG version
+
 COPY manifests/${version}.Cargo.toml /playground/Cargo.toml
 COPY nightly.config.toml /playground/.config/config.toml
 RUN if [ "${channel}" = 'stable' ]; then rm -rf /playground/.config; fi
