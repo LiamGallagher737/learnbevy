@@ -2,7 +2,7 @@ export const DEFAULT_CODE = `use bevy::prelude::*;
 
 fn main() {
     App::new()
-        .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.9)))
+        .insert_resource(ClearColor(Color::srgb(1.0, 0.0, 0.0)))
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)
         .add_systems(Update, change_clear_color)
@@ -21,9 +21,9 @@ fn change_clear_color(input: Res<ButtonInput<KeyCode>>, mut clear_color: ResMut<
         info!("Changing color");
         *state = !*state;
         if *state {
-            clear_color.0 = Color::PURPLE;
+            clear_color.0 = Color::srgb(0.0, 1.0, 0.0);
         } else {
-            clear_color.0 = Color::RED;
+            clear_color.0 = Color::srgb(0.0, 0.0, 1.0);
         }
     }
 }
