@@ -22,8 +22,8 @@ pub fn image_for_config(version: Version, channel: Channel) -> String {
 /// exiting the app
 pub fn edit_code_for_version(code: &str, version: Version) -> String {
     match version {
-        Version::Main => edit_code_v11(code),
-        Version::V0_14 => edit_code_v11(code),
+        Version::Main => edit_code_v14(code),
+        Version::V0_14 => edit_code_v14(code),
         Version::V0_13 => edit_code_v11(code),
         Version::V0_12 => edit_code_v11(code),
         Version::V0_11 => edit_code_v11(code),
@@ -78,6 +78,13 @@ mod __playground_dbg {
     pub(crate) use dbg;
 }
 "#;
+
+/// Monifies the code in Bevy 0.14's style. Used by [edit_code_for_version].
+fn edit_code_v14(code: &str) -> String {
+    let code = edit_code_v11(code);
+    code.replace("exit.send(bevy::app::AppExit)", "exit.send(bevy::app::AppExit::Success)")
+}
+
 
 /// Monifies the code in Bevy 0.11's style. Used by [edit_code_for_version].
 fn edit_code_v11(code: &str) -> String {
