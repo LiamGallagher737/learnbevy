@@ -11,18 +11,19 @@ pub fn image_for_config(version: Version, channel: Channel) -> String {
         Version::V0_10 => "learnbevy-0.10",
     }
     .to_string();
-    match channel {
+    let image = match channel {
         Channel::Stable => with_version + "-stable",
         Channel::Nightly => with_version + "-nightly",
-    }
+    };
+    format!("ghcr.io/liamgallagher737/{image}:main")
 }
 
 /// Modifies the code for the given Bevy version. This includes adding the required systems for
 /// exiting the app
 pub fn edit_code_for_version(code: &str, version: Version) -> String {
     match version {
-        Version::Main => edit_code_v11(code),
-        Version::V0_14 => edit_code_v11(code),
+        Version::Main => edit_code_v14(code),
+        Version::V0_14 => edit_code_v14(code),
         Version::V0_13 => edit_code_v11(code),
         Version::V0_12 => edit_code_v11(code),
         Version::V0_11 => edit_code_v11(code),
@@ -45,6 +46,7 @@ fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>
     }
 }
 
+#[allow(unused_imports)]
 use __playground_dbg::dbg;
 mod __playground_dbg {
     use wasm_bindgen::prelude::*;
@@ -55,6 +57,7 @@ mod __playground_dbg {
         pub fn log(s: &str);
     }
 
+    #[allow(unused_macros)]
     macro_rules! dbg {
         () => {
             __playground_dbg::log(&format_args!("%d{}:{}:{}", file!(), line!(), column!())).to_string()
@@ -75,6 +78,15 @@ mod __playground_dbg {
     pub(crate) use dbg;
 }
 "#;
+
+/// Monifies the code in Bevy 0.14's style. Used by [edit_code_for_version].
+fn edit_code_v14(code: &str) -> String {
+    let code = edit_code_v11(code);
+    code.replace(
+        "exit.send(bevy::app::AppExit)",
+        "exit.send(bevy::app::AppExit::Success)",
+    )
+}
 
 /// Monifies the code in Bevy 0.11's style. Used by [edit_code_for_version].
 fn edit_code_v11(code: &str) -> String {
