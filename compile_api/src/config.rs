@@ -11,10 +11,11 @@ pub fn image_for_config(version: Version, channel: Channel) -> String {
         Version::V0_10 => "learnbevy-0.10",
     }
     .to_string();
-    match channel {
+    let image = match channel {
         Channel::Stable => with_version + "-stable",
         Channel::Nightly => with_version + "-nightly",
-    }
+    };
+    format!("ghcr.io/liamgallagher737/{image}:main")
 }
 
 /// Modifies the code for the given Bevy version. This includes adding the required systems for
