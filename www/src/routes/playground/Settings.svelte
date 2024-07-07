@@ -44,7 +44,13 @@
                     </Select.Trigger>
                     <Select.Content>
                         {#each VERSIONS as version}
-                            <Select.Item class="capitalize" value={version} label={version}>
+                            {@const disabled = ["0.10", "0.11", "0.12"].includes(version)}
+                            <Select.Item
+                                class="capitalize"
+                                value={version}
+                                label={version}
+                                {disabled}
+                            >
                                 {version}
                             </Select.Item>
                         {/each}
