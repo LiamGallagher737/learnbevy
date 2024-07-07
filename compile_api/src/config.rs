@@ -82,9 +82,11 @@ mod __playground_dbg {
 /// Monifies the code in Bevy 0.14's style. Used by [edit_code_for_version].
 fn edit_code_v14(code: &str) -> String {
     let code = edit_code_v11(code);
-    code.replace("exit.send(bevy::app::AppExit)", "exit.send(bevy::app::AppExit::Success)")
+    code.replace(
+        "exit.send(bevy::app::AppExit)",
+        "exit.send(bevy::app::AppExit::Success)",
+    )
 }
-
 
 /// Monifies the code in Bevy 0.11's style. Used by [edit_code_for_version].
 fn edit_code_v11(code: &str) -> String {
