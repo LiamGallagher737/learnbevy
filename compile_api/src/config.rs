@@ -46,6 +46,7 @@ fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>
     }
 }
 
+#[allow(unused_imports)]
 use __playground_dbg::dbg;
 mod __playground_dbg {
     use wasm_bindgen::prelude::*;
@@ -56,6 +57,7 @@ mod __playground_dbg {
         pub fn log(s: &str);
     }
 
+    #[allow(unused_macros)]
     macro_rules! dbg {
         () => {
             __playground_dbg::log(&format_args!("%d{}:{}:{}", file!(), line!(), column!())).to_string()
