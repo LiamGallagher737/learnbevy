@@ -10,7 +10,7 @@ for version in "${versions[@]}"; do
 
         # Run the Podman build command
         echo "Building Podman image for version ${version} and channel ${channel}..."
-        podman build --build-arg="version=${version}" --build-arg="channel=${channel}" --tag "${tag}" .
+        podman build --build-arg="version=${version}" --build-arg="channel=${channel}" --tag "ghcr.io/liamgallagher737/${tag}" .
 
         # Check if the build was successful
         if [[ $? -eq 0 ]]; then
