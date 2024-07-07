@@ -1,9 +1,0 @@
-version: 2
-updates:
-  - package-ecosystem: "cargo"
-    directory: "/images/manifests/latest-release"
-    schedule:
-      interval: "daily"
-    labels:
-      - "C-Crate-Update"
-
