@@ -4,6 +4,7 @@ use serde::Deserialize;
 pub fn image_for_config(version: Version, channel: Channel) -> String {
     let with_version = match version {
         Version::Main => "learnbevy-main",
+        Version::V0_14 => "learnbevy-0.14",
         Version::V0_13 => "learnbevy-0.13",
         Version::V0_12 => "learnbevy-0.12",
         Version::V0_11 => "learnbevy-0.11",
@@ -21,6 +22,7 @@ pub fn image_for_config(version: Version, channel: Channel) -> String {
 pub fn edit_code_for_version(code: &str, version: Version) -> String {
     match version {
         Version::Main => edit_code_v11(code),
+        Version::V0_14 => edit_code_v11(code),
         Version::V0_13 => edit_code_v11(code),
         Version::V0_12 => edit_code_v11(code),
         Version::V0_11 => edit_code_v11(code),
@@ -111,7 +113,9 @@ pub enum Version {
     V0_11,
     #[serde(rename = "0.12")]
     V0_12,
-    #[default]
     #[serde(rename = "0.13")]
     V0_13,
+    #[default]
+    #[serde(rename = "0.14")]
+    V0_14,
 }
