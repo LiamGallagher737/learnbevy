@@ -31,7 +31,6 @@ rand_chacha = "0.3"
 
 bevy_xpbd_2d = "0.1"
 bevy_xpbd_3d = "0.1"
-bevy_hanabi = "0.6"
 bevy_mod_picking = "0.14"
 bevy_prototype_lyon = "0.8"
 bevy_kira_audio = "0.15"
