@@ -27,7 +27,7 @@
       allowedTCPPorts = [ 53740 ];
   };
 
-  services.openssh.passwordAuthentication = false;
+  services.openssh.settings.PasswordAuthentication = false;
 
   users.users.root = {
     hashedPassword = "!"; # nothing hashes to "!" so this effectively disables the password
