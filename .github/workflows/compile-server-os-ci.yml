@@ -1,7 +1,18 @@
 name: Compile Server OS CI (nix)
+
 on:
-  pull_request:
   push:
+    branches: [main]
+    paths:
+    - 'compile_server_os/**'
+    - '.github/workflows/compile-server-os-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+    - 'compile_server_os/**'
+    - '.github/workflows/compile-server-os-ci.yml'
+
+
 jobs:
   tests:
     runs-on: ubuntu-latest
