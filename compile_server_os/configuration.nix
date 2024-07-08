@@ -47,6 +47,17 @@
     ];
   };
 
+  systemd.services.compile_api = {
+    description = "Compile API Service";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = "${inputs.learnbevy.packages."${pkgs.system}".default}/bin/compile_api";
+      User = "ferris";
+      Restart = "always";
+      WorkingDirectory = "/home/ferris";
+    };
+  };
+
   systemd.services.pull-learnbevy-images = {
     description = "Pull the learnbevy images on startup";
     serviceConfig = {
