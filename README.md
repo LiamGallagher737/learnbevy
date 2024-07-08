@@ -61,6 +61,31 @@ You will also need to generate an ssl certificate `cert.pem` and `cart.key` for 
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout cert.key -out cert.pem
 ```
 
+## 📂 compile_server_os
+
+This is the NixOS system config for the server(s) running the compile_api program.
+
+You can install NixOS with the config on any achine you have root ssh access to using the following command.
+
+```
+nix run github:nix-community/nixos-anywhere -- --flake .#<server-type> root@<ip address>
+```
+
+The `server-type` is any of the outs from [flake.nix](https://github.com/LiamGallagher737/learnbevy/blob/nixos-compile-server/compile_server_os/flake.nix). This is because parts of the config will depend on the server they are running on.
+
+Once installed, any updates to the config can be activated by running the following command on the server via ssh.
+
+```
+nixos-rebuild switch --flake <URI to your flake>
+```
+
+Or if your cool and use NixOS you can rebuild it without needing to ssh into it with this command.
+
+```
+nixos-rebuild switch --flake .#<server-type> --target-host "root@<ip address>"
+```
+
+
 ## 📂 images
 
 This is where the Dockfile is for the images used durning compiling. A single dockerfile is used taking both a Bevy version and Rust channel as arguments. The Cargo.toml files for each version are in the `manifests` directory, each version gets it's own file as the features change between versions.
