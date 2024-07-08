@@ -27,6 +27,8 @@
       allowedTCPPorts = [ 53740 ];
   };
 
+  services.openssh.passwordAuthentication = false;
+
   users.users.root = {
     hashedPassword = "!"; # nothing hashes to "!" so this effectively disables the password
     openssh.authorizedKeys.keys = [
