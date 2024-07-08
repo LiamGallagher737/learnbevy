@@ -15,8 +15,6 @@
   environment.systemPackages = map lib.lowPrio [
     pkgs.curl
     pkgs.gitMinimal
-    pkgs.podman
-    inputs.learnbevy.packages."${pkgs.system}".default
   ];
 
   virtualisation.containers.enable = true;
@@ -40,6 +38,10 @@
     isNormalUser = true;
     home = "/home/ferris";
     description = "The user that runs the server";
+    packages = [
+      pkgs.podman
+      inputs.learnbevy.packages."${pkgs.system}".default
+    ];
   };
 
   system.stateVersion = "24.05";
