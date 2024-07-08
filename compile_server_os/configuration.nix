@@ -15,6 +15,7 @@
   environment.systemPackages = map lib.lowPrio [
     pkgs.curl
     pkgs.gitMinimal
+    pkgs.podman
     inputs.learnbevy.packages."${pkgs.system}".default
   ];
 
