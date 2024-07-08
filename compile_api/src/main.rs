@@ -20,6 +20,9 @@ async fn main() -> Result<(), std::io::Error> {
     cache::setup().await;
     let mut app = tide::new();
 
+    let out = std::process::Command::new("which").args(["podman"]).output().unwrap();
+    dbg!(out);
+
     app.with(
         tide::security::CorsMiddleware::new()
             .allow_methods(HeaderValue::from_str("GET,POST").unwrap())
