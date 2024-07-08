@@ -58,6 +58,10 @@
       Restart = "always";
       WorkingDirectory = "/home/ferris";
     };
+    path = [
+      pkgs.podman
+      pkgs.shadow
+    ];
   };
 
   # Pull the images every 15 minutes
