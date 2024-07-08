@@ -66,7 +66,7 @@
 
   # Pull the images every 15 minutes
   systemd.services.pull-learnbevy-images = {
-    description = "Pull the learnbevy images on startup";
+    description = "Pull the learnbevy images";
     serviceConfig = {
       User = "ferris";
     };
