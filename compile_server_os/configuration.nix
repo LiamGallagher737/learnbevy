@@ -19,6 +19,9 @@
     inputs.learnbevy.packages."${pkgs.system}".default
   ];
 
+  virtualisation.containers.enable = true;
+  virtualisation.podman.enable = true;
+
   networking.firewall = {
       enable = true;
       allowedTCPPorts = [ 53740 ];
