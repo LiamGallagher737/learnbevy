@@ -68,25 +68,19 @@ async fn main() -> Result<(), std::io::Error> {
 #[derive(Clone)]
 struct PeerAddr(IpAddr);
 /// Gets the IP address of the user for use in ip locking and rate limiting.
-/// Since the production server is behind cloudflares proxy, the ip comes from the
-/// "CF-Connecting-IP" header. If we used the peer address we would get the address of cloudflares
-/// proxy, not the user.
 fn peer_addr_middleware<'a>(
     mut request: Request<()>,
     next: Next<'a, ()>,
 ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
     Box::pin(async {
-        let ip = if !cfg!(feature = "dev-mode") {
-            request
-                .header("CF-Connecting-IP")
-                .and_then(|addr| addr.as_str().parse::<IpAddr>().ok())
-                .ok_or(tide::Error::from_str(
-                    StatusCode::BadRequest,
-                    "Could not get peer address",
-                ))?
-        } else {
-            "1.1.1.1".parse::<IpAddr>().unwrap()
-        };
+        let ip = request
+            .peer_addr()
+            .map(|a| a.parse::<IpAddr>().ok())
+            .flatten()
+            .ok_or(tide::Error::from_str(
+                StatusCode::BadRequest,
+                "Could not get peer address",
+            ))?;
         request.set_ext(PeerAddr(ip));
         Ok(next.run(request).await)
     })
