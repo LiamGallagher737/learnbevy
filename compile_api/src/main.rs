@@ -2,7 +2,12 @@ use config::{Channel, Version};
 use log::error;
 use metrics::count_request;
 use serde::{Deserialize, Serialize};
-use std::{future::Future, net::IpAddr, pin::Pin, str::FromStr};
+use std::{
+    future::Future,
+    net::{IpAddr, SocketAddr},
+    pin::Pin,
+    str::FromStr,
+};
 use tide::{http::headers::HeaderValue, utils::After, Body, Next, Request, Response, StatusCode};
 
 mod cache;
@@ -75,11 +80,12 @@ fn peer_addr_middleware<'a>(
     Box::pin(async {
         let ip = request
             .peer_addr()
-            .and_then(|a| a.parse::<IpAddr>().ok())
+            .and_then(|a| a.parse::<SocketAddr>().ok())
             .ok_or(tide::Error::from_str(
                 StatusCode::BadRequest,
                 "Could not get peer address",
-            ))?;
+            ))?
+            .ip();
         request.set_ext(PeerAddr(ip));
         Ok(next.run(request).await)
     })
