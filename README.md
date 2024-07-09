@@ -92,10 +92,10 @@ This is where the Dockfile is for the images used durning compiling. A single do
 
 #### Building
 
-An image can be build like this, replace `0.13` and `stable` with options of your choice.
+An image can be build like this, replace `0.14` and `stable` with options of your choice.
 
 ```sh
-podman build --build-arg="version=0.13" --build-arg="channel=stable" --tag "liamg737/comp-0.13-stable" .
+podman build --build-arg="version=0.14" --build-arg="channel=stable" --tag "ghcr.io/liamgallagher737/learnbevy-0.14-stable" .
 ```
 
 ## 📂 rustfmt_api
