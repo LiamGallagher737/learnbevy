@@ -49,17 +49,17 @@ The server collects metrics about the number of requests, their statuses and how
 
 #### Local Development
 
-The program has a `dev-mode` feature which will remove cloudflare specific behaviour. It can be run in dev mode like this.
+All the program needs to run is podman and the images for the versions and channels you want to use/test.
+
+You can pull them like this.
 
 ```sh
-cargo run --features dev-mode
+podman pull ghcr.io/liamgallagher737/learnbevy-<version>-<channel>
+podman pull ghcr.io/liamgallagher737/learnbevy-0.14-nightly # 0.14 on nightly
+podman pull ghcr.io/liamgallagher737/learnbevy-main-stable # bevy main branch on stable
 ```
 
-You will also need to generate an ssl certificate `cert.pem` and `cart.key` for ssl to work. The following command will ask some questions, put whatever info you want in here.
-
-```
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout cert.key -out cert.pem
-```
+If you want to build them yourselve see the [images section](#-images).
 
 ## 📂 compile_server_os
 
