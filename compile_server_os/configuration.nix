@@ -51,6 +51,7 @@
   # Nginx service
   services.nginx = {
     enable = true;
+    user = "ferris";
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
     virtualHosts."compile2.learnbevy.com" = {
