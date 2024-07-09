@@ -49,17 +49,17 @@ The server collects metrics about the number of requests, their statuses and how
 
 #### Local Development
 
-The program has a `dev-mode` feature which will remove cloudflare specific behaviour. It can be run in dev mode like this.
+All the program needs to run is podman and the images for the versions and channels you want to use/test.
+
+You can pull them like this.
 
 ```sh
-cargo run --features dev-mode
+podman pull ghcr.io/liamgallagher737/learnbevy-<version>-<channel>
+podman pull ghcr.io/liamgallagher737/learnbevy-0.14-nightly # 0.14 on nightly
+podman pull ghcr.io/liamgallagher737/learnbevy-main-stable # bevy main branch on stable
 ```
 
-You will also need to generate an ssl certificate `cert.pem` and `cart.key` for ssl to work. The following command will ask some questions, put whatever info you want in here.
-
-```
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout cert.key -out cert.pem
-```
+If you want to build them yourselve see the [images section](#-images).
 
 ## 📂 compile_server_os
 
@@ -92,10 +92,10 @@ This is where the Dockfile is for the images used durning compiling. A single do
 
 #### Building
 
-An image can be build like this, replace `0.13` and `stable` with options of your choice.
+An image can be build like this, replace `0.14` and `stable` with options of your choice.
 
 ```sh
-podman build --build-arg="version=0.13" --build-arg="channel=stable" --tag "liamg737/comp-0.13-stable" .
+podman build --build-arg="version=0.14" --build-arg="channel=stable" --tag "ghcr.io/liamgallagher737/learnbevy-0.14-stable" .
 ```
 
 ## 📂 rustfmt_api
@@ -139,7 +139,7 @@ npm run build && npx wrangler pages dev .svelte-kit/cloudflare
 If you want the website to use a locally running compile server you can specify a url in your .env file.
 
 ```env
-PUBLIC_COMPILE_HOST=https://localhost:53740
+PUBLIC_COMPILE_HOST=http://localhost:53740
 ```
 
 If your running the compile server with ssl then most likely your browser will block the request when you try to compile due to an untrusted self-signed certificate. To trust it on Firefox you can go to https://localhost:53740/compile and click on the Advanced then Accept the Risk. Other browser should be very simular.

@@ -23,7 +23,7 @@
 
   networking.firewall = {
       enable = true;
-      allowedTCPPorts = [ 53740 ];
+      allowedTCPPorts = [ 80 443 ];
   };
 
   services.openssh.settings.PasswordAuthentication = false;
@@ -48,7 +48,36 @@
     ];
   };
 
-# Run the compile api as a service
+  # Nginx service
+  services.nginx = {
+    enable = true;
+    user = "ferris";
+    recommendedProxySettings = true;
+    recommendedTlsSettings = true;
+    appendHttpConfig = ''
+      limit_req_zone $binary_remote_addr zone=ip:10m rate=4r/s;
+    '';
+    virtualHosts."compile2.learnbevy.com" = {
+      addSSL = true;
+      enableACME = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:53740";
+        # proxy_set_header will override user
+        # set headers so it can be trusted
+        extraConfig = ''
+          proxy_set_header X-Real-IP $remote_addr;
+          limit_req zone=ip;
+          limit_req_status 429;
+        '';
+      };
+    };
+  };
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "liam@liamgallagher.dev";
+  };
+
+  # Run the compile api as a service
   systemd.services.compile_api = {
     description = "Compile API Service";
     wantedBy = [ "multi-user.target" ];

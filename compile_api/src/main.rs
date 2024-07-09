@@ -2,9 +2,13 @@ use config::{Channel, Version};
 use log::error;
 use metrics::count_request;
 use serde::{Deserialize, Serialize};
-use std::{future::Future, net::IpAddr, pin::Pin, str::FromStr};
+use std::{
+    future::Future,
+    net::{IpAddr, SocketAddr},
+    pin::Pin,
+    str::FromStr,
+};
 use tide::{http::headers::HeaderValue, utils::After, Body, Next, Request, Response, StatusCode};
-use tide_rustls::TlsListener;
 
 mod cache;
 mod compile;
@@ -60,13 +64,7 @@ async fn main() -> Result<(), std::io::Error> {
 
     app.at("/metrics").get(metrics::metrics_handler);
 
-    app.listen(
-        TlsListener::build()
-            .addrs("0.0.0.0:53740")
-            .cert("./cert.pem")
-            .key("./cert.key"),
-    )
-    .await?;
+    app.listen("0.0.0.0:53740").await?;
 
     Ok(())
 }
@@ -75,25 +73,27 @@ async fn main() -> Result<(), std::io::Error> {
 #[derive(Clone)]
 struct PeerAddr(IpAddr);
 /// Gets the IP address of the user for use in ip locking and rate limiting.
-/// Since the production server is behind cloudflares proxy, the ip comes from the
-/// "CF-Connecting-IP" header. If we used the peer address we would get the address of cloudflares
-/// proxy, not the user.
 fn peer_addr_middleware<'a>(
     mut request: Request<()>,
     next: Next<'a, ()>,
 ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
     Box::pin(async {
-        let ip = if !cfg!(feature = "dev-mode") {
-            request
-                .header("CF-Connecting-IP")
-                .and_then(|addr| addr.as_str().parse::<IpAddr>().ok())
-                .ok_or(tide::Error::from_str(
-                    StatusCode::BadRequest,
-                    "Could not get peer address",
-                ))?
-        } else {
-            "1.1.1.1".parse::<IpAddr>().unwrap()
-        };
+        // Try get the IP from the X-Real-Ip header (nginx) and
+        // if that doesn't exist use the peer addr. This should
+        // only fallback to peer addr durning development.
+        let ip_from_header = request
+            .header("x-real-ip")
+            .and_then(|a| a.as_str().parse::<IpAddr>().ok());
+        let ip_from_peer = request
+            .peer_addr()
+            .and_then(|a| a.parse::<SocketAddr>().ok())
+            .map(|sock| sock.ip());
+        let ip = ip_from_header
+            .or(ip_from_peer)
+            .ok_or(tide::Error::from_str(
+                StatusCode::BadRequest,
+                "Failed to get peer addr",
+            ))?;
         request.set_ext(PeerAddr(ip));
         Ok(next.run(request).await)
     })
