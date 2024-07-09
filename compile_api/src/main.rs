@@ -59,8 +59,7 @@ async fn main() -> Result<(), std::io::Error> {
 
     app.at("/metrics").get(metrics::metrics_handler);
 
-    app.listen("0.0.0.0:53740")
-    .await?;
+    app.listen("0.0.0.0:53740").await?;
 
     Ok(())
 }
