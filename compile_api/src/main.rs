@@ -75,8 +75,7 @@ fn peer_addr_middleware<'a>(
     Box::pin(async {
         let ip = request
             .peer_addr()
-            .map(|a| a.parse::<IpAddr>().ok())
-            .flatten()
+            .and_then(|a| a.parse::<IpAddr>().ok())
             .ok_or(tide::Error::from_str(
                 StatusCode::BadRequest,
                 "Could not get peer address",
