@@ -139,7 +139,7 @@ npm run build && npx wrangler pages dev .svelte-kit/cloudflare
 If you want the website to use a locally running compile server you can specify a url in your .env file.
 
 ```env
-PUBLIC_COMPILE_HOST=https://localhost:53740
+PUBLIC_COMPILE_HOST=http://localhost:53740
 ```
 
 If your running the compile server with ssl then most likely your browser will block the request when you try to compile due to an untrusted self-signed certificate. To trust it on Firefox you can go to https://localhost:53740/compile and click on the Advanced then Accept the Risk. Other browser should be very simular.
