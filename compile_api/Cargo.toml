@@ -17,5 +17,3 @@ rust_minify = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 tide = { version = "0.16", default-features = false, features = ["async-h1", "h1-server"] }
 
-[features]
-dev-mode = []

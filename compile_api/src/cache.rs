@@ -16,7 +16,7 @@ const CACHE_BYPASS_TOKEN: Option<&'static str> = option_env!("CACHE_BYPASS_TOKEN
 
 /// Creates the directory defined by [CACHE_FOLDER_PATH].
 pub async fn setup() {
-    if CACHE_BYPASS_TOKEN.is_none() && !cfg!(feature = "dev-mode") {
+    if CACHE_BYPASS_TOKEN.is_none() {
         warn!("CACHE_BYPASS_TOKEN is not set.");
     }
     fs::create_dir_all(CACHE_FOLDER_PATH)
