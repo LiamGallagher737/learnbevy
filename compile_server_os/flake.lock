@@ -26,17 +26,17 @@
       },
       "locked": {
         "dir": "compile_api",
-        "lastModified": 1720493497,
-        "narHash": "sha256-rzyuxhTb3fnbzhG4qRP1Ba9/wmoGKRmi9pth6hrRnj8=",
+        "lastModified": 1720490934,
+        "narHash": "sha256-ZH+Cq5fkgK+7dSuB6VG1nPzD8/flVqRreBgzot1qufg=",
         "owner": "LiamGallagher737",
         "repo": "learnbevy",
-        "rev": "863abd1997b82119a4a95915c417b85d188213c3",
+        "rev": "5387e9b136b897e4b2cc61130579739ab8ddb29a",
         "type": "github"
       },
       "original": {
         "dir": "compile_api",
         "owner": "LiamGallagher737",
-        "ref": "nginx-no-cloudflare",
+        "ref": "main",
         "repo": "learnbevy",
         "type": "github"
       }
@@ -59,11 +59,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1720368505,
-        "narHash": "sha256-5r0pInVo5d6Enti0YwUSQK4TebITypB42bWy5su3MrQ=",
+        "lastModified": 1720338227,
+        "narHash": "sha256-PlL/yXNX/C87S2N8lF/HfOJhHForf/l7E6lVWZ4jMrw=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ab82a9612aa45284d4adf69ee81871a389669a9e",
+        "rev": "b60793b86201040d9dee019a05089a9150d08b5b",
         "type": "github"
       },
       "original": {
