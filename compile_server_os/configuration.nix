@@ -54,6 +54,9 @@
     user = "ferris";
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
+    appendHttpConfig = ''
+      limit_req_zone $binary_remote_addr zone=ip:10m rate=4r/s;
+    '';
     virtualHosts."compile2.learnbevy.com" = {
       addSSL = true;
       enableACME = true;
@@ -63,6 +66,8 @@
         # set headers so it can be trusted
         extraConfig = ''
           proxy_set_header X-Real-IP $remote_addr;
+          limit_req zone=ip;
+          limit_req_status 429;
         '';
       };
     };
