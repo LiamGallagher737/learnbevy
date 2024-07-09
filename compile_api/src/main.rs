@@ -78,14 +78,22 @@ fn peer_addr_middleware<'a>(
     next: Next<'a, ()>,
 ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
     Box::pin(async {
-        let ip = request
+        // Try get the IP from the X-Real-Ip header (nginx) and
+        // if that doesn't exist use the peer addr. This should
+        // only fallback to peer addr durning development.
+        let ip_from_header = request
+            .header("x-real-ip")
+            .and_then(|a| a.as_str().parse::<IpAddr>().ok());
+        let ip_from_peer = request
             .peer_addr()
             .and_then(|a| a.parse::<SocketAddr>().ok())
+            .map(|sock| sock.ip());
+        let ip = ip_from_header
+            .or(ip_from_peer)
             .ok_or(tide::Error::from_str(
                 StatusCode::BadRequest,
-                "Could not get peer address",
-            ))?
-            .ip();
+                "Failed to get peer addr",
+            ))?;
         request.set_ext(PeerAddr(ip));
         Ok(next.run(request).await)
     })
