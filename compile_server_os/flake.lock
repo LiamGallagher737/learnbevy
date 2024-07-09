@@ -26,17 +26,17 @@
       },
       "locked": {
         "dir": "compile_api",
-        "lastModified": 1720490934,
-        "narHash": "sha256-ZH+Cq5fkgK+7dSuB6VG1nPzD8/flVqRreBgzot1qufg=",
+        "lastModified": 1720494309,
+        "narHash": "sha256-ha04YsrpRqcJ9AMWY9fkTA/6AUaajaei6bf6jOzicdA=",
         "owner": "LiamGallagher737",
         "repo": "learnbevy",
-        "rev": "5387e9b136b897e4b2cc61130579739ab8ddb29a",
+        "rev": "b31f4cbae64323296955f4b9785ebd28126b323b",
         "type": "github"
       },
       "original": {
         "dir": "compile_api",
         "owner": "LiamGallagher737",
-        "ref": "main",
+        "ref": "nginx-no-cloudflare",
         "repo": "learnbevy",
         "type": "github"
       }
