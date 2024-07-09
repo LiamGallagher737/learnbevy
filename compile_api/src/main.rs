@@ -4,7 +4,6 @@ use metrics::count_request;
 use serde::{Deserialize, Serialize};
 use std::{future::Future, net::IpAddr, pin::Pin, str::FromStr};
 use tide::{http::headers::HeaderValue, utils::After, Body, Next, Request, Response, StatusCode};
-use tide_rustls::TlsListener;
 
 mod cache;
 mod compile;
@@ -60,12 +59,7 @@ async fn main() -> Result<(), std::io::Error> {
 
     app.at("/metrics").get(metrics::metrics_handler);
 
-    app.listen(
-        TlsListener::build()
-            .addrs("0.0.0.0:53740")
-            .cert("./cert.pem")
-            .key("./cert.key"),
-    )
+    app.listen("0.0.0.0:53740")
     .await?;
 
     Ok(())

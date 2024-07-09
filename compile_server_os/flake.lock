@@ -26,17 +26,17 @@
       },
       "locked": {
         "dir": "compile_api",
-        "lastModified": 1720406730,
-        "narHash": "sha256-93uXtl1NuKO1sb7sm5+Yes9cTUdPhmQubTxl3zOu04s=",
+        "lastModified": 1720490934,
+        "narHash": "sha256-ZH+Cq5fkgK+7dSuB6VG1nPzD8/flVqRreBgzot1qufg=",
         "owner": "LiamGallagher737",
         "repo": "learnbevy",
-        "rev": "daa8fe8982c20ac7d1a44a839b62bfe37b5495ce",
+        "rev": "5387e9b136b897e4b2cc61130579739ab8ddb29a",
         "type": "github"
       },
       "original": {
         "dir": "compile_api",
         "owner": "LiamGallagher737",
-        "ref": "nixos-compile-server",
+        "ref": "main",
         "repo": "learnbevy",
         "type": "github"
       }
