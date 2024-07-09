@@ -7,7 +7,7 @@
       type = "github";
       owner = "LiamGallagher737";
       repo = "learnbevy";
-      ref = "nixos-compile-server";
+      ref = "main";
       dir = "compile_api";
   };
 
