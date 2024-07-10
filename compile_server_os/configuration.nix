@@ -104,6 +104,7 @@
       ${pkgs.podman}/bin/podman pull ghcr.io/liamgallagher737/learnbevy-main-stable:main
       ${pkgs.podman}/bin/podman pull ghcr.io/liamgallagher737/learnbevy-0.14-nightly:main
       ${pkgs.podman}/bin/podman pull ghcr.io/liamgallagher737/learnbevy-0.14-stable:main
+      ${pkgs.podman}/bin/podman image prune -f
     '';
     wantedBy = [ "default.target" ];
     path = [
