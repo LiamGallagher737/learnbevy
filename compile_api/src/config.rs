@@ -105,13 +105,19 @@ fn edit_code_v10(code: &str) -> String {
     modified_code
 }
 
-#[derive(Clone, Copy, Default, Deserialize)]
+#[derive(Clone, Copy, Default, Deserialize, Debug)]
 pub enum Channel {
     #[serde(rename = "stable")]
     Stable,
     #[default]
     #[serde(rename = "nightly")]
     Nightly,
+}
+
+impl std::fmt::Display for Channel {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 // Newest versions go last so cache keys stay the same when adding new versions
@@ -130,4 +136,17 @@ pub enum Version {
     #[default]
     #[serde(rename = "0.14")]
     V0_14,
+}
+
+impl std::fmt::Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Version::Main => f.write_str("Main"),
+            Version::V0_10 => f.write_str("0.10"),
+            Version::V0_11 => f.write_str("0.11"),
+            Version::V0_12 => f.write_str("0.12"),
+            Version::V0_13 => f.write_str("0.13"),
+            Version::V0_14 => f.write_str("0.14"),
+        }
+    }
 }
