@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use cargo_toml::Manifest;
+use cargo_toml::{Dependency, Manifest};
 use std::{env, fs};
 use table_extract::Table;
 use ureq::{Agent, AgentBuilder};
@@ -25,7 +25,7 @@ fn main() -> anyhow::Result<()> {
         .filter(|path| path.to_string_lossy().ends_with(".Cargo.toml"));
 
     for path in manifest_paths {
-        let manifest = Manifest::from_path(&path)
+        let mut manifest = Manifest::from_path(&path)
             .map_err(|e| anyhow!("Failed to parse manifest at {path:?}\n{e}"))?;
 
         let Some(bevy_version) = manifest.dependencies["bevy"]
@@ -48,6 +48,8 @@ fn main() -> anyhow::Result<()> {
                 }
             })
             .filter_map(|res| res.ok());
+
+        let mut latest_versions = Vec::new();
 
         println!("Bevy: {bevy_version}");
         for c in crates {
@@ -104,7 +106,20 @@ fn main() -> anyhow::Result<()> {
                 .max()
                 .unwrap();
 
-            println!("The most recent version for {} compatible with Bevy {bevy_version} is {newest}", c.data.name);
+            println!(
+                "The most recent version for {} compatible with Bevy {bevy_version} is {newest}",
+                c.data.name
+            );
+
+            latest_versions.push((c.data.name, Dependency::Simple(newest.to_string())));
+        }
+
+        for (name, dep) in latest_versions {
+            manifest.dependencies.insert(name, dep);
+        }
+        let t = toml::to_string_pretty(&manifest).unwrap();
+        if let Err(e) = fs::write(&path, t) {
+            eprintln!("Failed to write to {path:?}: {e}");
         }
     }
 
