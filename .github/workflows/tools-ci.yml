@@ -31,7 +31,8 @@ jobs:
     - name: Generate Matrix
       id: matrix
       run: |
-        ls tools | jq -R -s -c 'split("\n")[:-1]' >> "$GITHUB_OUTPUT"
+        tools=$(ls tools | jq -R -s -c 'split("\n")[:-1]')
+        echo "tools=${tools}" >> "$GITHUB_OUTPUT"
 
   # Run cargo test
   test:
