@@ -1,0 +1,44 @@
+name: Update Crates
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 0 * * *
+
+jobs:
+  update-crate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/tools/check_crate_updates/.cargo/bin/
+            ~/tools/check_crate_updates/.cargo/registry/index/
+            ~/tools/check_crate_updates/.cargo/registry/cache/
+            ~/tools/check_crate_updates/.cargo/git/db/
+            ~/tools/check_crate_updates/target/
+          key: ${{ runner.os }}-cargo-build-stable-${{ hashFiles('~/tools/check_crate_updates/Cargo.toml') }}
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Build and run the Rust project
+        run: |
+          cd tools/check_crate_updates
+          cargo run ../../images/manifests
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            commit-message: Update crates
+            title: Update crate files
+            body: |
+              Update the 3rd party crates for the playground
+            branch: main
+
