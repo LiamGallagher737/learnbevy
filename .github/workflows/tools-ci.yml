@@ -37,6 +37,7 @@ jobs:
 
   print:
     runs-on: ubuntu-latest
+    needs: generate-matrix
     steps:
     - name: Printer
       run : |
