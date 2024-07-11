@@ -1,4 +1,4 @@
-name: Update Crates
+name: Update Playground Crates
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
       crate-updates-action
 
 jobs:
-  update-crate:
+  update-crates:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,13 +35,20 @@ jobs:
           cd tools/check_crate_updates
           cargo run ../../images/manifests
 
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.CRATE_UPDATER_APP_ID }}
+          private_key: ${{ secrets.CRATE_UPDATER_PRIVATE_KEY }}
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-            commit-message: Update crates
-            title: Update crate files
-            body: |
-              Update the 3rd party crates for the playground
-            branch: update-crates
-            base: main
+          token: ${{ steps.generate-token.outputs.token }}
+          commit-message: Update crates
+          title: Update Playground Crates
+          body: Update the 3rd party crates for the playground
+          branch: update-crates
+          base: main
+          labels: C-Crate-Update
 
