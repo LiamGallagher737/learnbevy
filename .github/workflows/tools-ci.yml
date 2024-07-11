@@ -16,13 +16,30 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  generate-matrix:
+    name: Generate Tools Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      tools: ${{ steps.matrix.outputs.tools }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install JQ
+      run: sudo apt-get install -y jq
+
+    - name: Generate Matrix
+      id: matrix
+      run: |
+        ls | jq -R -s -c 'split("\n")[:-1]' >> "$GITHUB_OUTPUT"
+
   # Run cargo test
   test:
     name: Runs Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool: [check_crate_updates]
+        tools: ${{ fromJSON(needs.generate-matrix.outputs.tools) }}
     timeout-minutes: 30
     steps:
       - name: Checkout sources
@@ -49,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool: [check_crate_updates]
+        tools: ${{ fromJSON(needs.generate-matrix.outputs.tools) }}
     timeout-minutes: 30
     steps:
       - name: Checkout sources
@@ -78,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool: [check_crate_updates]
+        tools: ${{ fromJSON(needs.generate-matrix.outputs.tools) }}
     timeout-minutes: 30
     steps:
       - name: Checkout sources
