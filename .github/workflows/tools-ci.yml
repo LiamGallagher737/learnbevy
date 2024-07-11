@@ -17,6 +17,7 @@ env:
 
 jobs:
   generate-matrix:
+    name: Generate Tools Matrix
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
