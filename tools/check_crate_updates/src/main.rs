@@ -48,7 +48,7 @@ fn main() -> anyhow::Result<()> {
             .unwrap()
             .iter()
             .map(|(name, _)| name)
-            .filter(|name| !EXCLUDE_CRATES.contains(&name))
+            .filter(|name| !EXCLUDE_CRATES.contains(name))
             .map(|name| fetch_crate(name, agent.clone()))
             .inspect(|res| {
                 if let Err(e) = res {
@@ -83,7 +83,7 @@ fn main() -> anyhow::Result<()> {
                 let bevy = extract_version_from_cell(&row[0]);
                 let others = extract_versions_from_cell(&row[1]);
                 for other in others {
-                    if bevy.starts_with(&bevy_version) {
+                    if bevy.starts_with(bevy_version) {
                         matching.push((bevy.clone(), other));
                     }
                 }
@@ -141,22 +141,22 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn fetch_crate(name: &str, agent: Agent) -> anyhow::Result<CrateResponse> {
-    Ok(agent
+    agent
         .get(&format!("https://crates.io/api/v1/crates/{name}"))
         .call()
         .map_err(|e| anyhow!("Failed to fetch crate data for {name:?}\n{e}"))?
         .into_json::<CrateResponse>()
-        .map_err(|e| anyhow!("Failed to parse crate data for {name:?}\n{e}"))?)
+        .map_err(|e| anyhow!("Failed to parse crate data for {name:?}\n{e}"))
 }
 
 fn fetch_readme(c: &CrateResponse, agent: Agent) -> anyhow::Result<String> {
     let path = &c.versions[0].readme_path; // index 0 is latest
-    Ok(agent
+    agent
         .get(&format!("https://crates.io{path}"))
         .call()
         .map_err(|e| anyhow!("Failed to fetch readme\n{e}"))?
         .into_string()
-        .map_err(|e| anyhow!("Failed to read readme\n{e}"))?)
+        .map_err(|e| anyhow!("Failed to read readme\n{e}"))
 }
 
 fn find_support_table(readme: &str) -> anyhow::Result<Table> {
@@ -173,15 +173,14 @@ fn find_support_table(readme: &str) -> anyhow::Result<Table> {
 fn extract_version_from_cell(input: &str) -> String {
     input
         .chars()
-        .filter(|&c| c.is_digit(10) || c == '.')
+        .filter(|&c| c.is_ascii_digit() || c == '.')
         .collect()
 }
 
 fn extract_versions_from_cell(input: &str) -> Vec<String> {
     input
         .split([' ', ',', '-'])
-        .map(|s| s.split(".."))
-        .flatten()
+        .flat_map(|s| s.split(".."))
         .map(extract_version_from_cell)
         .filter(|s| !s.is_empty())
         .collect()
