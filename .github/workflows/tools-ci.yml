@@ -16,26 +16,13 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  generate-matrix:
-    name: Generate Tools Matrix
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Generate matrix
-      id: set-matrix
-      run: echo "::set-output name=matrix::[$(ls tools)]"
-
   # Run cargo test
   test:
     name: Runs Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool: ${{ needs.generate-matrix.outputs.matrix }}
+        tool: [check_crate_updates]
     timeout-minutes: 30
     steps:
       - name: Checkout sources
@@ -62,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool: ${{ needs.generate-matrix.outputs.matrix }}
+        tool: [check_crate_updates]
     timeout-minutes: 30
     steps:
       - name: Checkout sources
@@ -91,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool: ${{ needs.generate-matrix.outputs.matrix }}
+        tool: [check_crate_updates]
     timeout-minutes: 30
     steps:
       - name: Checkout sources
