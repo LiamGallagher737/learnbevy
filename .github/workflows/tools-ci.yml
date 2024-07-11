@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+        tool: ${{ needs.generate-matrix.outputs.matrix }}
     timeout-minutes: 30
     steps:
       - name: Checkout sources
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+        tool: ${{ needs.generate-matrix.outputs.matrix }}
     timeout-minutes: 30
     steps:
       - name: Checkout sources
@@ -91,7 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+        tool: ${{ needs.generate-matrix.outputs.matrix }}
     timeout-minutes: 30
     steps:
       - name: Checkout sources
