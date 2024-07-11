@@ -35,6 +35,13 @@ jobs:
         echo "tools=${tools}"
         echo "tools=${tools}" >> "$GITHUB_OUTPUT"
 
+  print:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Printer
+      run : |
+        echo ${{ needs.generate-matrix.outputs.tools }}
+
   # Run cargo test
   test:
     name: Runs Tests
