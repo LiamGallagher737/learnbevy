@@ -29,8 +29,12 @@ jobs:
       id: set-matrix
       run: |
         tools=$(ls tools)
-        tools_json=$(echo $tools | jq -R -s -c 'split("\n") | map(select(length > 0))')
-        echo "::set-output name=matrix::${tools_json}"
+        if [ -z "$tools" ]; then
+          echo "[]"
+        else
+          tools_json=$(echo $tools | jq -R -s -c 'split("\n") | map(select(length > 0))')
+        fi
+        echo "::set-output name=matrix::$tools_json"
 
   # Run cargo test
   test:
