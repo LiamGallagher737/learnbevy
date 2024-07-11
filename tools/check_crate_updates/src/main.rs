@@ -1,5 +1,4 @@
 use anyhow::anyhow;
-use cargo_toml::{Dependency, Manifest};
 use std::{env, fs};
 use table_extract::Table;
 use ureq::{Agent, AgentBuilder};
@@ -25,22 +24,31 @@ fn main() -> anyhow::Result<()> {
         .filter(|path| path.to_string_lossy().ends_with(".Cargo.toml"));
 
     for path in manifest_paths {
-        let mut manifest = Manifest::from_path(&path)
+        let manifest_str = fs::read_to_string(&path)?;
+        let mut manifest = manifest_str
+            .parse::<toml_edit::DocumentMut>()
             .map_err(|e| anyhow!("Failed to parse manifest at {path:?}\n{e}"))?;
 
-        let Some(bevy_version) = manifest.dependencies["bevy"]
-            .detail()
-            .and_then(|d| d.version.clone())
-        else {
-            eprintln!("Failed to get Bevy version of {path:?}");
+        // skip if no version - using main branch
+        if !manifest["dependencies"]["bevy"]
+            .as_inline_table()
+            .unwrap()
+            .contains_key("version")
+        {
+            println!("Skipping {path:?}");
             continue;
-        };
+        }
 
-        let crates = manifest
-            .dependencies
+        let bevy_version = manifest["dependencies"]["bevy"]["version"]
+            .as_str()
+            .unwrap();
+
+        let crates = manifest["dependencies"]
+            .as_table()
+            .unwrap()
             .iter()
             .map(|(name, _)| name)
-            .filter(|name| !EXCLUDE_CRATES.contains(&name.as_str()))
+            .filter(|name| !EXCLUDE_CRATES.contains(&name))
             .map(|name| fetch_crate(name, agent.clone()))
             .inspect(|res| {
                 if let Err(e) = res {
@@ -49,7 +57,7 @@ fn main() -> anyhow::Result<()> {
             })
             .filter_map(|res| res.ok());
 
-        let mut latest_versions = Vec::new();
+        let mut newest_versions = Vec::new();
 
         println!("Bevy: {bevy_version}");
         for c in crates {
@@ -111,14 +119,14 @@ fn main() -> anyhow::Result<()> {
                 c.data.name
             );
 
-            latest_versions.push((c.data.name, Dependency::Simple(newest.to_string())));
+            newest_versions.push((c.data.name, newest.to_string()));
         }
 
-        for (name, dep) in latest_versions {
-            manifest.dependencies.insert(name, dep);
+        for (name, version) in newest_versions {
+            manifest["dependencies"][name] = toml_edit::value(version);
         }
-        let t = toml::to_string_pretty(&manifest).unwrap();
-        if let Err(e) = fs::write(&path, t) {
+
+        if let Err(e) = fs::write(&path, manifest.to_string()) {
             eprintln!("Failed to write to {path:?}: {e}");
         }
     }
