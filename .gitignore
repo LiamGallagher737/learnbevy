@@ -9,3 +9,4 @@ devenv.local.nix
 .pre-commit-config.yaml
 
 /tools/*/target
+/tools/*/Cargo.lock
