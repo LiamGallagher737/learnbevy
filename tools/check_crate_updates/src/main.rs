@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use cached::proc_macro::cached;
 use std::{env, fs};
 use table_extract::Table;
 use ureq::{Agent, AgentBuilder};
@@ -140,6 +141,12 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cached(
+    result = true,
+    ty = "cached::SizedCache<String, CrateResponse>",
+    create = "{ cached::SizedCache::with_size(20) }",
+    convert = r#"{ name.to_string() }"#
+)]
 fn fetch_crate(name: &str, agent: Agent) -> anyhow::Result<CrateResponse> {
     agent
         .get(&format!("https://crates.io/api/v1/crates/{name}"))
@@ -149,6 +156,12 @@ fn fetch_crate(name: &str, agent: Agent) -> anyhow::Result<CrateResponse> {
         .map_err(|e| anyhow!("Failed to parse crate data for {name:?}\n{e}"))
 }
 
+#[cached(
+    result = true,
+    ty = "cached::SizedCache<String, String>",
+    create = "{ cached::SizedCache::with_size(20) }",
+    convert = r#"{ c.data.name.to_string() }"#
+)]
 fn fetch_readme(c: &CrateResponse, agent: Agent) -> anyhow::Result<String> {
     let path = &c.versions[0].readme_path; // index 0 is latest
     agent
@@ -186,19 +199,19 @@ fn extract_versions_from_cell(input: &str) -> Vec<String> {
         .collect()
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 struct CrateResponse {
     #[serde(rename = "crate")]
     data: CrateDataResponse,
     versions: Vec<CrateVersionResponse>,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 struct CrateDataResponse {
     name: String,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 struct CrateVersionResponse {
     #[serde(rename = "num")]
     version: String,
