@@ -1,4 +1,3 @@
-//lol
 use anyhow::anyhow;
 use std::{env, fs};
 use table_extract::Table;
