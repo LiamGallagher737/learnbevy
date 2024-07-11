@@ -35,18 +35,11 @@ jobs:
         echo "tools=${tools}"
         echo "tools=${tools}" >> "$GITHUB_OUTPUT"
 
-  print:
-    runs-on: ubuntu-latest
-    needs: generate-matrix
-    steps:
-    - name: Printer
-      run : |
-        echo ${{ needs.generate-matrix.outputs.tools }}
-
   # Run cargo test
   test:
     name: Runs Tests
     runs-on: ubuntu-latest
+    needs: generate-matrix
     strategy:
       matrix:
         tools: ${{ fromJSON(needs.generate-matrix.outputs.tools) }}
@@ -74,6 +67,7 @@ jobs:
   clippy_check:
     name: Check Clippy
     runs-on: ubuntu-latest
+    needs: generate-matrix
     strategy:
       matrix:
         tools: ${{ fromJSON(needs.generate-matrix.outputs.tools) }}
@@ -103,6 +97,7 @@ jobs:
   format:
     name: Check Formatting
     runs-on: ubuntu-latest
+    needs: generate-matrix
     strategy:
       matrix:
         tools: ${{ fromJSON(needs.generate-matrix.outputs.tools) }}
