@@ -4,19 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy_kira_audio = "0.17.0"
-bevy_mod_picking = "0.16.0"
-bevy_prototype_lyon = "0.9.0"
-bevy_xpbd_2d = "0.2.0"
-bevy_xpbd_3d = "0.2.0"
-leafwing-input-manager = "0.10.0"
-rand = "0.8"
-rand_chacha = "0.3"
-wasm-bindgen = "0.2"
-
-[dependencies.bevy]
-version = "0.11"
-features = [
+bevy = { version = "0.11", default-features = false, features = [
     "animation",
     "bevy_asset",
     "bevy_audio",
@@ -39,15 +27,26 @@ features = [
     "tonemapping_luts",
     "default_font",
     "webgl2",
-]
-default-features = false
+] }
+
+rand = "0.8"
+rand_chacha = "0.3"
+
+bevy_xpbd_2d = "0.2"
+bevy_xpbd_3d = "0.2"
+bevy_mod_picking = "0.16"
+bevy_prototype_lyon = "0.9"
+bevy_kira_audio = "0.17"
+leafwing-input-manager = "0.10"
+
+wasm-bindgen = "0.2"
+
+[profile.release.package."*"]
+opt-level = 'z'
 
 [profile.release]
 debug = false
-lto = false
 debug-assertions = false
-codegen-units = 1
+lto = false
 strip = "debuginfo"
-
-[profile.release.package."*"]
-opt-level = "z"
+codegen-units = 1
