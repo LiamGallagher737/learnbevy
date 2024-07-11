@@ -35,10 +35,10 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-            token: ${{ secrets.GITHUB_TOKEN }}
             commit-message: Update crates
             title: Update crate files
             body: |
               Update the 3rd party crates for the playground
-            branch: main
+            branch: update-crates
+            base: main
 
