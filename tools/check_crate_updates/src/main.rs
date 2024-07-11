@@ -123,7 +123,11 @@ fn main() -> anyhow::Result<()> {
         }
 
         for (name, version) in newest_versions {
-            manifest["dependencies"][name] = toml_edit::value(version);
+            if let Some(table) = manifest["dependencies"][&name].as_inline_table_mut() {
+                table["version"] = version.into();
+            } else {
+                manifest["dependencies"][name] = toml_edit::value(version);
+            }
         }
 
         if let Err(e) = fs::write(&path, manifest.to_string()) {
