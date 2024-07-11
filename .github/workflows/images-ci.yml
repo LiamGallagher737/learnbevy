@@ -17,7 +17,6 @@ jobs:
     name: Checking ${{ matrix.version }} on ${{ matrix.channel }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
         version:
           - 'main'
