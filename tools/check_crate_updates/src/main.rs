@@ -119,7 +119,7 @@ fn main() -> anyhow::Result<()> {
                 c.data.name
             );
 
-            newest_versions.push((c.data.name, newest.to_string()));
+            newest_versions.push((c.data.name, format!("={newest}")));
         }
 
         for (name, version) in newest_versions {
