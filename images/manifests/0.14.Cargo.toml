@@ -32,7 +32,7 @@ rand_chacha = "0.3.1"
 
 avian2d = "0.1.0"
 avian3d = "0.1.0"
-bevy_mod_picking = "0.20.1"
+bevy_mod_picking = "0.20.0"
 bevy_prototype_lyon = "0.12.0"
 bevy_kira_audio = "0.20.0"
 #leafwing-input-manager = "0.13.3"

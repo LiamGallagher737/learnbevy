@@ -32,12 +32,12 @@ bevy = { version = "0.11", default-features = false, features = [
 rand = "0.8"
 rand_chacha = "0.3"
 
-bevy_xpbd_2d = "0.2.0"
-bevy_xpbd_3d = "0.2.0"
-bevy_mod_picking = "0.16.0"
-bevy_prototype_lyon = "0.9.0"
-bevy_kira_audio = "0.17.0"
-leafwing-input-manager = "0.10.0"
+bevy_xpbd_2d = "0.2"
+bevy_xpbd_3d = "0.2"
+bevy_mod_picking = "0.16"
+bevy_prototype_lyon = "0.9"
+bevy_kira_audio = "0.17"
+leafwing-input-manager = "0.10"
 
 wasm-bindgen = "0.2"
 
