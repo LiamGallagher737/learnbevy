@@ -149,6 +149,7 @@ fn input_middleware<'a>(
 ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
     Box::pin(async {
         let input: Input = request.body_json().await?;
+        metrics::count_request_options(input.version, input.channel);
         request.set_ext(input);
         Ok(next.run(request).await)
     })

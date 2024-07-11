@@ -1,14 +1,16 @@
+use crate::config::{Channel, Version};
 use prometheus::{register_counter_vec, register_histogram, CounterVec, Histogram, TextEncoder};
 use std::{future::Future, pin::Pin};
 use tide::{Next, Request, Response, StatusCode};
 
-const LABEL_NAMES: [&str; 1] = ["status"];
+const REQUEST_LABEL_NAMES: [&str; 1] = ["status"];
+const REQUEST_OPTIONS_LABEL_NAMES: [&str; 2] = ["version", "channel"];
 
 lazy_static::lazy_static! {
     static ref REQUEST_COUNTER: CounterVec = register_counter_vec!(
         "compile_requests_total",
         "Number of HTTP requests made.",
-        &LABEL_NAMES,
+        &REQUEST_LABEL_NAMES,
     ).unwrap();
 
     static ref REQUEST_DURATION_HISTOGRAM: Histogram = register_histogram!(
@@ -17,10 +19,22 @@ lazy_static::lazy_static! {
         vec![2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
     )
     .unwrap();
+
+    static ref REQUEST_OPTIONS_COUNTER: CounterVec = register_counter_vec!(
+        "compile_requests_options_total",
+        "Version of Bevy and channel of Rust for the request",
+        &REQUEST_OPTIONS_LABEL_NAMES,
+    ).unwrap();
 }
 
 pub fn count_request(status: &'static str) {
     REQUEST_COUNTER.with_label_values(&[status]).inc();
+}
+
+pub fn count_request_options(version: Version, channel: Channel) {
+    REQUEST_OPTIONS_COUNTER
+        .with_label_values(&[&version.to_string(), &channel.to_string()])
+        .inc();
 }
 
 pub fn metrics_duration_middleware<'a>(
