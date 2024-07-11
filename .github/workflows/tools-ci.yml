@@ -1,0 +1,113 @@
+name: Tools CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+    - 'tools/**'
+    - '.github/workflows/tools-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+    - 'tools/**'
+    - '.github/workflows/tools-ci.yml'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  generate-matrix:
+    name: Generate Tools Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      tools: ${{ steps.matrix.outputs.tools }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install JQ
+      run: sudo apt-get install -y jq
+
+    - name: Generate Matrix
+      id: matrix
+      run: |
+        tools=$(ls tools | jq -R -s -c 'split("\n")[:-1]')
+        echo "tools=${tools}" >> "$GITHUB_OUTPUT"
+
+  # Run cargo test
+  test:
+    name: Runs Tests
+    runs-on: ubuntu-latest
+    needs: generate-matrix
+    strategy:
+      matrix:
+        tool: ${{ fromJSON(needs.generate-matrix.outputs.tools) }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('compile_api/Cargo.toml') }}
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run cargo test
+        working-directory: tools/${{ matrix.tool }}
+        run: cargo test
+
+  # Run cargo clippy -- -D warnings
+  clippy_check:
+    name: Check Clippy
+    runs-on: ubuntu-latest
+    needs: generate-matrix
+    strategy:
+      matrix:
+        tool: ${{ fromJSON(needs.generate-matrix.outputs.tools) }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('compile_api/Cargo.toml') }}
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Run clippy
+        working-directory: tools/${{ matrix.tool }}
+        run: cargo clippy -- -D warnings
+
+  # Run cargo fmt --all -- --check
+  format:
+    name: Check Formatting
+    runs-on: ubuntu-latest
+    needs: generate-matrix
+    strategy:
+      matrix:
+        tool: ${{ fromJSON(needs.generate-matrix.outputs.tools) }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Run cargo fmt
+        working-directory: tools/${{ matrix.tool }}
+        run: cargo fmt --all -- --check
