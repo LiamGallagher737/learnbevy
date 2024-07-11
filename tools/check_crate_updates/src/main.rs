@@ -49,7 +49,7 @@ fn main() -> anyhow::Result<()> {
             })
             .filter_map(|res| res.ok());
 
-        println!("\nBevy: {bevy_version}");
+        println!("Bevy: {bevy_version}");
         for c in crates {
             let readme = match fetch_readme(&c, agent.clone()) {
                 Ok(r) => r,
@@ -98,14 +98,13 @@ fn main() -> anyhow::Result<()> {
                         .iter()
                         .map(|v| v.version.parse::<semver::Version>().unwrap())
                         .filter(|v| semver.matches(v))
-                        .inspect(|v| println!("Possible match: {v}"))
                         .max()
                         .unwrap()
                 })
                 .max()
                 .unwrap();
 
-            println!("The most recent for {} is {newest}", c.data.name,);
+            println!("The most recent version for {} compatible with Bevy {bevy_version} is {newest}", c.data.name);
         }
     }
 
