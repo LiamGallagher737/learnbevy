@@ -7,7 +7,7 @@
       type = "github";
       owner = "LiamGallagher737";
       repo = "learnbevy";
-      ref = "nginx-no-cloudflare";
+      ref = "main";
       dir = "compile_api";
   };
 
