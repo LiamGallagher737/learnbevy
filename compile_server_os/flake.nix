@@ -13,7 +13,7 @@
 
   outputs = inputs@{ self, nixpkgs, disko, ... }:
     {
-      nixosConfigurations.host-eons = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.host-eons-slc = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; subdomain = "slc"; };
         modules = [
@@ -22,7 +22,7 @@
           ./configuration.nix
         ];
       };
-      nixosConfigurations.host-eons-hss1 = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.host-eons-slc-slow = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; subdomain = "slow-slc"; };
         modules = [
