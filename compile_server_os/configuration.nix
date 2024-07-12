@@ -66,7 +66,7 @@
         # set headers so it can be trusted
         extraConfig = ''
           proxy_set_header X-Real-IP $remote_addr;
-          limit_req zone=ip;
+          limit_req zone=ip burst=4 nodelay;
           limit_req_status 429;
         '';
       };
