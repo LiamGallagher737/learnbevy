@@ -41,7 +41,7 @@ To keep the service avaliable for everyone to use there is rate limiting which a
 
 #### Hosting
 
-Currently it is running on a single [7950 VDS 1]([https://hizakura.nl/vps/](https://my.hosteons.com/store/ryzen-7950x-based-hybrid-dedicated-server)) from HostENOS in Salt Lake City. I chose this due to it's great single threaded performance which seems to be the most important for incrimental builds. The server is protected behind Cloudflare's proxy for ddos protection and basic rate limiting.
+Currently it is running on a single [7950 VDS 1]([https://hizakura.nl/vps/](https://my.hosteons.com/store/ryzen-7950x-based-hybrid-dedicated-server)) from HostENOS in Salt Lake City. I chose this due to it's great single threaded performance which seems to be the most important for incrimental builds.
 
 #### Metrics / Uptime
 
