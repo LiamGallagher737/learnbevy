@@ -22,10 +22,7 @@ jobs:
           key: ${{ runner.os }}-cargo-build-stable-${{ hashFiles('~/tools/check_crate_updates/Cargo.toml') }}
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Build and run the Rust project
         run: |
