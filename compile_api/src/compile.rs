@@ -35,6 +35,8 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
             "-v",
             &format!("{}:/playground/src/:z", dir.display()),
             "--quiet",
+            "--pull",
+            "never",
             &config::image_for_config(*version, *channel),
         ])
         .output()
