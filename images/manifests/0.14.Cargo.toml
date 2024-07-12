@@ -35,7 +35,7 @@ avian3d = "=0.1.0"
 bevy_mod_picking = "=0.20.1"
 bevy_prototype_lyon = "=0.12.0"
 bevy_kira_audio = "=0.20.0"
-#leafwing-input-manager = "0.13.3"
+leafwing-input-manager = "=0.14.0"
 #bevy_dev = { version = "0.3.0", default-features = false }
 
 wasm-bindgen = "0.2"
