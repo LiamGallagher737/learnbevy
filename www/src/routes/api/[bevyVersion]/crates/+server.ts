@@ -34,12 +34,10 @@ export const GET: RequestHandler = async ({ params }) => {
         }
     }
 
-    return new Response(JSON.stringify({ crates }),
-        {
-            headers: {
-                "content-type": "application/json",
-                "cache-control": "public, max-age=3600",
-            }
+    return new Response(JSON.stringify({ crates }), {
+        headers: {
+            "content-type": "application/json",
+            "cache-control": "public, max-age=3600",
         },
-    );
+    });
 };
