@@ -4,8 +4,8 @@ export const GET: RequestHandler = async ({ params }) => {
     return new Response(
         JSON.stringify({
             crates: [
-                { name: "bevy", versions: params.bevyVersion },
-                { name: "rand", versions: "0.8.5" },
+                { name: "bevy", version: params.bevyVersion },
+                { name: "rand", version: "0.8.5" },
             ],
         })
     );
