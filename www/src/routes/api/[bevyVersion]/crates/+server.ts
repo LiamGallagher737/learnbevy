@@ -25,7 +25,9 @@ export const GET: RequestHandler = async ({ params }) => {
             crates.push({ name, version: value });
         } else if (typeof value === "object" && typeof value.version === "string") {
             crates.push({ name, version: value.version });
-        } else {
+        } else if (value.git) {
+            crates.push({ name, version: "git" });
+        }else {
             error(500, {
                 message: "Failed to parse crate " + name,
             });
