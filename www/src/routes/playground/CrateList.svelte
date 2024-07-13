@@ -35,7 +35,7 @@
                                 tabindex={0}
                                 class="cursor-pointer focus:bg-accent focus:outline-none"
                             >
-                                <div class="font-medium capitalize">{crate.name}</div>
+                                <div class="font-medium">{crate.name}</div>
                                 <div class="text-sm text-muted-foreground">
                                     {crate.version}
                                 </div>
