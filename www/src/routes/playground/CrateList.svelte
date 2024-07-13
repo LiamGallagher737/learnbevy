@@ -4,6 +4,7 @@
     import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
     import { settings } from "./Settings.svelte";
     import type { Version } from "$lib/versions";
+    import LoaderCircle from "lucide-svelte/icons/loader-circle";
 
     type CratesResponse = {
         crates: { name: string; version: string }[];
@@ -28,7 +29,7 @@
         <Table.Root>
             <Table.Body>
                 {#await fetchCrates($settings.version)}
-                    loading
+                    <LoaderCircle class="animate-spin" />
                 {:then response}
                     {#each response.crates as crate}
                         <Table.Row>
