@@ -3,13 +3,14 @@
     import * as Table from "$lib/components/ui/table";
     import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
     import { settings } from "./Settings.svelte";
+    import type { Version } from "$lib/versions";
 
     type CratesResponse = {
         crates: { name: string; version: string }[];
     };
 
-    async function fetchCrates() {
-        const url = `/api/${$settings.version}/crates`;
+    async function fetchCrates(version: Version) {
+        const url = `/api/${version}/crates`;
         const response = await fetch(url);
         const result = await response.json();
         return result as CratesResponse;
@@ -26,7 +27,7 @@
     <ScrollArea class="h-full">
         <Table.Root>
             <Table.Body>
-                {#await fetchCrates()}
+                {#await fetchCrates($settings.version)}
                     loading
                 {:then response}
                     {#each response.crates as crate}
