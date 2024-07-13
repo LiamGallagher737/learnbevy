@@ -1,5 +1,5 @@
 import { error, type RequestHandler } from "@sveltejs/kit";
-import TOML from 'smol-toml';
+import TOML from "smol-toml";
 
 const EXCLUDE_CRATES = ["wasm-bindgen"];
 
@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
     if (response.status === 404) {
         error(404, {
-            message: 'Not found',
+            message: "Not found",
         });
     }
 
@@ -27,14 +27,12 @@ export const GET: RequestHandler = async ({ params }) => {
             crates.push({ name, version: value.version });
         } else if (value.git) {
             crates.push({ name, version: "git" });
-        }else {
+        } else {
             error(500, {
                 message: "Failed to parse crate " + name,
             });
         }
     }
 
-    return new Response(
-        JSON.stringify({ crates })
-    );
+    return new Response(JSON.stringify({ crates }));
 };
