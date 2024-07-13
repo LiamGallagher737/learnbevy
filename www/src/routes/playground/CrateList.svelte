@@ -5,7 +5,7 @@
     import { settings } from "./Settings.svelte";
 
     type CratesResponse = {
-        crates: { name: string; version: string; }[];
+        crates: { name: string; version: string }[];
     };
 
     async function fetchCrates() {
