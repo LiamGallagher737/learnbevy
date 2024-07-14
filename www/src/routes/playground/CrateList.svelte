@@ -33,9 +33,7 @@
                 <Table.Body>
                     {#each response.crates as crate}
                         <Table.Row>
-                            <Table.Cell
-                                class="cursor-pointer focus-within:bg-accent"
-                            >
+                            <Table.Cell class="cursor-pointer focus-within:bg-accent">
                                 <a
                                     href={"https://crates.io/crates/" + crate.name}
                                     target="_blank"
