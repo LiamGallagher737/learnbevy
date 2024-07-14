@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-    export type Tab = "editor" | "assets";
+    export type Tab = "editor" | "assets" | "crates";
     export const selectedTab = writable<Tab>("editor");
 </script>
 
@@ -9,6 +9,7 @@
 
     import Code from "lucide-svelte/icons/code";
     import Image from "lucide-svelte/icons/images";
+    import Package from "lucide-svelte/icons/package";
     import { writable } from "svelte/store";
 </script>
 
@@ -21,6 +22,12 @@
 
     <Button variant="ghost" class="h-12 rounded-none" on:click={() => selectedTab.set("assets")}>
         <Image />
+    </Button>
+
+    <Separator />
+
+    <Button variant="ghost" class="h-12 rounded-none" on:click={() => selectedTab.set("crates")}>
+        <Package />
     </Button>
 
     <Separator />

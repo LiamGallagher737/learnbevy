@@ -1,5 +1,6 @@
 <script lang="ts">
     import AssetExplorer from "./AssetExplorer.svelte";
+    import CrateList from "./CrateList.svelte";
     import Editor from "$lib/components/Editor.svelte";
     import Actions from "./Actions.svelte";
     import Sidebar, { selectedTab } from "./Sidebar.svelte";
@@ -119,6 +120,8 @@
                         <Editor bind:this={editor} />
                     {:else if $selectedTab === "assets"}
                         <AssetExplorer />
+                    {:else if $selectedTab === "crates"}
+                        <CrateList />
                     {/if}
                 </Card>
             </div>
