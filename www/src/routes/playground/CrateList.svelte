@@ -34,13 +34,18 @@
                     {#each response.crates as crate}
                         <Table.Row>
                             <Table.Cell
-                                tabindex={0}
-                                class="cursor-pointer focus:bg-accent focus:outline-none"
+                                class="cursor-pointer focus-within:bg-accent"
                             >
-                                <div class="font-medium">{crate.name}</div>
-                                <div class="text-sm text-muted-foreground">
-                                    {crate.version}
-                                </div>
+                                <a
+                                    href={"https://crates.io/crates/" + crate.name}
+                                    target="_blank"
+                                    class="block focus:outline-none"
+                                >
+                                    <div class="font-medium">{crate.name}</div>
+                                    <div class="text-sm text-muted-foreground">
+                                        {crate.version}
+                                    </div>
+                                </a>
                             </Table.Cell>
                         </Table.Row>
                     {/each}
