@@ -20,17 +20,17 @@
 
 <Card.Header class="flex flex-row justify-between">
     <div class="grid gap-2">
-        <Card.Title>Asset Explorer</Card.Title>
-        <Card.Description>All the assets avaliable to use in the playground.</Card.Description>
+        <Card.Title>Crates</Card.Title>
+        <Card.Description>All the crates available to use in the playground.</Card.Description>
     </div>
 </Card.Header>
 <Card.Content class="h-[calc(100%-90px)]">
-    <ScrollArea class="h-full">
-        <Table.Root>
-            <Table.Body>
-                {#await fetchCrates($settings.version)}
-                    <LoaderCircle class="animate-spin" />
-                {:then response}
+    {#await fetchCrates($settings.version)}
+        <LoaderCircle class="animate-spin" />
+    {:then response}
+        <ScrollArea class="h-full">
+            <Table.Root>
+                <Table.Body>
                     {#each response.crates as crate}
                         <Table.Row>
                             <Table.Cell
@@ -44,8 +44,8 @@
                             </Table.Cell>
                         </Table.Row>
                     {/each}
-                {/await}
-            </Table.Body>
-        </Table.Root>
-    </ScrollArea>
+                </Table.Body>
+            </Table.Root>
+        </ScrollArea>
+    {/await}
 </Card.Content>
