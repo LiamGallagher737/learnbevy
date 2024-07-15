@@ -50,14 +50,14 @@ impl<'a> DependencyMut<'a> {
     /// the value of the entry and then as a inline table.
     /// Returns whether it was successful
     pub fn set_version(&mut self, version: &str) -> bool {
-        if let Some(value) = self.0.get_mut("version").and_then(|i| i.as_value_mut()) {
-            *value = version.into();
-            true
-        } else if let Some(value) = self
+        if let Some(value) = self
             .0
             .as_inline_table_mut()
             .and_then(|table| table.get_mut("version"))
         {
+            *value = version.into();
+            true
+        } else if let Some(value) = self.0.as_value_mut() {
             *value = version.into();
             true
         } else {
