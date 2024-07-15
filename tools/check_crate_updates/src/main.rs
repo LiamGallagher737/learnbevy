@@ -83,7 +83,7 @@ fn handle_manifest(path: &path::PathBuf, agent: Agent) -> anyhow::Result<()> {
         }
     }
 
-    Ok(())
+    fs::write(&path, manifest.to_string()).with_context(|| "Failed to write manifest to disk")
 }
 
 fn get_newest_version(
