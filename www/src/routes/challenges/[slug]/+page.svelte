@@ -12,6 +12,7 @@
     import { onMount, tick } from "svelte";
     import { DEFAULT_VERSION } from "$lib/versions";
     import { DEFAULT_CHANNEL } from "$lib/channels";
+    import Actions from "$lib/components/Actions.svelte";
 
     const gameCanvasParentId = "game-container";
     let gameCanvasParent: HTMLDivElement;
@@ -91,6 +92,7 @@
                     bind:disabled={processingRequest}
                     on:click={play}>Play</Button
                 >
+                <Actions />
             </Card>
             <div class="flex h-full w-full gap-4 overflow-hidden">
                 <Card class="h-full w-12">

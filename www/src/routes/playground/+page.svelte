@@ -2,7 +2,7 @@
     import AssetExplorer from "./AssetExplorer.svelte";
     import CrateList from "./CrateList.svelte";
     import Editor from "$lib/components/Editor.svelte";
-    import Actions from "./Actions.svelte";
+    import Actions from "$lib/components/Actions.svelte";
     import Sidebar, { selectedTab } from "$lib/components/Sidebar.svelte";
     import Settings, { settings } from "./Settings.svelte";
     import Examples from "./Examples.svelte";
@@ -105,7 +105,7 @@
                 >
                 <div class="flex flex-row gap-4">
                     <Examples />
-                    <Actions />
+                    <Actions version={$settings.version} channel={$settings.channel} />
                     <Settings />
                 </div>
             </Card>
