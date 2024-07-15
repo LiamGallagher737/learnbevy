@@ -8,7 +8,7 @@ impl Manifest {
         self.0
             .get("dependencies")
             .and_then(|dep| dep.get(name))
-            .map(|dep| Dependency(dep))
+            .map(Dependency)
     }
 
     /// Gets the dependency mutably from the manifest if it exists
@@ -16,11 +16,11 @@ impl Manifest {
         self.0
             .get_mut("dependencies")
             .and_then(|dep| dep.get_mut(name))
-            .map(|dep| DependencyMut(dep))
+            .map(DependencyMut)
     }
 
     /// Gets the names of all the dependencies from the manifest
-    pub fn get_dependency_names<'a>(&'a self) -> Option<impl Iterator<Item = &'a str>> {
+    pub fn get_dependency_names(&self) -> Option<impl Iterator<Item = &'_ str>> {
         self.0
             .get("dependencies")
             .and_then(|item| item.as_table())
@@ -70,7 +70,7 @@ impl FromStr for Manifest {
     type Err = toml_edit::TomlError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse::<toml_edit::DocumentMut>().map(|doc| Manifest(doc))
+        s.parse::<toml_edit::DocumentMut>().map(Manifest)
     }
 }
 
