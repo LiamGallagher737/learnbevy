@@ -111,7 +111,7 @@
             </Card>
             <div class="flex h-full w-full gap-4 overflow-hidden">
                 <Card class="h-full w-12">
-                    <Sidebar />
+                    <Sidebar tabs={["editor", "assets", "crates"]} />
                 </Card>
                 <!-- The 4rem in calc() comes from 3rem sidebar + 1rem gap,
                 flex-grow won't work because of the editor -->
