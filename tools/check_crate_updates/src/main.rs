@@ -1,8 +1,15 @@
+//! This tool loops over each manifest for the images and for each Bevy crate, checks the support
+//! table in its readme to see if it can be updated, if so it updates the manifest.
+
 use anyhow::anyhow;
 use cached::proc_macro::cached;
-use std::{env, fs};
+use std::{env, fs, str::FromStr};
 use table_extract::Table;
 use ureq::{Agent, AgentBuilder};
+
+use crate::manifest::Manifest;
+
+mod manifest;
 
 const EXCLUDE_CRATES: &[&str] = &["bevy", "rand", "rand_chacha", "wasm-bindgen"];
 
@@ -26,29 +33,23 @@ fn main() -> anyhow::Result<()> {
 
     for path in manifest_paths {
         let manifest_str = fs::read_to_string(&path)?;
-        let mut manifest = manifest_str
-            .parse::<toml_edit::DocumentMut>()
+        let mut manifest = Manifest::from_str(&manifest_str)
             .map_err(|e| anyhow!("Failed to parse manifest at {path:?}\n{e}"))?;
 
-        // skip if no version - using main branch
-        if !manifest["dependencies"]["bevy"]
-            .as_inline_table()
-            .unwrap()
-            .contains_key("version")
-        {
-            println!("Skipping {path:?}");
+        let Some(bevy) = manifest.get_dependency("bevy") else {
+            eprintln!("Skipping {path:?}, manifest does not contain Bevy");
             continue;
-        }
+        };
 
-        let bevy_version = manifest["dependencies"]["bevy"]["version"]
-            .as_str()
-            .unwrap();
+        let Some(bevy_version) = bevy.get_version() else {
+            // Most likely on main branch
+            eprintln!("Skipping {path:?}, invalid Bevy version");
+            continue;
+        };
 
-        let crates = manifest["dependencies"]
-            .as_table()
-            .unwrap()
-            .iter()
-            .map(|(name, _)| name)
+        let crates = manifest
+            .get_dependency_names()
+            .unwrap() // we know bevy exists so it can't be empty
             .filter(|name| !EXCLUDE_CRATES.contains(name))
             .map(|name| fetch_crate(name, agent.clone()))
             .inspect(|res| {
@@ -124,10 +125,12 @@ fn main() -> anyhow::Result<()> {
         }
 
         for (name, version) in newest_versions {
-            if let Some(table) = manifest["dependencies"][&name].as_inline_table_mut() {
-                table["version"] = version.into();
-            } else {
-                manifest["dependencies"][name] = toml_edit::value(version);
+            if !manifest
+                .get_dependency_mut(&name)
+                .unwrap() // name is a result from dep list so it must exist
+                .set_version(&version)
+            {
+                eprintln!("Failed to set value of {name} tp {version}");
             }
         }
 
@@ -145,7 +148,7 @@ fn main() -> anyhow::Result<()> {
     result = true,
     ty = "cached::SizedCache<String, CrateResponse>",
     create = "{ cached::SizedCache::with_size(20) }",
-    convert = r#"{ name.to_string() }"#
+    convert = r#"{ name.to_owned() }"#
 )]
 fn fetch_crate(name: &str, agent: Agent) -> anyhow::Result<CrateResponse> {
     agent
@@ -160,7 +163,7 @@ fn fetch_crate(name: &str, agent: Agent) -> anyhow::Result<CrateResponse> {
     result = true,
     ty = "cached::SizedCache<String, String>",
     create = "{ cached::SizedCache::with_size(20) }",
-    convert = r#"{ c.data.name.to_string() }"#
+    convert = r#"{ c.data.name.clone() }"#
 )]
 fn fetch_readme(c: &CrateResponse, agent: Agent) -> anyhow::Result<String> {
     let path = &c.versions[0].readme_path; // index 0 is latest
