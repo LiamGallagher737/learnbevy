@@ -3,7 +3,7 @@
     import CrateList from "./CrateList.svelte";
     import Editor from "$lib/components/Editor.svelte";
     import Actions from "./Actions.svelte";
-    import Sidebar, { selectedTab } from "./Sidebar.svelte";
+    import Sidebar, { selectedTab } from "$lib/components/Sidebar.svelte";
     import Settings, { settings } from "./Settings.svelte";
     import Examples from "./Examples.svelte";
     import Console from "$lib/components/Console.svelte";
