@@ -16,28 +16,31 @@
 </Card.Header>
 
 <Card.Content class="flex h-[calc(100%-90px)] flex-row gap-6">
-    <ScrollArea class="h-full w-56">
-        <Table.Root>
-            <Table.Body>
-                <Table.Row>
-                    <Table.Cell
-                        tabindex={0}
-                        class="cursor-pointer focus:bg-accent focus:outline-none"
-                    >
-                        <div class="font-medium capitalize">Camera (2v1)</div>
-                    </Table.Cell>
-                </Table.Row>
-                <Table.Row>
-                    <Table.Cell
-                        tabindex={0}
-                        class="cursor-pointer focus:bg-accent focus:outline-none"
-                    >
-                        <div class="font-medium capitalize">Entity (3v1)</div>
-                    </Table.Cell>
-                </Table.Row>
-            </Table.Body>
-        </Table.Root>
-    </ScrollArea>
+    <div class="flex h-full flex-col gap-4">
+        <Input type="text" placeholder="Search" />
+        <ScrollArea class="w-56 grow">
+            <Table.Root>
+                <Table.Body>
+                    <Table.Row>
+                        <Table.Cell
+                            tabindex={0}
+                            class="cursor-pointer focus:bg-accent focus:outline-none"
+                        >
+                            <div class="font-medium capitalize">Camera (2v1)</div>
+                        </Table.Cell>
+                    </Table.Row>
+                    <Table.Row>
+                        <Table.Cell
+                            tabindex={0}
+                            class="cursor-pointer focus:bg-accent focus:outline-none"
+                        >
+                            <div class="font-medium capitalize">Entity (3v1)</div>
+                        </Table.Cell>
+                    </Table.Row>
+                </Table.Body>
+            </Table.Root>
+        </ScrollArea>
+    </div>
     <Separator orientation="vertical" />
     <Accordion.Root class="grow" multiple>
         <Accordion.Item value="2v1-name">
