@@ -8,6 +8,7 @@ bevy = { version = "0.14", default-features = false, features = [
     "animation",
     "bevy_asset",
     "bevy_audio",
+    "bevy_dev_tools",
     "bevy_gilrs",
     "bevy_scene",
     "bevy_winit",
