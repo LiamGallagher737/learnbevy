@@ -55,11 +55,11 @@
             <Accordion.Trigger class="text-sm">Transform</Accordion.Trigger>
             <Accordion.Content>
                 <div class="grid grid-cols-[8rem,1fr] items-center gap-2 p-1">
-                    <Label for="2v1-transform-0" class="text-muted-foreground">translation.x</Label>
+                    <Label for="2v1-transform-0" class="text-muted-foreground capitalize">translation.x</Label>
                     <Input type="number" value="7" />
-                    <Label for="2v1-transform-0" class="text-muted-foreground">translation.y</Label>
+                    <Label for="2v1-transform-0" class="text-muted-foreground capitalize">translation.y</Label>
                     <Input type="number" value="1.5" />
-                    <Label for="2v1-transform-0" class="text-muted-foreground">translation.z</Label>
+                    <Label for="2v1-transform-0" class="text-muted-foreground capitalize">translation.z</Label>
                     <Input type="number" value="6" />
                 </div>
             </Accordion.Content>
