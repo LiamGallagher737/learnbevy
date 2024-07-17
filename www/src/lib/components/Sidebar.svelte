@@ -11,24 +11,25 @@
     import Image from "lucide-svelte/icons/images";
     import Package from "lucide-svelte/icons/package";
     import { writable } from "svelte/store";
+
+    export let tabs: Tab[];
 </script>
 
 <div class="flex flex-col">
-    <Button variant="ghost" class="h-12 rounded-b-none" on:click={() => selectedTab.set("editor")}>
-        <Code />
-    </Button>
-
-    <Separator />
-
-    <Button variant="ghost" class="h-12 rounded-none" on:click={() => selectedTab.set("assets")}>
-        <Image />
-    </Button>
-
-    <Separator />
-
-    <Button variant="ghost" class="h-12 rounded-none" on:click={() => selectedTab.set("crates")}>
-        <Package />
-    </Button>
-
-    <Separator />
+    {#each tabs as tab, n}
+        <Button
+            variant="ghost"
+            class={`h-12 ${n === 0 ? "rounded-b-none" : "rounded-none"}`}
+            on:click={() => selectedTab.set(tab)}
+        >
+            {#if tab === "editor"}
+                <Code />
+            {:else if tab === "assets"}
+                <Image />
+            {:else if tab === "crates"}
+                <Package />
+            {/if}
+        </Button>
+        <Separator />
+    {/each}
 </div>

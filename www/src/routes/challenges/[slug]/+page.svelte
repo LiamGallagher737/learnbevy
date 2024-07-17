@@ -1,11 +1,6 @@
 <script lang="ts">
-    import AssetExplorer from "./AssetExplorer.svelte";
-    import CrateList from "./CrateList.svelte";
     import Editor from "$lib/components/Editor.svelte";
-    import Actions from "$lib/components/Actions.svelte";
     import Sidebar, { selectedTab } from "$lib/components/Sidebar.svelte";
-    import Settings, { settings } from "./Settings.svelte";
-    import Examples from "./Examples.svelte";
     import Console from "$lib/components/Console.svelte";
     import { Button } from "$lib/components/ui/button";
     import { Card } from "$lib/components/ui/card";
@@ -14,16 +9,10 @@
     import { toast } from "svelte-sonner";
     import { consoleItems } from "$lib/components/console";
     import { editorCode } from "$lib/components/editor";
-    import type { PageData } from "./$types";
     import { onMount, tick } from "svelte";
-
-    export let data: PageData;
-    if (data.code) editorCode.set(data.code);
-    if (data.version && data.channel)
-        settings.set({ version: data.version, channel: data.channel });
-    onMount(() => {
-        if (data.message) toast.error(data.message);
-    });
+    import { DEFAULT_VERSION } from "$lib/versions";
+    import { DEFAULT_CHANNEL } from "$lib/channels";
+    import Actions from "$lib/components/Actions.svelte";
 
     const gameCanvasParentId = "game-container";
     let gameCanvasParent: HTMLDivElement;
@@ -50,8 +39,8 @@
         const promise: Promise<void> = new Promise(async (resolve, reject) => {
             let result = await load({
                 code: $editorCode,
-                version: $settings.version,
-                channel: $settings.channel,
+                version: DEFAULT_VERSION,
+                channel: DEFAULT_CHANNEL,
                 parentId: gameCanvasParentId,
             });
             processingRequest = false;
@@ -103,25 +92,17 @@
                     bind:disabled={processingRequest}
                     on:click={play}>Play</Button
                 >
-                <div class="flex flex-row gap-4">
-                    <Examples />
-                    <Actions version={$settings.version} channel={$settings.channel} />
-                    <Settings />
-                </div>
+                <Actions />
             </Card>
             <div class="flex h-full w-full gap-4 overflow-hidden">
                 <Card class="h-full w-12">
-                    <Sidebar tabs={["editor", "assets", "crates"]} />
+                    <Sidebar tabs={["editor"]} />
                 </Card>
                 <!-- The 4rem in calc() comes from 3rem sidebar + 1rem gap,
                 flex-grow won't work because of the editor -->
                 <Card class="h-full w-[calc(100%-4rem)] p-4">
                     {#if $selectedTab === "editor"}
                         <Editor bind:this={editor} />
-                    {:else if $selectedTab === "assets"}
-                        <AssetExplorer />
-                    {:else if $selectedTab === "crates"}
-                        <CrateList />
                     {/if}
                 </Card>
             </div>

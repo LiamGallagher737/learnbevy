@@ -7,8 +7,12 @@
     import { formatCode } from "$lib/format";
     import { editorCode } from "$lib/components/editor";
     import { toast } from "svelte-sonner";
-    import { settings } from "./Settings.svelte";
     import { goto } from "$app/navigation";
+    import { DEFAULT_VERSION, type Version } from "$lib/versions";
+    import { DEFAULT_CHANNEL, type Channel } from "$lib/channels";
+
+    export let version: Version = DEFAULT_VERSION;
+    export let channel: Channel = DEFAULT_CHANNEL;
 
     async function copyCodeToClipboard() {
         await navigator.clipboard.writeText($editorCode);
@@ -21,8 +25,8 @@
                 method: "POST",
                 body: JSON.stringify({
                     code: $editorCode,
-                    version: $settings.version,
-                    channel: $settings.channel,
+                    version,
+                    channel,
                 }),
             });
             if (!result.ok) {
