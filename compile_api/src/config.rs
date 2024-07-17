@@ -46,6 +46,12 @@ fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>
     }
 }
 
+static __COLLECT_INSPECTOR_DATA: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn __set_collect_inspector_data(value: bool) {
+    __COLLECT_INSPECTOR_DATA.store(value, std::sync::atomic::Ordering::Relaxed);
+}
+
 #[allow(unused_imports)]
 use __playground_dbg::dbg;
 mod __playground_dbg {

@@ -6,6 +6,16 @@
     import { Label } from "$lib/components/ui/label";
     import { Input } from "$lib/components/ui/input";
     import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
+    import { onDestroy, onMount } from "svelte";
+    import { wasm } from "$lib/play";
+
+    onMount(() => {
+        console.log($wasm);
+        if ($wasm !== null) $wasm.__set_collect_inspector_data(true);
+    });
+    onDestroy(() => {
+        if ($wasm !== null) $wasm.__set_collect_inspector_data(false);
+    });
 </script>
 
 <Card.Header class="flex flex-row justify-between">
