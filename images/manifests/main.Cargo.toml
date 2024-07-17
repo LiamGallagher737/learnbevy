@@ -7,8 +7,10 @@ edition = "2021"
 bevy = { git = "https://github.com/bevyengine/bevy.git", default-features = false, features = [
     "animation",
     "bevy_asset",
+    "bevy_state",
     "bevy_audio",
     "bevy_color",
+    "bevy_dev_tools",
     "bevy_gilrs",
     "bevy_scene",
     "bevy_winit",
