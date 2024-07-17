@@ -10,11 +10,13 @@
     import { wasm } from "$lib/play";
 
     onMount(() => {
-        console.log($wasm);
         if ($wasm !== null) $wasm.__set_collect_inspector_data(true);
     });
     onDestroy(() => {
         if ($wasm !== null) $wasm.__set_collect_inspector_data(false);
+    });
+    wasm.subscribe((v) => {
+        if (v !== null) v.__set_collect_inspector_data(true);
     });
 </script>
 
