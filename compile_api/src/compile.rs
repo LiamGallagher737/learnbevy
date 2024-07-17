@@ -74,7 +74,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     let js_length = modified_js.len();
 
     let mut body = wasm;
-    body.extend_from_slice(&mut modified_js.as_bytes());
+    body.extend_from_slice(modified_js.as_bytes());
     body.append(&mut stderr);
 
     let mut encoder = GzEncoder::new(Vec::with_capacity(body.len() / 3), Compression::new(2));
