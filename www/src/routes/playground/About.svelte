@@ -33,8 +33,8 @@
             >.
         </p>
         <p class="text-muted-foreground">
-            Remember that contributing doesn't mean having to write any code, it can be as
-            simple as suggesting a new crate to be added!
+            Remember that contributing doesn't mean having to write any code, it can be as simple as
+            suggesting a new crate to be added!
         </p>
     </section>
 </Card.Content>
