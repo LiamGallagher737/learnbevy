@@ -52,6 +52,32 @@ pub fn __set_collect_inspector_data(value: bool) {
     __COLLECT_INSPECTOR_DATA.store(value, std::sync::atomic::Ordering::Relaxed);
 }
 
+pub mod __query {
+    use std::sync::Mutex;
+    use wasm_bindgen::JsValue;
+
+    #[wasm_bindgen::prelude::wasm_bindgen]
+    pub enum Query {
+        Entities,
+    }
+
+    #[wasm_bindgen::prelude::wasm_bindgen]
+    struct Entity {
+        idx: u32,
+        gen: u32,
+    }
+
+    static __MAILBOX: Mutex<Vec<(Query, async_channel::Sender::<JsValue>)>> = Mutex::new(Vec::new());
+
+    #[wasm_bindgen::prelude::wasm_bindgen]
+    pub async fn query(query: Query) -> JsValue {
+        let (sender, receiver) = async_channel::bounded(1);
+        __MAILBOX.lock().unwrap().push((query, sender));
+        receiver.recv().await.unwrap()
+    }
+}
+
+
 #[allow(unused_imports)]
 use __playground_dbg::dbg;
 mod __playground_dbg {

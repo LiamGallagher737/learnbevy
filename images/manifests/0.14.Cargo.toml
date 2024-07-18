@@ -40,6 +40,7 @@ bevy_light_2d = "=0.2.0"
 #bevy_dev = { version = "0.3.0", default-features = false }
 
 wasm-bindgen = "0.2"
+async-channel = "2.3"
 
 [profile.release.package."*"]
 opt-level = 'z'
