@@ -1,16 +1,17 @@
 <script context="module" lang="ts">
-    export type Tab = "editor" | "assets" | "crates";
+    export type Tab = "editor" | "assets" | "crates" | "about";
     export const selectedTab = writable<Tab>("editor");
 </script>
 
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
     import { Separator } from "$lib/components/ui/separator";
+    import { writable } from "svelte/store";
 
     import Code from "lucide-svelte/icons/code";
     import Image from "lucide-svelte/icons/images";
     import Package from "lucide-svelte/icons/package";
-    import { writable } from "svelte/store";
+    import Info from "lucide-svelte/icons/info";
 
     export let tabs: Tab[];
 </script>
@@ -28,6 +29,8 @@
                 <Image />
             {:else if tab === "crates"}
                 <Package />
+            {:else if tab === "about"}
+                <Info />
             {/if}
         </Button>
         <Separator />
