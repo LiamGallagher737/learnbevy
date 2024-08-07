@@ -1,6 +1,7 @@
 import type { Version } from "$lib/versions";
 import type { Channel } from "$lib/channels";
 import { env } from "$env/dynamic/public";
+import { writable } from "svelte/store";
 
 type CompileArgs = {
     code: string;
@@ -8,6 +9,8 @@ type CompileArgs = {
     channel: Channel;
     parentId: string;
 };
+
+export const wasm = writable<any | null>(null);
 
 export async function play(args: CompileArgs): Promise<PlayResponse> {
     // Use the provided host if given
@@ -63,7 +66,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
     const body = await res.blob();
 
     // Split the response in to its parts
-    const wasm = body.slice(0, wasmSize, "application/wasm");
+    const wasm_part = body.slice(0, wasmSize, "application/wasm");
     const js = body.slice(wasmSize, wasmSize + jsSize, "application/javascript");
     const stderr = body.slice(wasmSize + jsSize, -1, "text/plain");
 
@@ -75,7 +78,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
     let refObj: any = new Object();
     const AsyncFunction: any = async function () {}.constructor;
     const load = new AsyncFunction("wasm_blob", "ref_obj", jsText);
-    await load(wasm, refObj).catch((error: { message: string }) => {
+    await load(wasm_part, refObj).catch((error: { message: string }) => {
         if (
             !error.message.startsWith(
                 "Using exceptions for control flow, don't mind me. This isn't actually an error!"
@@ -106,6 +109,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
     gameCanvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
     gameCanvas.style.borderRadius = "0.5rem";
 
+    wasm.set(refObj.wasm);
     return { kind: "Success", gameCanvas, wasm: refObj.wasm, stderr: stderrText };
 }
 
