@@ -6,18 +6,25 @@
     import { Label } from "$lib/components/ui/label";
     import { Input } from "$lib/components/ui/input";
     import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
-    import { onDestroy, onMount } from "svelte";
     import { wasm } from "$lib/play";
 
-    onMount(() => {
-        if ($wasm !== null) $wasm.__set_collect_inspector_data(true);
-    });
-    onDestroy(() => {
-        if ($wasm !== null) $wasm.__set_collect_inspector_data(false);
-    });
-    wasm.subscribe((v) => {
-        if (v !== null) v.__set_collect_inspector_data(true);
-    });
+    async function getEntities() {
+        const result = await $wasm.brpRequest("bevy/query", {
+            data: {
+                option: ["bevy_core::Name"],
+            }
+        });
+
+        window.wasm = $wasm;
+
+        console.log(result);
+
+        if ('code' in result) {
+            throw Error(result.message)
+        }
+
+        return result;
+    }
 </script>
 
 <Card.Header class="flex flex-row justify-between">
@@ -33,6 +40,11 @@
         <ScrollArea class="w-56 grow">
             <Table.Root>
                 <Table.Body>
+                    {#await getEntities() then entities}
+                        {#each entities as entity}
+                            <p>{{entity}}</p>
+                        {/each}
+                    {/await}
                     <Table.Row>
                         <Table.Cell
                             tabindex={0}

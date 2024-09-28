@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bevy_app = { git = "https://github.com/bevyengine/bevy" }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy" }
+bevy_log = { git = "https://github.com/bevyengine/bevy" }
 bevy_remote = { git = "https://github.com/bevyengine/bevy" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
