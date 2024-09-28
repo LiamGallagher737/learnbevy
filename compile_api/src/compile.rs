@@ -67,6 +67,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     let wasm = fs::read(dir.join("game_bg.wasm")).await?;
     let js = fs::read_to_string(dir.join("game.js")).await?;
     let modified_js = modify_js(js);
+    println!("{modified_js}");
 
     let mut stderr = output.stderr;
 

@@ -6,21 +6,23 @@
     import { Label } from "$lib/components/ui/label";
     import { Input } from "$lib/components/ui/input";
     import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
-    import { wasm } from "$lib/play";
+    import { wasmBindings } from "$lib/play";
 
     async function getEntities() {
-        const result = await $wasm.brpRequest("bevy/query", {
+        if (!$wasmBindings) {
+            throw Error("App is not running");
+        }
+
+        const result = await $wasmBindings.brpRequest("bevy/query", {
             data: {
                 option: ["bevy_core::Name"],
-            }
+            },
         });
-
-        window.wasm = $wasm;
 
         console.log(result);
 
-        if ('code' in result) {
-            throw Error(result.message)
+        if ("code" in result) {
+            throw Error(result.message);
         }
 
         return result;
@@ -42,7 +44,7 @@
                 <Table.Body>
                     {#await getEntities() then entities}
                         {#each entities as entity}
-                            <p>{{entity}}</p>
+                            <p>{{ entity }}</p>
                         {/each}
                     {/await}
                     <Table.Row>

@@ -29,12 +29,6 @@ pub async fn brp_js_binding(method: String, params: JsValue) -> JsValue {
     }
 }
 
-#[wasm_bindgen]
-pub fn testBinding(s: String) -> String {
-    info!("Request: {s:?}");
-    format!("Hi {s}")
-}
-
 /// Handle a single BRP request from the JS binding
 async fn process_request(method: String, params: JsValue) -> BrpResult {
     let params = if !params.is_undefined() {

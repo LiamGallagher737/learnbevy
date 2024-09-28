@@ -17,6 +17,7 @@
     import type { PageData } from "./$types";
     import { onMount, tick } from "svelte";
     import Inspector from "$lib/components/Inspector.svelte";
+    import { wasmBindings } from "$lib/play";
 
     export let data: PageData;
     if (data.code) editorCode.set(data.code);
@@ -41,10 +42,9 @@
     });
 
     let gameCanvas: HTMLCanvasElement | null = null;
-    let wasm: any | null = null;
 
     async function play() {
-        if (wasm) wasm.__exit();
+        if ($wasmBindings) $wasmBindings.exit();
         if (gameCanvas) gameCanvas.remove();
         consoleItems.set([]);
         processingRequest = true;
@@ -61,7 +61,6 @@
                 reject(result.message);
             } else {
                 if (result.kind === "Success") gameCanvas = result.gameCanvas;
-                wasm = result.wasm;
                 consoleItems.set([{ kind: "Stdout", text: result.stderr }]);
                 resolve();
             }

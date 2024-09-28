@@ -11,5 +11,6 @@ mod brp;
 pub mod exports {}
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, brp::setup);
+    app.add_plugins(bevy_remote::RemotePlugin::default())
+        .add_systems(Startup, brp::setup);
 }

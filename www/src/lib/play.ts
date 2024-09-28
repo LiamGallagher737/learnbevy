@@ -10,7 +10,12 @@ type CompileArgs = {
     parentId: string;
 };
 
-export const wasm = writable<any | null>(null);
+type WasmBindings = {
+    exit: () => void;
+    brpRequest: (method: string, params: any) => any;
+}
+
+export const wasmBindings = writable<WasmBindings | null>(null);
 
 export async function play(args: CompileArgs): Promise<PlayResponse> {
     // Use the provided host if given
@@ -95,7 +100,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
 
     // Return if no canvas was spawned
     if (!gameCanvas) {
-        return { kind: "ConsoleOnly", wasm: refObj.wasm, stderr: stderrText };
+        return { kind: "ConsoleOnly", stderr: stderrText };
     }
     // Set the canvas's parent to the element with the given parentId
     const parent = document.getElementById(args.parentId)!;
@@ -109,20 +114,18 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
     gameCanvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
     gameCanvas.style.borderRadius = "0.5rem";
 
-    wasm.set(refObj.wasm);
-    return { kind: "Success", gameCanvas, wasm: refObj.wasm, stderr: stderrText };
+    wasmBindings.set(refObj);
+    return { kind: "Success", gameCanvas, stderr: stderrText };
 }
 
 type PlayResponse = Success | ConsoleOnly | Failed;
 type Success = {
     kind: "Success";
     gameCanvas: HTMLCanvasElement;
-    wasm: any;
     stderr: string;
 };
 type ConsoleOnly = {
     kind: "ConsoleOnly";
-    wasm: any;
     stderr: string;
 };
 type Failed = {
