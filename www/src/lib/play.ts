@@ -13,7 +13,7 @@ type CompileArgs = {
 type WasmBindings = {
     exit: () => void;
     brpRequest: (method: string, params: any) => any;
-}
+};
 
 export const wasmBindings = writable<WasmBindings | null>(null);
 

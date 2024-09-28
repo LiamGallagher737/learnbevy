@@ -13,6 +13,7 @@
     import { DEFAULT_VERSION } from "$lib/versions";
     import { DEFAULT_CHANNEL } from "$lib/channels";
     import Actions from "$lib/components/Actions.svelte";
+    import { wasmBindings } from "$lib/play";
 
     const gameCanvasParentId = "game-container";
     let gameCanvasParent: HTMLDivElement;
@@ -29,10 +30,9 @@
     });
 
     let gameCanvas: HTMLCanvasElement | null = null;
-    let wasm: any | null = null;
 
     async function play() {
-        if (wasm) wasm.__exit();
+        if ($wasmBindings) $wasmBindings.exit();
         if (gameCanvas) gameCanvas.remove();
         consoleItems.set([]);
         processingRequest = true;
@@ -49,7 +49,6 @@
                 reject(result.message);
             } else {
                 if (result.kind === "Success") gameCanvas = result.gameCanvas;
-                wasm = result.wasm;
                 consoleItems.set([{ kind: "Stdout", text: result.stderr }]);
                 resolve();
             }
