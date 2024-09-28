@@ -35,6 +35,9 @@ pub fn edit_code_for_version(code: &str, version: Version) -> String {
 /// It currently is just an [AtomicBool](std::sync::atomic::AtomicBool) that defaults to false and
 /// a system which sends the Bevy exit event when the bool is set to true from the JavaScript.
 const EXTRA_RUST: &str = r#"
+#[allow(unused_imports)]
+use extra_app_code::exports::*;
+
 static __EXIT_FLAG: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn __exit() {
@@ -45,38 +48,6 @@ fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>
         exit.send(bevy::app::AppExit);
     }
 }
-
-static __COLLECT_INSPECTOR_DATA: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn __set_collect_inspector_data(value: bool) {
-    __COLLECT_INSPECTOR_DATA.store(value, std::sync::atomic::Ordering::Relaxed);
-}
-
-pub mod __query {
-    use std::sync::Mutex;
-    use wasm_bindgen::JsValue;
-
-    #[wasm_bindgen::prelude::wasm_bindgen]
-    pub enum Query {
-        Entities,
-    }
-
-    #[wasm_bindgen::prelude::wasm_bindgen]
-    struct Entity {
-        idx: u32,
-        gen: u32,
-    }
-
-    static __MAILBOX: Mutex<Vec<(Query, async_channel::Sender::<JsValue>)>> = Mutex::new(Vec::new());
-
-    #[wasm_bindgen::prelude::wasm_bindgen]
-    pub async fn query(query: Query) -> JsValue {
-        let (sender, receiver) = async_channel::bounded(1);
-        __MAILBOX.lock().unwrap().push((query, sender));
-        receiver.recv().await.unwrap()
-    }
-}
-
 
 #[allow(unused_imports)]
 use __playground_dbg::dbg;

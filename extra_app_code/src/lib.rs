@@ -1,14 +1,15 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use bevy_app::App;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+mod brp;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+/// Items that should be accessable from the sandbox app.
+///
+/// The following is added to every app prior to compiling.
+/// ```rs
+/// use extra_app_code::exports::*;
+/// ```
+pub mod exports {}
+
+pub fn plugin(app: &mut App) {
+    app.add_systems(Startup, brp::setup);
 }
