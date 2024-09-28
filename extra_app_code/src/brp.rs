@@ -1,6 +1,6 @@
 use async_channel::Sender;
 use bevy_ecs::system::Res;
-use bevy_log::info;
+use bevy_log::{debug, info};
 use bevy_remote::{error_codes, BrpError, BrpMessage, BrpResult, BrpSender};
 use std::sync::OnceLock;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -20,9 +20,9 @@ pub fn setup(request_sender: Res<BrpSender>) {
 /// an object will be returned with an error code and a human readable message.
 #[wasm_bindgen(js_name = "brpRequest")]
 pub async fn brp_js_binding(method: String, params: JsValue) -> JsValue {
-    info!("Request: {method:?}\n{params:?}");
+    debug!("Request: {method:?}\n{params:?}");
     let result = process_request(method, params).await;
-    info!("Result: {result:?}");
+    debug!("Result: {result:?}");
     match result {
         Ok(value) => match serde_wasm_bindgen::to_value(&value) {
             Ok(value) => value,
