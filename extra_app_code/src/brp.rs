@@ -20,13 +20,19 @@ pub fn setup(request_sender: Res<BrpSender>) {
 /// an object will be returned with an error code and a human readable message.
 #[wasm_bindgen(js_name = "brpRequest")]
 pub async fn brp_js_binding(method: String, params: JsValue) -> JsValue {
-    info!("Request: {method}\n{params:?}");
+    info!("Request: {method:?}\n{params:?}");
     let result = process_request(method, params).await;
     info!("Result: {result:?}");
     match result {
         Ok(value) => serde_wasm_bindgen::to_value(&value).unwrap(),
         Err(err) => serde_wasm_bindgen::to_value(&err).unwrap(),
     }
+}
+
+#[wasm_bindgen]
+pub fn testBinding(s: String) -> String {
+    info!("Request: {s:?}");
+    format!("Hi {s}")
 }
 
 /// Handle a single BRP request from the JS binding
