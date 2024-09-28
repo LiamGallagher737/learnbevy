@@ -18,7 +18,9 @@ type WasmBindings = {
 export const wasmBindings = writable<WasmBindings | null>(null);
 
 declare global {
-    interface Window { wasm: WasmBindings; }
+    interface Window {
+        wasm: WasmBindings;
+    }
 }
 
 export async function play(args: CompileArgs): Promise<PlayResponse> {
