@@ -24,7 +24,13 @@ pub async fn brp_js_binding(method: String, params: JsValue) -> JsValue {
     let result = process_request(method, params).await;
     info!("Result: {result:?}");
     match result {
-        Ok(value) => serde_wasm_bindgen::to_value(&value).unwrap(),
+        Ok(value) => match serde_wasm_bindgen::to_value(&value) {
+            Ok(value) => value,
+            Err(err) => serde_wasm_bindgen::to_value(&BrpError::internal(format!(
+                "Failed to cast result to a JS value: {err}"
+            )))
+            .unwrap(),
+        },
         Err(err) => serde_wasm_bindgen::to_value(&err).unwrap(),
     }
 }

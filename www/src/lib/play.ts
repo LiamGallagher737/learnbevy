@@ -17,6 +17,10 @@ type WasmBindings = {
 
 export const wasmBindings = writable<WasmBindings | null>(null);
 
+declare global {
+    interface Window { wasm: WasmBindings; }
+}
+
 export async function play(args: CompileArgs): Promise<PlayResponse> {
     // Use the provided host if given
     const host = env.PUBLIC_COMPILE_HOST ?? "https://compile.learnbevy.com";
@@ -115,6 +119,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
     gameCanvas.style.borderRadius = "0.5rem";
 
     wasmBindings.set(refObj);
+    window.wasm = refObj;
     return { kind: "Success", gameCanvas, stderr: stderrText };
 }
 

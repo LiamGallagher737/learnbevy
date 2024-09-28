@@ -15,7 +15,7 @@
 
         const result = await $wasmBindings.brpRequest("bevy/query", {
             data: {
-                option: ["bevy_core::Name"],
+                option: ["bevy_core::name::Name"],
             },
         });
 
