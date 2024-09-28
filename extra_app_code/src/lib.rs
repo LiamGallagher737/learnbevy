@@ -1,4 +1,4 @@
-use bevy_app::App;
+use bevy_app::{App, Startup};
 
 mod brp;
 

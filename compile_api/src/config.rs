@@ -95,7 +95,7 @@ fn edit_code_v14(code: &str) -> String {
 fn edit_code_v11(code: &str) -> String {
     let mut modified_code = code.replace(
         "App::new()",
-        "App::new().add_systems(Update, __check_exit_flag)",
+        "App::new().add_systems(Update, __check_exit_flag).add_plugin(extra_app_code::plugin)",
     );
     modified_code.push_str(EXTRA_RUST);
     modified_code
