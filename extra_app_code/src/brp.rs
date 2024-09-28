@@ -1,6 +1,6 @@
 use async_channel::Sender;
 use bevy_ecs::system::Res;
-use bevy_log::{debug, info};
+use bevy_log::debug;
 use bevy_remote::{error_codes, BrpError, BrpMessage, BrpResult, BrpSender};
 use std::sync::OnceLock;
 use wasm_bindgen::prelude::wasm_bindgen;

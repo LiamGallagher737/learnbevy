@@ -8,24 +8,43 @@
     import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
     import { wasmBindings } from "$lib/play";
 
+    let selectedEntity: number | null = null;
+
     async function getEntities() {
-        if (!$wasmBindings) {
-            throw Error("App is not running");
-        }
+        if (!$wasmBindings) throw Error("App is not running");
 
         const result = await $wasmBindings.brpRequest("bevy/query", {
             data: {
-                option: ["bevy_core::name::Name"],
+                //option: ["bevy_core::name::Name"],
             },
         });
 
-        console.log(result);
-
-        if ("code" in result) {
-            throw Error(result.message);
-        }
-
+        if ("code" in result) throw Error(result.message);
         return result;
+    }
+
+    async function getComponents(entity: number) {
+        if (!$wasmBindings) throw Error("App is not running");
+
+        const componentIds = await $wasmBindings.brpRequest("bevy/list", {
+            entity,
+        });
+        if ("code" in componentIds) throw Error(componentIds.message);
+
+        const components = await $wasmBindings.brpRequest("bevy/get", {
+            entity,
+            components: componentIds,
+        });
+
+        if ("code" in components) throw Error(components.message);
+        return components;
+    }
+
+    function formatEntityKey(entity: number) {
+        const combined = BigInt(entity);
+        let index = Number(combined >> 32n);
+        let gen = Number(combined & 0xffffffffn);
+        return `${index}v${gen}`;
     }
 </script>
 
@@ -43,64 +62,61 @@
             <ScrollArea class="w-56 grow">
                 <Table.Root>
                     <Table.Body>
-                        <Table.Row>
-                            <Table.Cell
-                                tabindex={0}
-                                class="cursor-pointer focus:bg-accent focus:outline-none"
-                            >
-                                <div class="font-medium capitalize">Camera (2v1)</div>
-                            </Table.Cell>
-                        </Table.Row>
-                        <Table.Row>
-                            <Table.Cell
-                                tabindex={0}
-                                class="cursor-pointer focus:bg-accent focus:outline-none"
-                            >
-                                <div class="font-medium capitalize">Entity (3v1)</div>
-                            </Table.Cell>
-                        </Table.Row>
+                        {#each entities as entity}
+                            {@const nameComponent = entity
+                                .get("components")
+                                ?.get("bevy_core::name::Name")
+                                ?.get("name")}
+                            {@const name = `${nameComponent ?? "Entity"} (${formatEntityKey(entity.get("entity"))})`}
+                            <Table.Row>
+                                <Table.Cell
+                                    tabindex={0}
+                                    on:click={() => (selectedEntity = entity.get("entity"))}
+                                    on:keydown={(e) => {
+                                        if (e.key === "Enter")
+                                            selectedEntity = entity.get("entity");
+                                    }}
+                                    class="cursor-pointer focus:bg-accent focus:outline-none"
+                                >
+                                    <div class="font-medium capitalize">
+                                        {name}
+                                    </div>
+                                </Table.Cell>
+                            </Table.Row>
+                        {/each}
                     </Table.Body>
                 </Table.Root>
             </ScrollArea>
         </div>
         <Separator orientation="vertical" />
-        <Accordion.Root class="grow" multiple>
-            <Accordion.Item value="2v1-name">
-                <Accordion.Trigger class="text-sm">Name</Accordion.Trigger>
-                <Accordion.Content>
-                    <div class="grid grid-cols-[8rem,1fr] items-center gap-2 p-1">
-                        <Label for="2v1-name-0" class="text-muted-foreground">Value</Label>
-                        <Input type="text" value="Camera" />
-                        <Label for="2v1-name-1" class="text-muted-foreground">Alt Name</Label>
-                        <Input type="text" value="Cool Camera" />
-                    </div>
-                </Accordion.Content>
-            </Accordion.Item>
-            <Accordion.Item value="2v1-transform">
-                <Accordion.Trigger class="text-sm">Transform</Accordion.Trigger>
-                <Accordion.Content>
-                    <div class="grid grid-cols-[8rem,1fr] items-center gap-2 p-1">
-                        <Label for="2v1-transform-0" class="capitalize text-muted-foreground">
-                            translation.x
-                        </Label>
-                        <Input type="number" value="7" />
-                        <Label for="2v1-transform-0" class="capitalize text-muted-foreground">
-                            translation.y
-                        </Label>
-                        <Input type="number" value="1.5" />
-                        <Label for="2v1-transform-0" class="capitalize text-muted-foreground">
-                            translation.z
-                        </Label>
-                        <Input type="number" value="6" />
-                    </div>
-                </Accordion.Content>
-            </Accordion.Item>
-            <Accordion.Item value="2v1-visibility">
-                <Accordion.Trigger class="text-sm">Visibility</Accordion.Trigger>
-                <Accordion.Content>Camera</Accordion.Content>
-            </Accordion.Item>
-        </Accordion.Root>
+        {#if selectedEntity !== null}
+            {#await getComponents(selectedEntity) then components}
+                <Accordion.Root class="grow" multiple>
+                    {#each components.entries() as [name, componentValue]}
+                        <Accordion.Item value={`${selectedEntity}-${name}`}>
+                            <Accordion.Trigger class="text-sm"
+                                >{name.split("::").pop()}</Accordion.Trigger
+                            >
+                            <Accordion.Content>
+                                <div class="grid grid-cols-[8rem,1fr] items-center gap-2 p-1">
+                                    {#if componentValue instanceof Map}
+                                        {#each componentValue.entries() as [name, value]}
+                                            <Label for="2v1-name-0" class="text-muted-foreground">
+                                                {name}
+                                            </Label>
+                                            <Input type="text" {value} />
+                                        {/each}
+                                    {/if}
+                                </div>
+                            </Accordion.Content>
+                        </Accordion.Item>
+                    {/each}
+                </Accordion.Root>
+            {:catch err}
+                <p>{err}</p>
+            {/await}
+        {/if}
     {:catch err}
-        <p>{ err }</p>
+        <p>{err}</p>
     {/await}
 </Card.Content>
