@@ -37,7 +37,13 @@
         });
 
         if ("code" in components) throw Error(components.message);
-        return components;
+
+        let succeededComponentIds = Array.from(components.keys());
+        let failedComponentIds = componentIds.filter(
+            (comp: string) => !succeededComponentIds.includes(comp)
+        );
+
+        return [components, failedComponentIds];
     }
 
     function formatEntityKey(entity: number) {
@@ -90,14 +96,14 @@
         </div>
         <Separator orientation="vertical" />
         {#if selectedEntity !== null}
-            {#await getComponents(selectedEntity) then components}
+            {#await getComponents(selectedEntity) then [components, failedComponentIds]}
                 <ScrollArea class="w-full">
-                    <Accordion.Root class="grow" multiple>
+                    <Accordion.Root class="mb-6 grow" multiple>
                         {#each components.entries() as [name, componentValue]}
                             <Accordion.Item value={`${selectedEntity}-${name}`}>
-                                <Accordion.Trigger class="text-sm"
-                                    >{name.split("::").pop()}</Accordion.Trigger
-                                >
+                                <Accordion.Trigger class="text-sm">
+                                    {name.split("::").pop()}
+                                </Accordion.Trigger>
                                 <Accordion.Content>
                                     <InspectorValue
                                         id={`${selectedEntity}-${name}`}
@@ -107,6 +113,18 @@
                             </Accordion.Item>
                         {/each}
                     </Accordion.Root>
+                    {#if failedComponentIds.length > 0}
+                        <Card.Description>
+                            The following components could not be inspected:
+                            <ul class="list-inside list-disc">
+                                {#each failedComponentIds as component}
+                                    <li>
+                                        {component}
+                                    </li>
+                                {/each}
+                            </ul>
+                        </Card.Description>
+                    {/if}
                 </ScrollArea>
             {:catch err}
                 <p>{err}</p>
