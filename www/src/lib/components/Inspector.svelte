@@ -104,7 +104,7 @@
                                 <Accordion.Trigger class="text-sm">
                                     {name.split("::").pop()}
                                 </Accordion.Trigger>
-                                <Accordion.Content>
+                                <Accordion.Content class="pl-4">
                                     <InspectorValue
                                         id={`${selectedEntity}-${name}`}
                                         value={componentValue}
