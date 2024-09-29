@@ -3,10 +3,10 @@
     import * as Table from "$lib/components/ui/table";
     import * as Accordion from "$lib/components/ui/accordion";
     import { Separator } from "$lib/components/ui/separator";
-    import { Label } from "$lib/components/ui/label";
     import { Input } from "$lib/components/ui/input";
     import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
     import { wasmBindings } from "$lib/play";
+    import InspectorValue from "./InspectorValue.svelte";
 
     let selectedEntity: number | null = null;
 
@@ -98,16 +98,10 @@
                                 >{name.split("::").pop()}</Accordion.Trigger
                             >
                             <Accordion.Content>
-                                <div class="grid grid-cols-[8rem,1fr] items-center gap-2 p-1">
-                                    {#if componentValue instanceof Map}
-                                        {#each componentValue.entries() as [name, value]}
-                                            <Label for="2v1-name-0" class="text-muted-foreground">
-                                                {name}
-                                            </Label>
-                                            <Input type="text" {value} />
-                                        {/each}
-                                    {/if}
-                                </div>
+                                <InspectorValue
+                                    id={`${selectedEntity}-${name}`}
+                                    value={componentValue}
+                                />
                             </Accordion.Content>
                         </Accordion.Item>
                     {/each}
