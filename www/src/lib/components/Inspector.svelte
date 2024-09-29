@@ -4,7 +4,7 @@
     import * as Accordion from "$lib/components/ui/accordion";
     import { Separator } from "$lib/components/ui/separator";
     import { Input } from "$lib/components/ui/input";
-    import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
+    import { ScrollArea } from "$lib/components/ui/scroll-area";
     import { wasmBindings } from "$lib/play";
     import InspectorValue from "./InspectorValue.svelte";
 
@@ -91,21 +91,23 @@
         <Separator orientation="vertical" />
         {#if selectedEntity !== null}
             {#await getComponents(selectedEntity) then components}
-                <Accordion.Root class="grow" multiple>
-                    {#each components.entries() as [name, componentValue]}
-                        <Accordion.Item value={`${selectedEntity}-${name}`}>
-                            <Accordion.Trigger class="text-sm"
-                                >{name.split("::").pop()}</Accordion.Trigger
-                            >
-                            <Accordion.Content>
-                                <InspectorValue
-                                    id={`${selectedEntity}-${name}`}
-                                    value={componentValue}
-                                />
-                            </Accordion.Content>
-                        </Accordion.Item>
-                    {/each}
-                </Accordion.Root>
+                <ScrollArea class="w-full">
+                    <Accordion.Root class="grow" multiple>
+                        {#each components.entries() as [name, componentValue]}
+                            <Accordion.Item value={`${selectedEntity}-${name}`}>
+                                <Accordion.Trigger class="text-sm"
+                                    >{name.split("::").pop()}</Accordion.Trigger
+                                >
+                                <Accordion.Content>
+                                    <InspectorValue
+                                        id={`${selectedEntity}-${name}`}
+                                        value={componentValue}
+                                    />
+                                </Accordion.Content>
+                            </Accordion.Item>
+                        {/each}
+                    </Accordion.Root>
+                </ScrollArea>
             {:catch err}
                 <p>{err}</p>
             {/await}

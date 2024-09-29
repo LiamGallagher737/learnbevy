@@ -23,8 +23,8 @@
                         </Accordion.Content>
                     </Accordion.Item>
                 {:else}
-                    <div class="grid min-h-10 grid-cols-[8rem,1fr] items-center gap-2">
-                        <Label for={nestedId} class="w-32 text-muted-foreground">{n}</Label>
+                    <div class="grid min-h-10 grid-cols-[minmax(10rem,auto),1fr] items-center gap-2">
+                        <Label for={nestedId} class="min-w-32 text-muted-foreground">{n}</Label>
                         <svelte:self id={nestedId} value={v} />
                     </div>
                 {/if}
