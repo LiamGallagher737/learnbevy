@@ -116,7 +116,7 @@
                     {#if failedComponentIds.length > 0}
                         <Card.Description>
                             The following components could not be inspected:
-                            <ul class="list-inside list-disc">
+                            <ul class="list-inside list-disc break-all">
                                 {#each failedComponentIds as component}
                                     <li>
                                         {component}
