@@ -28,7 +28,7 @@ bevy = { git = "https://github.com/LiamGallagher737/bevy.git", branch = "lenient
     "default_font",
     "webgl2",
 ] }
-extra_app_code = { git = "https://github.com/LiamGallagher737/learnbevy", rev = "a1981b4" }
+extra_app_code = { git = "https://github.com/LiamGallagher737/learnbevy", rev = "41cb9bf" }
 wasm-bindgen = "0.2"
 
 [profile.release.package."*"]
