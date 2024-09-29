@@ -64,7 +64,7 @@
 <Card.Content class="flex h-[calc(100%-90px)] flex-row gap-6">
     {#await getEntities() then entities}
         <div class="flex h-full flex-col gap-4">
-            <Input type="text" placeholder="Search" />
+            <!-- <Input type="text" placeholder="Search" /> -->
             <ScrollArea class="w-56 grow">
                 <Table.Root>
                     <Table.Body>
