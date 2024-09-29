@@ -48,8 +48,8 @@
 
     function formatEntityKey(entity: number) {
         const combined = BigInt(entity);
-        let index = Number(combined >> 32n);
-        let gen = Number(combined & 0xffffffffn);
+        let gen = Number(combined >> 32n);
+        let index = Number(combined & 0xffffffffn);
         return `${index}v${gen}`;
     }
 </script>
