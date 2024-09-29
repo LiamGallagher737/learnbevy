@@ -44,9 +44,9 @@
         </div>
     {/if}
 {:else if typeof value === "boolean"}
-    <Checkbox name={id} checked={value} />
+    <Checkbox name={id} checked={value} disabled />
 {:else if typeof value === "number" || typeof value === "bigint"}
-    <Input name={id} type="number" {value} />
+    <Input name={id} type="number" {value} disabled />
 {:else if typeof value === "string"}
-    <Input name={id} type="text" {value} />
+    <Input name={id} type="text" {value} disabled />
 {/if}
