@@ -10,7 +10,7 @@ export class TypePath {
     }
 
     short() {
-        let result = '';
+        let result = "";
         let index = 0;
         const endOfString = this.fullTypePath.length;
 
@@ -25,8 +25,11 @@ export class TypePath {
                 const specialCharacter = restOfString[specialCharacterIndex];
                 result += specialCharacter;
 
-                if (['>', ')', ']'].includes(specialCharacter) && restOfString.startsWith('::', specialCharacterIndex + 1)) {
-                    result += '::';
+                if (
+                    [">", ")", "]"].includes(specialCharacter) &&
+                    restOfString.startsWith("::", specialCharacterIndex + 1)
+                ) {
+                    result += "::";
                     index += specialCharacterIndex + 3;
                 } else {
                     index += specialCharacterIndex + 1;
@@ -42,7 +45,7 @@ export class TypePath {
 }
 
 function collapseTypeName(input: string) {
-    const segments = input.split('::');
+    const segments = input.split("::");
     const last = segments.pop();
     const secondLast = segments.pop();
 
