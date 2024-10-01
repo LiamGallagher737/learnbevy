@@ -11,11 +11,9 @@
     import Plus from "lucide-svelte/icons/plus";
     import Trash from "lucide-svelte/icons/trash";
     import ComponentSelector from "./ComponentSelector.svelte";
-    import type { TypePath } from "$lib/disqualified";
 
     let searchQuery = "";
     let selectedEntity: number | null = null;
-    let selectedInsertComponent: TypePath | null;
 
     let entitiesPromise = getEntities();
     function refreshEntities() {
@@ -206,19 +204,6 @@
                             </Accordion.Item>
                         {/each}
                     </Accordion.Root>
-
-                    <div class="mb-4 flex flex-row gap-2">
-                        <ComponentSelector bind:value={selectedInsertComponent} />
-                        <Button
-                            variant="outline"
-                            on:click={async () => {
-                                selectedEntity = await spawnEntity();
-                                refreshEntities();
-                            }}
-                        >
-                            <Plus size={16} />
-                        </Button>
-                    </div>
 
                     {#if failedComponentIds.length > 0}
                         <Card.Description>
