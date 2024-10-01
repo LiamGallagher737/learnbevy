@@ -11,6 +11,7 @@
     import Plus from "lucide-svelte/icons/plus";
     import Trash from "lucide-svelte/icons/trash";
 
+    let searchQuery = "";
     let selectedEntity: number | null = null;
 
     let entitiesPromise = getEntities();
@@ -90,7 +91,7 @@
 <Card.Content class="flex h-[calc(100%-90px)] flex-row gap-6">
     {#await entitiesPromise then entities}
         <div class="flex flex-col gap-2">
-            <Input type="text" placeholder="Search" />
+            <Input bind:value={searchQuery} type="text" placeholder="Search" />
             <div class="grid grid-cols-2 gap-2">
                 <Button
                     variant="outline"
@@ -120,27 +121,33 @@
                                 ?.get("bevy_core::name::Name")
                                 ?.get("name")}
                             {@const name = `${nameComponent ?? "Entity"} (${formatEntityKey(entity.get("entity"))})`}
-                            <Table.Row>
-                                <Table.Cell
-                                    tabindex={0}
-                                    on:click={() => (selectedEntity = entity.get("entity"))}
-                                    on:keydown={(e) => {
-                                        if (e.key === "Enter")
-                                            selectedEntity = entity.get("entity");
-                                    }}
-                                    class="cursor-pointer focus:bg-accent focus:outline-none"
-                                >
-                                    <div class="font-medium capitalize">
-                                        {name}
-                                    </div>
-                                </Table.Cell>
-                            </Table.Row>
+                            {#if searchQuery.length === 0 || name
+                                    .toLowerCase()
+                                    .includes(searchQuery.toLowerCase())}
+                                <Table.Row>
+                                    <Table.Cell
+                                        tabindex={0}
+                                        on:click={() => (selectedEntity = entity.get("entity"))}
+                                        on:keydown={(e) => {
+                                            if (e.key === "Enter")
+                                                selectedEntity = entity.get("entity");
+                                        }}
+                                        class="cursor-pointer focus:bg-accent focus:outline-none"
+                                    >
+                                        <div class="font-medium capitalize">
+                                            {name}
+                                        </div>
+                                    </Table.Cell>
+                                </Table.Row>
+                            {/if}
                         {/each}
                     </Table.Body>
                 </Table.Root>
             </ScrollArea>
         </div>
+
         <Separator orientation="vertical" />
+
         {#if selectedEntity !== null}
             {#await getComponents(selectedEntity) then [components, failedComponentIds]}
                 {#if components.size === 0 && failedComponentIds.length === 0}
