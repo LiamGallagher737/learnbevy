@@ -55,12 +55,20 @@
         return [components, failedComponentIds];
     }
 
+    async function spawnEntity() {
+        if (!$wasmBindings) throw Error("App is not running");
+
+        const result = await $wasmBindings.brpRequest("bevy/spawn", { components: {} });
+        if (typeof result === "object" && "code" in result) throw Error(result.message);
+        refreshEntities();
+        return result.get("entity") as number;
+    }
+
     async function despawnEntity(entity: number) {
         if (!$wasmBindings) throw Error("App is not running");
 
         const result = await $wasmBindings.brpRequest("bevy/destroy", { entity });
         if (typeof result === "object" && "code" in result) throw Error(result.message);
-        console.log("lol");
         refreshEntities();
     }
 
@@ -84,7 +92,12 @@
         <div class="flex flex-col gap-2">
             <Input type="text" placeholder="Search" />
             <div class="grid grid-cols-2 gap-2">
-                <Button variant="outline">
+                <Button
+                    variant="outline"
+                    on:click={async () => {
+                        selectedEntity = await spawnEntity();
+                    }}
+                >
                     <Plus size={16} />
                 </Button>
                 <Button
