@@ -3,12 +3,20 @@
     import * as Table from "$lib/components/ui/table";
     import * as Accordion from "$lib/components/ui/accordion";
     import { Separator } from "$lib/components/ui/separator";
-    import { Input } from "$lib/components/ui/input";
     import { ScrollArea } from "$lib/components/ui/scroll-area";
     import { wasmBindings } from "$lib/play";
+    import { Button } from "$lib/components/ui/button";
     import InspectorValue from "./InspectorValue.svelte";
+    import { Input } from "$lib/components/ui/input";
+    import Plus from "lucide-svelte/icons/plus";
+    import Trash from "lucide-svelte/icons/trash";
 
     let selectedEntity: number | null = null;
+
+    let entitiesPromise = getEntities();
+    function refreshEntities() {
+        entitiesPromise = getEntities();
+    }
 
     async function getEntities() {
         if (!$wasmBindings) throw Error("App is not running");
@@ -19,7 +27,7 @@
             },
         });
 
-        if ("code" in result) throw Error(result.message);
+        if (typeof result === "object" && "code" in result) throw Error(result.message);
         return result;
     }
 
@@ -29,14 +37,15 @@
         const componentIds = await $wasmBindings.brpRequest("bevy/list", {
             entity,
         });
-        if ("code" in componentIds) throw Error(componentIds.message);
+        if (typeof componentIds === "object" && "code" in componentIds)
+            throw Error(componentIds.message);
 
         const components = await $wasmBindings.brpRequest("bevy/get", {
             entity,
             components: componentIds,
         });
 
-        if ("code" in components) throw Error(components.message);
+        if (typeof components === "object" && "code" in components) throw Error(components.message);
 
         let succeededComponentIds = Array.from(components.keys());
         let failedComponentIds = componentIds.filter(
@@ -44,6 +53,15 @@
         );
 
         return [components, failedComponentIds];
+    }
+
+    async function despawnEntity(entity: number) {
+        if (!$wasmBindings) throw Error("App is not running");
+
+        const result = await $wasmBindings.brpRequest("bevy/destroy", { entity });
+        if (typeof result === "object" && "code" in result) throw Error(result.message);
+        console.log("lol");
+        refreshEntities();
     }
 
     function formatEntityKey(entity: number) {
@@ -62,9 +80,21 @@
 </Card.Header>
 
 <Card.Content class="flex h-[calc(100%-90px)] flex-row gap-6">
-    {#await getEntities() then entities}
-        <div class="flex h-full flex-col gap-4">
-            <!-- <Input type="text" placeholder="Search" /> -->
+    {#await entitiesPromise then entities}
+        <div class="flex flex-col gap-2">
+            <Input type="text" placeholder="Search" />
+            <div class="grid grid-cols-2 gap-2">
+                <Button variant="outline">
+                    <Plus size={16} />
+                </Button>
+                <Button
+                    variant="outline"
+                    disabled={selectedEntity === null}
+                    on:click={() => despawnEntity(selectedEntity ?? -1)}
+                >
+                    <Trash size={14} />
+                </Button>
+            </div>
             <ScrollArea class="w-56 grow">
                 <Table.Root>
                     <Table.Body>
