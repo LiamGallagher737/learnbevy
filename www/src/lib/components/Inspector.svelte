@@ -10,9 +10,12 @@
     import { Input } from "$lib/components/ui/input";
     import Plus from "lucide-svelte/icons/plus";
     import Trash from "lucide-svelte/icons/trash";
+    import ComponentSelector from "./ComponentSelector.svelte";
+    import type { TypePath } from "$lib/disqualified";
 
     let searchQuery = "";
     let selectedEntity: number | null = null;
+    let selectedInsertComponent: TypePath | null;
 
     let entitiesPromise = getEntities();
     function refreshEntities() {
@@ -172,6 +175,7 @@
                 {#if components.size === 0 && failedComponentIds.length === 0}
                     <Card.Description class="pt-6">Empty</Card.Description>
                 {/if}
+
                 <ScrollArea class="w-full">
                     <Accordion.Root class="mb-6 grow" multiple>
                         {#each components.entries() as [name, componentValue]}
@@ -202,6 +206,20 @@
                             </Accordion.Item>
                         {/each}
                     </Accordion.Root>
+
+                    <div class="mb-4 flex flex-row gap-2">
+                        <ComponentSelector bind:value={selectedInsertComponent} />
+                        <Button
+                            variant="outline"
+                            on:click={async () => {
+                                selectedEntity = await spawnEntity();
+                                refreshEntities();
+                            }}
+                        >
+                            <Plus size={16} />
+                        </Button>
+                    </div>
+
                     {#if failedComponentIds.length > 0}
                         <Card.Description>
                             The following components could not be inspected:
