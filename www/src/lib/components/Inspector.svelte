@@ -103,7 +103,10 @@
                 <Button
                     variant="outline"
                     disabled={selectedEntity === null}
-                    on:click={() => despawnEntity(selectedEntity ?? -1)}
+                    on:click={async () => {
+                        await despawnEntity(selectedEntity ?? -1);
+                        selectedEntity = null;
+                    }}
                 >
                     <Trash size={14} />
                 </Button>
