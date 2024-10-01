@@ -70,7 +70,6 @@
 
         const result = await $wasmBindings.brpRequest("bevy/spawn", { components: {} });
         if (typeof result === "object" && "code" in result) throw Error(result.message);
-        refreshEntities();
         return result.get("entity") as number;
     }
 
@@ -79,7 +78,6 @@
 
         const result = await $wasmBindings.brpRequest("bevy/destroy", { entity });
         if (typeof result === "object" && "code" in result) throw Error(result.message);
-        refreshEntities();
     }
 
     async function removeComponent(component: string, entity: number) {
@@ -116,6 +114,7 @@
                     variant="outline"
                     on:click={async () => {
                         selectedEntity = await spawnEntity();
+                        refreshEntities();
                     }}
                 >
                     <Plus size={16} />
@@ -126,6 +125,7 @@
                     on:click={async () => {
                         await despawnEntity(selectedEntity ?? -1);
                         selectedEntity = null;
+                        refreshEntities();
                     }}
                 >
                     <Trash size={14} />
