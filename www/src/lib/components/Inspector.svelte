@@ -19,6 +19,15 @@
         entitiesPromise = getEntities();
     }
 
+    let componentsPromise = (entity: number) => {
+        return getComponents(entity);
+    };
+    function refreshComponents() {
+        componentsPromise = (entity: number) => {
+            return getComponents(entity);
+        };
+    }
+
     async function getEntities() {
         if (!$wasmBindings) throw Error("App is not running");
 
@@ -71,6 +80,16 @@
         const result = await $wasmBindings.brpRequest("bevy/destroy", { entity });
         if (typeof result === "object" && "code" in result) throw Error(result.message);
         refreshEntities();
+    }
+
+    async function removeComponent(component: string, entity: number) {
+        if (!$wasmBindings) throw Error("App is not running");
+
+        const result = await $wasmBindings.brpRequest("bevy/remove", {
+            entity,
+            components: [component],
+        });
+        if (typeof result === "object" && "code" in result) throw Error(result.message);
     }
 
     function formatEntityKey(entity: number) {
@@ -149,7 +168,7 @@
         <Separator orientation="vertical" />
 
         {#if selectedEntity !== null}
-            {#await getComponents(selectedEntity) then [components, failedComponentIds]}
+            {#await componentsPromise(selectedEntity) then [components, failedComponentIds]}
                 {#if components.size === 0 && failedComponentIds.length === 0}
                     <Card.Description class="pt-6">Empty</Card.Description>
                 {/if}
@@ -157,8 +176,22 @@
                     <Accordion.Root class="mb-6 grow" multiple>
                         {#each components.entries() as [name, componentValue]}
                             <Accordion.Item value={`${selectedEntity}-${name}`}>
-                                <Accordion.Trigger class="text-sm">
-                                    {name.split("::").pop()}
+                                <Accordion.Trigger>
+                                    <div class="flex w-full justify-between pr-2">
+                                        <span>
+                                            {name.split("::").pop()}
+                                        </span>
+                                        <Button
+                                            class="h-6"
+                                            variant="ghost"
+                                            on:click={async () => {
+                                                await removeComponent(name, selectedEntity ?? -1);
+                                                refreshComponents();
+                                            }}
+                                        >
+                                            <Trash size={14} />
+                                        </Button>
+                                    </div>
                                 </Accordion.Trigger>
                                 <Accordion.Content class="pl-4">
                                     <InspectorValue
