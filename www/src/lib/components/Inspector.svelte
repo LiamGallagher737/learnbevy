@@ -140,6 +140,9 @@
         <Separator orientation="vertical" />
         {#if selectedEntity !== null}
             {#await getComponents(selectedEntity) then [components, failedComponentIds]}
+                {#if components.size === 0 && failedComponentIds.length === 0}
+                    <Card.Description class="pt-6">Empty</Card.Description>
+                {/if}
                 <ScrollArea class="w-full">
                     <Accordion.Root class="mb-6 grow" multiple>
                         {#each components.entries() as [name, componentValue]}
