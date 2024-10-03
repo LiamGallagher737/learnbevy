@@ -28,6 +28,20 @@
         };
     }
 
+    async function testStream() {
+        if (!$wasmBindings) throw Error("App is not running");
+
+        const stream = await $wasmBindings.brpStreamingRequest("bevy/list", {
+            entity: selectedEntity,
+        });
+
+        let result = await stream.next();
+        while (result !== undefined) {
+            console.log(result);
+            result = await stream.next();
+        }
+    }
+
     async function getEntities() {
         if (!$wasmBindings) throw Error("App is not running");
 
@@ -44,25 +58,23 @@
     async function getComponents(entity: number) {
         if (!$wasmBindings) throw Error("App is not running");
 
+        testStream();
+
         const componentIds = await $wasmBindings.brpRequest("bevy/list", {
             entity,
         });
         if (typeof componentIds === "object" && "code" in componentIds)
             throw Error(componentIds.message);
 
-        const components = await $wasmBindings.brpRequest("bevy/get", {
+        const result = await $wasmBindings.brpRequest("bevy/get", {
             entity,
             components: componentIds,
         });
 
-        if (typeof components === "object" && "code" in components) throw Error(components.message);
+        if (typeof result === "object" && "code" in result) throw Error(result.message);
 
-        let succeededComponentIds = Array.from(components.keys());
-        let failedComponentIds = componentIds.filter(
-            (comp: string) => !succeededComponentIds.includes(comp)
-        );
-
-        return [components, failedComponentIds];
+        console.log(result);
+        return [result.get("components"), Array.from(result.get("errors").keys())];
     }
 
     async function spawnEntity() {

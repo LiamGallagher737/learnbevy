@@ -1,6 +1,6 @@
 use async_channel::{Receiver, Sender};
 use bevy_ecs::system::Res;
-use bevy_log::debug;
+use bevy_log::{debug, warn};
 use bevy_remote::{error_codes, BrpError, BrpMessage, BrpResult, BrpSender};
 use std::sync::OnceLock;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -109,11 +109,13 @@ pub struct BrpResponseStream {
 #[wasm_bindgen]
 impl BrpResponseStream {
     pub async fn next(&self) -> JsValue {
+        warn!("Started waiting");
         let result = self
             .rx
             .recv()
             .await
             .map_err(|_| BrpError::internal("Failed to receive result"));
+        warn!("Got something");
 
         match result {
             Ok(Ok(value)) => serde_wasm_bindgen::to_value(&value).unwrap(),
