@@ -2,9 +2,11 @@ use async_channel::{Receiver, Sender};
 use bevy_ecs::system::Res;
 use bevy_log::{debug, warn};
 use bevy_remote::{error_codes, BrpError, BrpMessage, BrpResult, BrpSender};
+use js_sys::Promise;
 use std::sync::OnceLock;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::future_to_promise;
 
 /// A lock containing the sender from [`bevy_remote::BrpSender`] used by the JS bindings.
 static MESSAGE_SENDER: OnceLock<Sender<BrpMessage>> = OnceLock::new();
@@ -108,7 +110,7 @@ pub struct BrpResponseStream {
 
 #[wasm_bindgen]
 impl BrpResponseStream {
-    pub async fn next(&self) -> JsValue {
+    pub async fn next2(&self) -> JsValue {
         warn!("Started waiting");
         let result = self
             .rx
@@ -121,5 +123,16 @@ impl BrpResponseStream {
             Ok(Ok(value)) => serde_wasm_bindgen::to_value(&value).unwrap(),
             Err(err) | Ok(Err(err)) => serde_wasm_bindgen::to_value(&err).unwrap(),
         }
+    }
+
+    pub fn next(&self) -> Promise {
+        let rx = self.rx.clone();
+        future_to_promise(async move {
+            let result = rx.recv().await.map_err(|_| JsValue::undefined())?;
+            match result {
+                Ok(value) => serde_wasm_bindgen::to_value(&value).map_err(|_| JsValue::undefined()),
+                Err(err) => serde_wasm_bindgen::to_value(&err).map_err(|_| JsValue::undefined()),
+            }
+        })
     }
 }

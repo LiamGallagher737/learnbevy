@@ -35,10 +35,9 @@
             entity: selectedEntity,
         });
 
-        let result = await stream.next();
-        while (result !== undefined) {
+        for await (const result of stream.next()) {
+            console.log("Received something");
             console.log(result);
-            result = await stream.next();
         }
     }
 
