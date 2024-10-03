@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { git = "https://github.com/LiamGallagher737/bevy.git", branch = "lenient-brp-responses", default-features = false, features = [
+bevy = { git = "https://github.com/LiamGallagher737/bevy.git", branch = "streaming-brp-methods", default-features = false, features = [
     "animation",
     "bevy_asset",
     "bevy_state",

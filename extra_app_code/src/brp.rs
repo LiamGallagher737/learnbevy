@@ -1,4 +1,4 @@
-use async_channel::Sender;
+use async_channel::{Receiver, Sender};
 use bevy_ecs::system::Res;
 use bevy_log::debug;
 use bevy_remote::{error_codes, BrpError, BrpMessage, BrpResult, BrpSender};
@@ -37,6 +37,40 @@ pub async fn brp_js_binding(method: String, params: JsValue) -> JsValue {
 
 /// Handle a single BRP request from the JS binding
 async fn process_request(method: String, params: JsValue) -> BrpResult {
+    let result_receiver = send_request(method, params, false).await?;
+    result_receiver
+        .recv()
+        .await
+        .map_err(|_| BrpError::internal("Failed to receive result"))?
+}
+
+/// A binding to JS that allows making BRP requests in a browser environment. If
+/// the selected method does not need any params it should be left as undefined.
+/// A successful request will return an array of results and if an error occurs
+/// an object will be returned with an error code and a human readable message.
+#[wasm_bindgen(js_name = "brpStreamingRequest")]
+pub async fn brp_streaming_js_binding(method: String, params: JsValue) -> JsValue {
+    debug!("Streaming Request: {method:?}\n{params:?}");
+    let result = process_streaming_request(method, params).await;
+    match result {
+        Ok(stream) => stream.into(),
+        Err(err) => serde_wasm_bindgen::to_value(&err).unwrap(),
+    }
+}
+
+async fn process_streaming_request(
+    method: String,
+    params: JsValue,
+) -> BrpResult<BrpResponseStream> {
+    let rx = send_request(method, params, true).await?;
+    Ok(BrpResponseStream { rx })
+}
+
+async fn send_request(
+    method: String,
+    params: JsValue,
+    stream: bool,
+) -> BrpResult<Receiver<BrpResult>> {
     let params = if !params.is_undefined() {
         Some(
             serde_wasm_bindgen::from_value(params).map_err(|err| BrpError {
@@ -59,11 +93,30 @@ async fn process_request(method: String, params: JsValue) -> BrpResult {
             method,
             params,
             sender: result_sender,
+            stream,
         })
         .await;
 
-    result_receiver
-        .recv()
-        .await
-        .map_err(|_| BrpError::internal("Failed to receive result"))?
+    Ok(result_receiver)
+}
+
+#[wasm_bindgen]
+pub struct BrpResponseStream {
+    rx: Receiver<BrpResult>,
+}
+
+#[wasm_bindgen]
+impl BrpResponseStream {
+    pub async fn next(&self) -> JsValue {
+        let result = self
+            .rx
+            .recv()
+            .await
+            .map_err(|_| BrpError::internal("Failed to receive result"));
+
+        match result {
+            Ok(Ok(value)) => serde_wasm_bindgen::to_value(&value).unwrap(),
+            Err(err) | Ok(Err(err)) => serde_wasm_bindgen::to_value(&err).unwrap(),
+        }
+    }
 }
