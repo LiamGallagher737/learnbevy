@@ -110,25 +110,11 @@ pub struct BrpResponseStream {
 
 #[wasm_bindgen]
 impl BrpResponseStream {
-    pub async fn next2(&self) -> JsValue {
-        warn!("Started waiting");
-        let result = self
-            .rx
-            .recv()
-            .await
-            .map_err(|_| BrpError::internal("Failed to receive result"));
-        warn!("Got something");
-
-        match result {
-            Ok(Ok(value)) => serde_wasm_bindgen::to_value(&value).unwrap(),
-            Err(err) | Ok(Err(err)) => serde_wasm_bindgen::to_value(&err).unwrap(),
-        }
-    }
-
     pub fn next(&self) -> Promise {
         let rx = self.rx.clone();
         future_to_promise(async move {
             let result = rx.recv().await.map_err(|_| JsValue::undefined())?;
+            debug!("Updating");
             match result {
                 Ok(value) => serde_wasm_bindgen::to_value(&value).map_err(|_| JsValue::undefined()),
                 Err(err) => serde_wasm_bindgen::to_value(&err).map_err(|_| JsValue::undefined()),

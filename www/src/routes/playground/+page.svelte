@@ -6,6 +6,7 @@
     import Sidebar, { selectedTab } from "$lib/components/Sidebar.svelte";
     import Settings, { settings } from "./Settings.svelte";
     import Examples from "./Examples.svelte";
+    import Inspector from "$lib/components/inspector/Inspector.svelte";
     import Console from "$lib/components/Console.svelte";
     import { Button } from "$lib/components/ui/button";
     import { Card } from "$lib/components/ui/card";
@@ -16,7 +17,6 @@
     import { editorCode } from "$lib/components/editor";
     import type { PageData } from "./$types";
     import { onMount, tick } from "svelte";
-    import Inspector from "$lib/components/Inspector.svelte";
     import { wasmBindings } from "$lib/play";
 
     export let data: PageData;
