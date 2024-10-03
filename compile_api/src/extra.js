@@ -5,4 +5,5 @@ const { instance, module } = await __wbg_load(input, imports);
 ref_obj.wasm = instance.exports;
 ref_obj.exit = __exit;
 ref_obj.brpRequest = brpRequest;
+ref_obj.brpStreamingRequest = brpStreamingRequest;
 __wbg_finalize_init(instance, module);

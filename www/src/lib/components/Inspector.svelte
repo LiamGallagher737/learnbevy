@@ -10,7 +10,6 @@
     import { Input } from "$lib/components/ui/input";
     import Plus from "lucide-svelte/icons/plus";
     import Trash from "lucide-svelte/icons/trash";
-    import ComponentSelector from "./ComponentSelector.svelte";
 
     let searchQuery = "";
     let selectedEntity: number | null = null;

@@ -10,7 +10,10 @@ mod brp;
 /// ```
 pub mod exports {}
 
-pub fn plugin(app: &mut App) {
-    app.add_plugins(bevy_remote::RemotePlugin::default())
-        .add_systems(Startup, brp::setup);
+pub struct Plugin;
+impl bevy_app::Plugin for Plugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(bevy_remote::RemotePlugin::default())
+            .add_systems(Startup, brp::setup);
+    }
 }

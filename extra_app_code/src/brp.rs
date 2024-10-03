@@ -46,8 +46,9 @@ async fn process_request(method: String, params: JsValue) -> BrpResult {
 
 /// A binding to JS that allows making BRP requests in a browser environment. If
 /// the selected method does not need any params it should be left as undefined.
-/// A successful request will return an array of results and if an error occurs
-/// an object will be returned with an error code and a human readable message.
+/// A successful request will return a iterator to call `.next()` on to wait for
+/// values. An initial value will be received instantly and followed by new values
+/// when data changes.
 #[wasm_bindgen(js_name = "brpStreamingRequest")]
 pub async fn brp_streaming_js_binding(method: String, params: JsValue) -> JsValue {
     debug!("Streaming Request: {method:?}\n{params:?}");
