@@ -50,5 +50,13 @@
         "svelte-sonner": "^0.3.22",
         "tailwind-merge": "^2.2.2",
         "tailwind-variants": "^0.2.1"
+    },
+    "overrides": {
+        "cmdk-sv": {
+            "svelte": "^5.0.0-next.262"
+        },
+        "paneforge": {
+            "svelte": "^5.0.0-next.262"
+        }
     }
 }
