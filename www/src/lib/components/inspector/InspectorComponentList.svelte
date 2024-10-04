@@ -1,6 +1,6 @@
 <script lang="ts">
     import { wasmBindings } from "$lib/play";
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import * as Accordion from "../ui/accordion";
     import * as Card from "../ui/card";
     import { Button } from "../ui/button";
@@ -11,7 +11,8 @@
     export let selectedEntity: number | null = null;
 
     let components: Map<string, any> | null = null;
-    let failedComponentIds: Set<string>;
+    let failedComponentIds: Set<string> = new Set();
+    let stopWatching = false;
 
     onMount(async () => {
         if (!$wasmBindings) return;
@@ -19,6 +20,8 @@
         const componentIds = await $wasmBindings.brpRequest("bevy/list", {
             entity: selectedEntity,
         });
+
+        console.log(componentIds);
 
         if (typeof componentIds === "object" && "code" in componentIds)
             throw Error(componentIds.message);
@@ -28,35 +31,59 @@
             components: componentIds,
         });
 
+        console.log(initialRequest);
+
         if (typeof initialRequest === "object" && "code" in initialRequest)
             throw Error(initialRequest.message);
 
         components = initialRequest.get("components");
         failedComponentIds = new Set(Array.from(initialRequest.get("errors").keys()));
 
+        console.log("success 1");
+
         const stream = await $wasmBindings.brpStreamingRequest("bevy/get+watch", {
             entity: selectedEntity,
             components: componentIds,
         });
 
-        // Temp solution until I find a way to add this from wasm-bindgen side
-        stream[Symbol.asyncIterator] = function () {
-            return this;
-        };
+        console.log("made stream");
 
-        for await (const event of stream) {
-            event.components.forEach((value: any, key: string) => {
-                components?.set(key, value);
-            });
-            event.removed.forEach((key: string) => {
-                components?.delete(key);
-                failedComponentIds.delete(key);
-            });
-            event.errors.forEach((_value: any, key: string) => {
-                failedComponentIds.add(key);
-            });
-        }
+        const streamIterator = (async function* () {
+            while (true) {
+                const result = await stream.next();
+                if (typeof componentIds === "object" && "code" in componentIds)
+                    return { done: true };
+                yield result;
+                if (stopWatching) return { done: true };
+            }
+        })();
+
+        watchComponentChanges(streamIterator);
     });
+
+    async function watchComponentChanges(stream: AsyncGenerator<any>) {
+        for await (const event of stream) {
+            if (event !== undefined) {
+                event.get("components").forEach((value: any, key: string) => {
+                    if (key === "bevy_render::view::visibility::ViewVisibility") return;
+                    console.log(key);
+                    console.log(value);
+                    components?.set(key, value);
+                });
+                event.get("removed").forEach((key: string) => {
+                    components?.delete(key);
+                    failedComponentIds.delete(key);
+                });
+                event.get("errors").forEach((_value: any, key: string) => {
+                    failedComponentIds.add(key);
+                });
+            } else {
+                console.log("undefined :/");
+            }
+        }
+    }
+
+    onDestroy(() => (stopWatching = true));
 
     async function removeComponent(component: string, entity: number) {
         if (!$wasmBindings) throw Error("App is not running");
@@ -72,7 +99,7 @@
 <ScrollArea class="w-full">
     {#if components !== null}
         <Accordion.Root class="mb-6 grow" multiple>
-            {#each components.entries() as [name, componentValue]}
+            {#each components.keys() as [name, componentValue]}
                 <Accordion.Item value={`${selectedEntity}-${name}`}>
                     <Accordion.Trigger>
                         <div class="flex w-full justify-between pr-2">

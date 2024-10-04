@@ -12,28 +12,11 @@
     let searchQuery = "";
     let selectedEntity: number | null = null;
 
+    $: console.log(selectedEntity);
+
     let entityListKey = {};
     function refreshEntities() {
         entityListKey = {};
-    }
-
-    $: if (selectedEntity) testStream(selectedEntity);
-
-    async function testStream(entity: number) {
-        if (!$wasmBindings) throw Error("App is not running");
-        console.log(entity);
-
-        const stream = await $wasmBindings.brpStreamingRequest("bevy/list", {
-            entity,
-        });
-
-        stream[Symbol.asyncIterator] = function () {
-            return this;
-        };
-
-        for await (const result of stream) {
-            console.log(result);
-        }
     }
 
     async function spawnEntity() {
@@ -92,6 +75,8 @@
     <Separator orientation="vertical" />
 
     {#if selectedEntity !== null}
-        <InspectorComponentList bind:selectedEntity />
+        {#key selectedEntity}
+            <InspectorComponentList bind:selectedEntity />
+        {/key}
     {/if}
 </Card.Content>
