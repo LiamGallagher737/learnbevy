@@ -1,5 +1,5 @@
-<script context="module" lang="ts">
-    export type Tab = "editor" | "assets" | "crates";
+<script module lang="ts">
+    export type Tab = "editor" | "inspector" | "assets" | "crates";
     export const selectedTab = writable<Tab>("editor");
 </script>
 
@@ -8,11 +8,16 @@
     import { Separator } from "$lib/components/ui/separator";
 
     import Code from "lucide-svelte/icons/code";
+    import Inspect from "lucide-svelte/icons/layers-3";
     import Image from "lucide-svelte/icons/images";
     import Package from "lucide-svelte/icons/package";
     import { writable } from "svelte/store";
 
-    export let tabs: Tab[];
+    interface Props {
+        tabs: Tab[];
+    }
+
+    let { tabs }: Props = $props();
 </script>
 
 <div class="flex flex-col">
@@ -24,6 +29,8 @@
         >
             {#if tab === "editor"}
                 <Code />
+            {:else if tab === "inspector"}
+                <Inspect />
             {:else if tab === "assets"}
                 <Image />
             {:else if tab === "crates"}

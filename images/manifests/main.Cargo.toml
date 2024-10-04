@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", default-features = false, features = [
+bevy = { git = "https://github.com/LiamGallagher737/bevy.git", branch = "streaming-brp-methods", default-features = false, features = [
     "animation",
     "bevy_asset",
     "bevy_state",
@@ -18,6 +18,7 @@ bevy = { git = "https://github.com/bevyengine/bevy.git", default-features = fals
     "bevy_pbr",
     "bevy_picking",
     "bevy_gltf",
+    "bevy_remote",
     "bevy_render",
     "bevy_sprite",
     "bevy_text",
@@ -30,6 +31,7 @@ bevy = { git = "https://github.com/bevyengine/bevy.git", default-features = fals
     "default_font",
     "webgl2",
 ] }
+extra_app_code = { git = "https://github.com/LiamGallagher737/learnbevy", rev = "d03d57c" }
 wasm-bindgen = "0.2"
 
 [profile.release.package."*"]

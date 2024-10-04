@@ -12,8 +12,8 @@
     import { toast } from "svelte-sonner";
     import { editorCode } from "$lib/components/editor";
 
-    let open = false;
-    let value = "";
+    let open = $state(false);
+    let value = $state("");
 
     async function loadExampleData(version: Version) {
         if (version !== "main") {
@@ -45,8 +45,10 @@
         });
     }
 
-    let examples: { value: string; label: string }[] = [];
-    $: selectedValue = examples.find((f) => f.value === value)?.label ?? "Select an example...";
+    let examples: { value: string; label: string }[] = $state([]);
+    let selectedValue = $derived(
+        examples.find((f) => f.value === value)?.label ?? "Select an example..."
+    );
 
     // We want to refocus the trigger button when the user selects
     // an item from the list so users can continue navigating the

@@ -4,10 +4,13 @@
 
     type $$Props = HTMLAttributes<HTMLTableCaptionElement>;
 
-    let className: $$Props["class"] = undefined;
-    export { className as class };
+    interface Props {
+        [key: string]: any;
+    }
+
+    let { class: className = undefined, children, ...rest }: Props = $props();
 </script>
 
-<caption class={cn("mt-4 text-sm text-muted-foreground", className)} {...$$restProps}>
-    <slot />
+<caption class={cn("mt-4 text-sm text-muted-foreground", className)} {...rest}>
+    {@render children?.()}
 </caption>

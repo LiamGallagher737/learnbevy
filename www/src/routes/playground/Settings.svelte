@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
     import { writable } from "svelte/store";
     import { DEFAULT_VERSION } from "$lib/versions";
     import { DEFAULT_CHANNEL } from "$lib/channels";
@@ -6,6 +6,8 @@
 </script>
 
 <script lang="ts">
+    import { run } from "svelte/legacy";
+
     import Settings from "lucide-svelte/icons/settings";
     import Info from "lucide-svelte/icons/info";
     import BasicTooltip from "$lib/components/BasicTooltip.svelte";
@@ -16,10 +18,12 @@
     import { VERSIONS } from "$lib/versions";
     import { CHANNELS } from "$lib/channels";
 
-    let selectedVersion = { label: $settings.version, value: $settings.version };
-    let selectedChannel = { label: $settings.channel, value: $settings.channel };
+    let selectedVersion = $state({ label: $settings.version, value: $settings.version });
+    let selectedChannel = $state({ label: $settings.channel, value: $settings.channel });
 
-    $: settings.set({ version: selectedVersion.value, channel: selectedChannel.value });
+    run(() => {
+        settings.set({ version: selectedVersion.value, channel: selectedChannel.value });
+    });
 </script>
 
 <Popover.Root>

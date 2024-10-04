@@ -6,6 +6,7 @@
     import Sidebar, { selectedTab } from "$lib/components/Sidebar.svelte";
     import Settings, { settings } from "./Settings.svelte";
     import Examples from "./Examples.svelte";
+    import Inspector from "$lib/components/inspector/Inspector.svelte";
     import Console from "$lib/components/Console.svelte";
     import { Button } from "$lib/components/ui/button";
     import { Card } from "$lib/components/ui/card";
@@ -16,8 +17,13 @@
     import { editorCode } from "$lib/components/editor";
     import type { PageData } from "./$types";
     import { onMount, tick } from "svelte";
+    import { wasmBindings } from "$lib/play";
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
+
+    let { data }: Props = $props();
     if (data.code) editorCode.set(data.code);
     if (data.version && data.channel)
         settings.set({ version: data.version, channel: data.channel });
@@ -26,11 +32,11 @@
     });
 
     const gameCanvasParentId = "game-container";
-    let gameCanvasParent: HTMLDivElement;
+    let gameCanvasParent: HTMLDivElement = $state();
 
-    let processingRequest = false;
+    let processingRequest = $state(false);
 
-    let editor: Editor;
+    let editor: Editor = $state();
     onMount(() => {
         selectedTab.subscribe(async (newValue) => {
             if (newValue !== "editor") return;
@@ -40,10 +46,9 @@
     });
 
     let gameCanvas: HTMLCanvasElement | null = null;
-    let wasm: any | null = null;
 
     async function play() {
-        if (wasm) wasm.__exit();
+        if ($wasmBindings) $wasmBindings.exit();
         if (gameCanvas) gameCanvas.remove();
         consoleItems.set([]);
         processingRequest = true;
@@ -60,7 +65,6 @@
                 reject(result.message);
             } else {
                 if (result.kind === "Success") gameCanvas = result.gameCanvas;
-                wasm = result.wasm;
                 consoleItems.set([{ kind: "Stdout", text: result.stderr }]);
                 resolve();
             }
@@ -111,13 +115,15 @@
             </Card>
             <div class="flex h-full w-full gap-4 overflow-hidden">
                 <Card class="h-full w-12">
-                    <Sidebar tabs={["editor", "assets", "crates"]} />
+                    <Sidebar tabs={["editor", "inspector", "assets", "crates"]} />
                 </Card>
                 <!-- The 4rem in calc() comes from 3rem sidebar + 1rem gap,
                 flex-grow won't work because of the editor -->
                 <Card class="h-full w-[calc(100%-4rem)] p-4">
                     {#if $selectedTab === "editor"}
                         <Editor bind:this={editor} />
+                    {:else if $selectedTab === "inspector"}
+                        <Inspector />
                     {:else if $selectedTab === "assets"}
                         <AssetExplorer />
                     {:else if $selectedTab === "crates"}

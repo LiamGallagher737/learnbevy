@@ -4,13 +4,16 @@
 
     type $$Props = DialogPrimitive.TitleProps;
 
-    let className: $$Props["class"] = undefined;
-    export { className as class };
+    interface Props {
+        [key: string]: any;
+    }
+
+    let { class: className = undefined, children, ...rest }: Props = $props();
 </script>
 
 <DialogPrimitive.Title
     class={cn("text-lg font-semibold leading-none tracking-tight", className)}
-    {...$$restProps}
+    {...rest}
 >
-    <slot />
+    {@render children?.()}
 </DialogPrimitive.Title>

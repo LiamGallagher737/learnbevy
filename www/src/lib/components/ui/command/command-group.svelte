@@ -3,8 +3,11 @@
     import { cn } from "$lib/utils.js";
     type $$Props = CommandPrimitive.GroupProps;
 
-    let className: string | undefined | null = undefined;
-    export { className as class };
+    interface Props {
+        [key: string]: any;
+    }
+
+    let { class: className = undefined, children, ...rest }: Props = $props();
 </script>
 
 <CommandPrimitive.Group
@@ -12,7 +15,7 @@
         "overflow-hidden p-1 text-foreground [&_[data-cmdk-group-heading]]:px-2 [&_[data-cmdk-group-heading]]:py-1.5 [&_[data-cmdk-group-heading]]:text-xs [&_[data-cmdk-group-heading]]:font-medium [&_[data-cmdk-group-heading]]:text-muted-foreground",
         className
     )}
-    {...$$restProps}
+    {...rest}
 >
-    <slot />
+    {@render children?.()}
 </CommandPrimitive.Group>

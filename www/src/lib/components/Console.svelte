@@ -10,7 +10,7 @@
         ERROR: "text-red-500",
     };
 
-    let consoleElement: HTMLDivElement;
+    let consoleElement: HTMLDivElement = $state();
 
     let defaultConsoleLog = console.log;
     console.log = (...args) => {

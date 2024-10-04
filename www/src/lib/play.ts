@@ -1,6 +1,7 @@
 import type { Version } from "$lib/versions";
 import type { Channel } from "$lib/channels";
 import { env } from "$env/dynamic/public";
+import { writable } from "svelte/store";
 
 type CompileArgs = {
     code: string;
@@ -8,6 +9,20 @@ type CompileArgs = {
     channel: Channel;
     parentId: string;
 };
+
+type WasmBindings = {
+    exit: () => void;
+    brpRequest: (method: string, params: any) => any;
+    brpStreamingRequest: (method: `${string}+watch`, params: any) => any;
+};
+
+export const wasmBindings = writable<WasmBindings | null>(null);
+
+declare global {
+    interface Window {
+        wasm: WasmBindings;
+    }
+}
 
 export async function play(args: CompileArgs): Promise<PlayResponse> {
     // Use the provided host if given
@@ -63,7 +78,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
     const body = await res.blob();
 
     // Split the response in to its parts
-    const wasm = body.slice(0, wasmSize, "application/wasm");
+    const wasm_part = body.slice(0, wasmSize, "application/wasm");
     const js = body.slice(wasmSize, wasmSize + jsSize, "application/javascript");
     const stderr = body.slice(wasmSize + jsSize, -1, "text/plain");
 
@@ -75,7 +90,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
     let refObj: any = new Object();
     const AsyncFunction: any = async function () {}.constructor;
     const load = new AsyncFunction("wasm_blob", "ref_obj", jsText);
-    await load(wasm, refObj).catch((error: { message: string }) => {
+    await load(wasm_part, refObj).catch((error: { message: string }) => {
         if (
             !error.message.startsWith(
                 "Using exceptions for control flow, don't mind me. This isn't actually an error!"
@@ -92,7 +107,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
 
     // Return if no canvas was spawned
     if (!gameCanvas) {
-        return { kind: "ConsoleOnly", wasm: refObj.wasm, stderr: stderrText };
+        return { kind: "ConsoleOnly", stderr: stderrText };
     }
     // Set the canvas's parent to the element with the given parentId
     const parent = document.getElementById(args.parentId)!;
@@ -106,19 +121,19 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
     gameCanvas.style.height = `${parent.clientWidth * (9 / 16)}px`;
     gameCanvas.style.borderRadius = "0.5rem";
 
-    return { kind: "Success", gameCanvas, wasm: refObj.wasm, stderr: stderrText };
+    wasmBindings.set(refObj);
+    window.wasm = refObj;
+    return { kind: "Success", gameCanvas, stderr: stderrText };
 }
 
 type PlayResponse = Success | ConsoleOnly | Failed;
 type Success = {
     kind: "Success";
     gameCanvas: HTMLCanvasElement;
-    wasm: any;
     stderr: string;
 };
 type ConsoleOnly = {
     kind: "ConsoleOnly";
-    wasm: any;
     stderr: string;
 };
 type Failed = {

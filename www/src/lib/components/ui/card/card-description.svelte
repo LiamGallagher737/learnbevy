@@ -4,10 +4,13 @@
 
     type $$Props = HTMLAttributes<HTMLParagraphElement>;
 
-    let className: $$Props["class"] = undefined;
-    export { className as class };
+    interface Props {
+        [key: string]: any;
+    }
+
+    let { class: className = undefined, children, ...rest }: Props = $props();
 </script>
 
-<p class={cn("text-sm text-muted-foreground", className)} {...$$restProps}>
-    <slot />
+<p class={cn("text-sm text-muted-foreground", className)} {...rest}>
+    {@render children?.()}
 </p>

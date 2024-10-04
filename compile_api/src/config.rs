@@ -35,6 +35,9 @@ pub fn edit_code_for_version(code: &str, version: Version) -> String {
 /// It currently is just an [AtomicBool](std::sync::atomic::AtomicBool) that defaults to false and
 /// a system which sends the Bevy exit event when the bool is set to true from the JavaScript.
 const EXTRA_RUST: &str = r#"
+#[allow(unused_imports)]
+use extra_app_code::exports::*;
+
 static __EXIT_FLAG: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn __exit() {
@@ -92,7 +95,7 @@ fn edit_code_v14(code: &str) -> String {
 fn edit_code_v11(code: &str) -> String {
     let mut modified_code = code.replace(
         "App::new()",
-        "App::new().add_systems(Update, __check_exit_flag)",
+        "App::new().add_systems(Update, __check_exit_flag).add_plugins(extra_app_code::Plugin)",
     );
     modified_code.push_str(EXTRA_RUST);
     modified_code
