@@ -11,13 +11,32 @@
     export let selectedEntity: number | null = null;
 
     let components: Map<string, any> | null = null;
-    let failedComponentIds: string[] = [];
+    let failedComponentIds: Set<string>;
 
     onMount(async () => {
         if (!$wasmBindings) return;
 
-        const stream = await $wasmBindings.brpStreamingRequest("bevy/list", {
+        const componentIds = await $wasmBindings.brpRequest("bevy/list", {
             entity: selectedEntity,
+        });
+
+        if (typeof componentIds === "object" && "code" in componentIds)
+            throw Error(componentIds.message);
+
+        const initialRequest = await $wasmBindings.brpRequest("bevy/get", {
+            entity: selectedEntity,
+            components: componentIds,
+        });
+
+        if (typeof initialRequest === "object" && "code" in initialRequest)
+            throw Error(initialRequest.message);
+
+        components = initialRequest.get("components");
+        failedComponentIds = new Set(Array.from(initialRequest.get("errors").keys()));
+
+        const stream = await $wasmBindings.brpStreamingRequest("bevy/get+watch", {
+            entity: selectedEntity,
+            components: componentIds,
         });
 
         // Temp solution until I find a way to add this from wasm-bindgen side
@@ -25,18 +44,17 @@
             return this;
         };
 
-        for await (const componentIds of stream) {
-            console.log(componentIds);
-            if (componentIds === undefined) continue;
-
-            const result = await $wasmBindings.brpRequest("bevy/get", {
-                entity: selectedEntity,
-                components: componentIds,
+        for await (const event of stream) {
+            event.components.forEach((value: any, key: string) => {
+                components?.set(key, value);
             });
-
-            if (typeof result === "object" && "code" in result) throw Error(result.message);
-            components = result.get("components");
-            failedComponentIds = Array.from(result.get("errors").keys());
+            event.removed.forEach((key: string) => {
+                components?.delete(key);
+                failedComponentIds.delete(key);
+            });
+            event.errors.forEach((_value: any, key: string) => {
+                failedComponentIds.add(key);
+            });
         }
     });
 
@@ -82,7 +100,7 @@
         Loading...
     {/if}
 
-    {#if failedComponentIds.length > 0}
+    {#if failedComponentIds.size > 0}
         <Card.Description>
             The following components could not be inspected:
             <ul class="list-inside list-disc break-all">

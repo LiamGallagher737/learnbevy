@@ -1,6 +1,6 @@
 use async_channel::{Receiver, Sender};
 use bevy_ecs::system::Res;
-use bevy_log::{debug, warn};
+use bevy_log::debug;
 use bevy_remote::{error_codes, BrpError, BrpMessage, BrpResult, BrpSender};
 use js_sys::Promise;
 use std::sync::OnceLock;
@@ -39,7 +39,7 @@ pub async fn brp_js_binding(method: String, params: JsValue) -> JsValue {
 
 /// Handle a single BRP request from the JS binding
 async fn process_request(method: String, params: JsValue) -> BrpResult {
-    let result_receiver = send_request(method, params, false).await?;
+    let result_receiver = send_request(method, params).await?;
     result_receiver
         .recv()
         .await
@@ -65,15 +65,11 @@ async fn process_streaming_request(
     method: String,
     params: JsValue,
 ) -> BrpResult<BrpResponseStream> {
-    let rx = send_request(method, params, true).await?;
+    let rx = send_request(method, params).await?;
     Ok(BrpResponseStream { rx })
 }
 
-async fn send_request(
-    method: String,
-    params: JsValue,
-    stream: bool,
-) -> BrpResult<Receiver<BrpResult>> {
+async fn send_request(method: String, params: JsValue) -> BrpResult<Receiver<BrpResult>> {
     let params = if !params.is_undefined() {
         Some(
             serde_wasm_bindgen::from_value(params).map_err(|err| BrpError {
@@ -96,7 +92,6 @@ async fn send_request(
             method,
             params,
             sender: result_sender,
-            stream,
         })
         .await;
 
