@@ -5,21 +5,28 @@
 
     type $$Props = AccordionPrimitive.ContentProps;
 
-    let className: $$Props["class"] = undefined;
-    export let transition: $$Props["transition"] = slide;
-    export let transitionConfig: $$Props["transitionConfig"] = {
-        duration: 200,
-    };
-    export { className as class };
+    interface Props {
+        [key: string]: any;
+    }
+
+    let {
+        class: className = undefined,
+        transition = slide,
+        transitionConfig = {
+            duration: 200,
+        },
+        children,
+        ...rest
+    }: Props = $props();
 </script>
 
 <AccordionPrimitive.Content
     class={cn("overflow-hidden text-sm transition-all", className)}
     {transition}
     {transitionConfig}
-    {...$$restProps}
+    {...rest}
 >
     <div class="pb-4 pt-0">
-        <slot />
+        {@render children?.()}
     </div>
 </AccordionPrimitive.Content>

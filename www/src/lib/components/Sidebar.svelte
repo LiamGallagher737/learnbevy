@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
     export type Tab = "editor" | "inspector" | "assets" | "crates";
     export const selectedTab = writable<Tab>("editor");
 </script>
@@ -13,7 +13,11 @@
     import Package from "lucide-svelte/icons/package";
     import { writable } from "svelte/store";
 
-    export let tabs: Tab[];
+    interface Props {
+        tabs: Tab[];
+    }
+
+    let { tabs }: Props = $props();
 </script>
 
 <div class="flex flex-col">

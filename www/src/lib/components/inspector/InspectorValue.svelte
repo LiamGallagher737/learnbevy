@@ -4,8 +4,12 @@
     import { Label } from "$lib/components/ui/label";
     import { Input } from "$lib/components/ui/input";
 
-    export let id: string;
-    export let value: any;
+    interface Props {
+        id: string;
+        value: any;
+    }
+
+    let { id, value }: Props = $props();
 </script>
 
 {#if typeof value === "object"}

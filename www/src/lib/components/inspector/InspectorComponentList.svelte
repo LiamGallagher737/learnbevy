@@ -7,12 +7,19 @@
     import { ScrollArea } from "../ui/scroll-area";
     import InspectorValue from "./InspectorValue.svelte";
     import Trash from "lucide-svelte/icons/trash";
+    import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
-    export let selectedEntity: number | null = null;
+    interface Props {
+        selectedEntity: number | null;
+    }
 
-    let components: Map<string, any> | null = null;
-    let failedComponentIds: Set<string> = new Set();
+    let { selectedEntity = null }: Props = $props();
+
+    let components = $state(new SvelteMap<string, any>());
+    let failedComponentIds = $state(new SvelteSet<string>());
     let stopWatching = false;
+
+    $inspect(components);
 
     onMount(async () => {
         if (!$wasmBindings) return;
@@ -20,8 +27,6 @@
         const componentIds = await $wasmBindings.brpRequest("bevy/list", {
             entity: selectedEntity,
         });
-
-        console.log(componentIds);
 
         if (typeof componentIds === "object" && "code" in componentIds)
             throw Error(componentIds.message);
@@ -31,29 +36,22 @@
             components: componentIds,
         });
 
-        console.log(initialRequest);
-
         if (typeof initialRequest === "object" && "code" in initialRequest)
             throw Error(initialRequest.message);
 
-        components = initialRequest.get("components");
-        failedComponentIds = new Set(Array.from(initialRequest.get("errors").keys()));
-
-        console.log("success 1");
+        components = new SvelteMap(initialRequest.get("components"));
+        failedComponentIds = new SvelteSet(Array.from(initialRequest.get("errors").keys()));
 
         const stream = await $wasmBindings.brpStreamingRequest("bevy/get+watch", {
             entity: selectedEntity,
             components: componentIds,
         });
 
-        console.log("made stream");
-
         const streamIterator = (async function* () {
             while (true) {
                 const result = await stream.next();
-                if (typeof componentIds === "object" && "code" in componentIds)
-                    return { done: true };
-                yield result;
+                if (typeof result === "object" && "code" in result) yield undefined;
+                else yield result;
                 if (stopWatching) return { done: true };
             }
         })();
@@ -63,15 +61,14 @@
 
     async function watchComponentChanges(stream: AsyncGenerator<any>) {
         for await (const event of stream) {
+            if (typeof event === "object" && "done" in event && event.done) break;
             if (event !== undefined) {
                 event.get("components").forEach((value: any, key: string) => {
                     if (key === "bevy_render::view::visibility::ViewVisibility") return;
-                    console.log(key);
-                    console.log(value);
-                    components?.set(key, value);
+                    components.set(key, value);
                 });
                 event.get("removed").forEach((key: string) => {
-                    components?.delete(key);
+                    components.delete(key);
                     failedComponentIds.delete(key);
                 });
                 event.get("errors").forEach((_value: any, key: string) => {
@@ -97,35 +94,32 @@
 </script>
 
 <ScrollArea class="w-full">
-    {#if components !== null}
-        <Accordion.Root class="mb-6 grow" multiple>
-            {#each components.keys() as [name, componentValue]}
-                <Accordion.Item value={`${selectedEntity}-${name}`}>
-                    <Accordion.Trigger>
-                        <div class="flex w-full justify-between pr-2">
-                            <span>
-                                {name.split("::").pop()}
-                            </span>
-                            <Button
-                                class="h-6"
-                                variant="ghost"
-                                on:click={async () => {
-                                    await removeComponent(name, selectedEntity ?? -1);
-                                }}
-                            >
-                                <Trash size={14} />
-                            </Button>
-                        </div>
-                    </Accordion.Trigger>
-                    <Accordion.Content class="pl-4">
-                        <InspectorValue id={`${selectedEntity}-${name}`} value={componentValue} />
-                    </Accordion.Content>
-                </Accordion.Item>
-            {/each}
-        </Accordion.Root>
-    {:else}
-        Loading...
-    {/if}
+    <Accordion.Root class="mb-6 grow" multiple>
+        {#each components as [name, componentValue]}
+            <Accordion.Item value={`${selectedEntity}-${name}`}>
+                <Accordion.Trigger>
+                    <div class="flex w-full justify-between pr-2">
+                        <span>
+                            {name.split("::").pop()}
+                        </span>
+                        <Button
+                            class="h-6"
+                            variant="ghost"
+                            onclick={async () => {
+                                await removeComponent(name, selectedEntity ?? -1);
+                                components.delete(name);
+                            }}
+                        >
+                            <Trash size={14} />
+                        </Button>
+                    </div>
+                </Accordion.Trigger>
+                <Accordion.Content class="pl-4">
+                    <InspectorValue id={`${selectedEntity}-${name}`} value={componentValue} />
+                </Accordion.Content>
+            </Accordion.Item>
+        {/each}
+    </Accordion.Root>
 
     {#if failedComponentIds.size > 0}
         <Card.Description>

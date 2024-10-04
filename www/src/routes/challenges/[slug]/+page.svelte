@@ -16,11 +16,11 @@
     import { wasmBindings } from "$lib/play";
 
     const gameCanvasParentId = "game-container";
-    let gameCanvasParent: HTMLDivElement;
+    let gameCanvasParent: HTMLDivElement = $state();
 
-    let processingRequest = false;
+    let processingRequest = $state(false);
 
-    let editor: Editor;
+    let editor: Editor = $state();
     onMount(() => {
         selectedTab.subscribe(async (newValue) => {
             if (newValue !== "editor") return;

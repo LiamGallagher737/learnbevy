@@ -7,7 +7,7 @@
 
     let editor: Monaco.editor.IStandaloneCodeEditor;
     let monaco: typeof Monaco;
-    let editorContainer: HTMLElement;
+    let editorContainer: HTMLElement = $state();
 
     export const layout = () => {
         editor?.layout(); // Recalculates width and height
@@ -56,4 +56,4 @@
     });
 </script>
 
-<div class="h-full w-full" bind:this={editorContainer} />
+<div class="h-full w-full" bind:this={editorContainer}></div>

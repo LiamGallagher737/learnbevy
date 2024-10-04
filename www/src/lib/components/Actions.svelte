@@ -11,8 +11,12 @@
     import { DEFAULT_VERSION, type Version } from "$lib/versions";
     import { DEFAULT_CHANNEL, type Channel } from "$lib/channels";
 
-    export let version: Version = DEFAULT_VERSION;
-    export let channel: Channel = DEFAULT_CHANNEL;
+    interface Props {
+        version?: Version;
+        channel?: Channel;
+    }
+
+    let { version = DEFAULT_VERSION, channel = DEFAULT_CHANNEL }: Props = $props();
 
     async function copyCodeToClipboard() {
         await navigator.clipboard.writeText($editorCode);

@@ -19,7 +19,11 @@
     import { onMount, tick } from "svelte";
     import { wasmBindings } from "$lib/play";
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
+
+    let { data }: Props = $props();
     if (data.code) editorCode.set(data.code);
     if (data.version && data.channel)
         settings.set({ version: data.version, channel: data.channel });
@@ -28,11 +32,11 @@
     });
 
     const gameCanvasParentId = "game-container";
-    let gameCanvasParent: HTMLDivElement;
+    let gameCanvasParent: HTMLDivElement = $state();
 
-    let processingRequest = false;
+    let processingRequest = $state(false);
 
-    let editor: Editor;
+    let editor: Editor = $state();
     onMount(() => {
         selectedTab.subscribe(async (newValue) => {
             if (newValue !== "editor") return;

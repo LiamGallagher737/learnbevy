@@ -4,13 +4,13 @@
 
     type $$Props = SelectPrimitive.LabelProps;
 
-    let className: $$Props["class"] = undefined;
-    export { className as class };
+    interface Props {
+        [key: string]: any;
+    }
+
+    let { class: className = undefined, children, ...rest }: Props = $props();
 </script>
 
-<SelectPrimitive.Label
-    class={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
-    {...$$restProps}
->
-    <slot />
+<SelectPrimitive.Label class={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)} {...rest}>
+    {@render children?.()}
 </SelectPrimitive.Label>

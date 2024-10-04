@@ -7,7 +7,10 @@
     import { toast } from "svelte-sonner";
 
     type Folder = keyof typeof assetMap;
-    let selectedFolder: { label: string; value: Folder } = { label: "textures", value: "textures" };
+    let selectedFolder: { label: string; value: Folder } = $state({
+        label: "textures",
+        value: "textures",
+    });
 
     function getFileName(path: string) {
         let name = path.split("/").pop()!.split(".")[0];

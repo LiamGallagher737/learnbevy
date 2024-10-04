@@ -5,10 +5,14 @@
     import * as Table from "../ui/table";
     import { toast } from "svelte-sonner";
 
-    export let selected: number | null = null;
-    export let filter: string = "";
+    interface Props {
+        selected: number | null;
+        filter: string;
+    }
 
-    let entities: any[] | null = null;
+    let { selected = $bindable(null), filter = "" }: Props = $props();
+
+    let entities: any[] | null = $state(null);
 
     onMount(async () => {
         if (!$wasmBindings) return;

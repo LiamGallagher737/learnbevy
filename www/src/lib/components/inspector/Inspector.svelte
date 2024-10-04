@@ -9,12 +9,10 @@
     import InspectorEntityList from "./InspectorEntityList.svelte";
     import InspectorComponentList from "./InspectorComponentList.svelte";
 
-    let searchQuery = "";
-    let selectedEntity: number | null = null;
+    let searchQuery = $state("");
+    let selectedEntity: number | null = $state(null);
 
-    $: console.log(selectedEntity);
-
-    let entityListKey = {};
+    let entityListKey = $state({});
     function refreshEntities() {
         entityListKey = {};
     }
@@ -68,7 +66,7 @@
             </Button>
         </div>
         {#key entityListKey}
-            <InspectorEntityList bind:selected={selectedEntity} bind:filter={searchQuery} />
+            <InspectorEntityList bind:selected={selectedEntity} filter={searchQuery} />
         {/key}
     </div>
 
@@ -76,7 +74,7 @@
 
     {#if selectedEntity !== null}
         {#key selectedEntity}
-            <InspectorComponentList bind:selectedEntity />
+            <InspectorComponentList {selectedEntity} />
         {/key}
     {/if}
 </Card.Content>

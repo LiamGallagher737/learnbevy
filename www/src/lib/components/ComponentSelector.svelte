@@ -10,10 +10,14 @@
     import { ScrollArea } from "$lib/components/ui/scroll-area";
     import { TypePath } from "$lib/disqualified";
 
-    export let value: TypePath | null = null;
+    interface Props {
+        value?: TypePath | null;
+    }
 
-    let open = false;
-    let componentIds: TypePath[] = [];
+    let { value = $bindable(null) }: Props = $props();
+
+    let open = $state(false);
+    let componentIds: TypePath[] = $state([]);
 
     async function loadComponentIds() {
         if (!$wasmBindings) throw Error("App is not running");
