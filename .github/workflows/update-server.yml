@@ -29,4 +29,4 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - name: Update Server
       working-directory: ./compile_server_os
-      run: nix run nixpkgs#nixos-rebuild -- --flake .#host-eons-slc --target-host root@slc.compile.learnbevy.com switch
+      run: nix run nixpkgs#nixos-rebuild -- switch --flake .#host-eons-slc --target-host root@slc.compile.learnbevy.com
