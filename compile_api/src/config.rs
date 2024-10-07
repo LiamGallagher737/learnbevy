@@ -28,6 +28,9 @@ pub fn edit_code_for_version(code: &str, version: Version) -> String {
 /// a system which sends the Bevy exit event when the bool is set to true from the
 /// JavaScript.config
 const EXTRA_RUST: &str = r#"
+#[allow(unused_imports)]
+use playground_lib::exports::*;
+
 static __EXIT_FLAG: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn __exit() {
@@ -38,45 +41,13 @@ fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>
         exit.send(bevy::app::AppExit::Success);
     }
 }
-
-#[allow(unused_imports)]
-use __playground_dbg::dbg;
-mod __playground_dbg {
-    use wasm_bindgen::prelude::*;
-
-    #[wasm_bindgen]
-    extern "C" {
-        #[wasm_bindgen(js_namespace = console)]
-        pub fn log(s: &str);
-    }
-
-    #[allow(unused_macros)]
-    macro_rules! dbg {
-        () => {
-            __playground_dbg::log(&format_args!("%d{}:{}:{}", file!(), line!(), column!())).to_string()
-        };
-        ($val:expr $(,)?) => {
-            match $val {
-                tmp => {
-                    __playground_dbg::log(&format_args!("%d{}:{}:{} {} = {:?}",
-                        file!(), line!(), column!(), stringify!($val), &tmp).to_string());
-                    tmp
-                }
-            }
-        };
-        ($($val:expr),+ $(,)?) => {
-            ($(dbg!($val)),+,)
-        };
-    }
-    pub(crate) use dbg;
-}
 "#;
 
 /// Monifies the code in Bevy 0.14's style. Used by [edit_code_for_version].
 fn edit_code_v14(code: &str) -> String {
     let mut modified_code = code.replace(
         "App::new()",
-        "App::new().add_systems(Update, __check_exit_flag)",
+        "App::new().add_plugins(playground_lib::Plugin).add_systems(Update, __check_exit_flag)",
     );
     modified_code.push_str(EXTRA_RUST);
     modified_code
