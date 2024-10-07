@@ -65,8 +65,8 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     }
 
     let wasm = fs::read(dir.join("game_bg.wasm")).await?;
-    let js = fs::read(dir.join("game.js")).await?;
-    let mut modified_js = modify_js(js);
+    let js = fs::read_to_string(dir.join("game.js")).await?;
+    let modified_js = modify_js(js);
 
     let mut stderr = output.stderr;
 
@@ -74,7 +74,7 @@ pub async fn compile(request: Request<()>) -> Result<Response, tide::Error> {
     let js_length = modified_js.len();
 
     let mut body = wasm;
-    body.append(&mut modified_js);
+    body.extend_from_slice(modified_js.as_bytes());
     body.append(&mut stderr);
 
     let mut encoder = GzEncoder::new(Vec::with_capacity(body.len() / 3), Compression::new(2));
@@ -117,31 +117,11 @@ fn temp_dir(name: &str) -> PathBuf {
     env::temp_dir().join("bca").join(name)
 }
 
-/// Any "export" tokens will cause the code to be invalid on the frontend as it's run as a function
-/// and JavaScript functions cannot contain exports. This removes the export token for the __exit()
-/// method
-fn modify_js(mut js: Vec<u8>) -> Vec<u8> {
-    // Remove "export" from "export function __exit()"
-    let search_bytes = b"export function __exit()";
-    let mut seen = 0;
-    let mut n = 0;
-    for byte in &js {
-        if *byte == search_bytes[seen] {
-            seen += 1;
-        } else {
-            seen = 0;
-        }
-        if seen == search_bytes.len() {
-            break;
-        }
-        n += 1;
-    }
-    js.drain(n - seen + 1..n - seen + 7);
-    // Remove two last lines of exports
-    js.resize(js.len() - 47, 0);
-    // Remove "import.meta.url" as it's not allowed outside a js module
-    js.drain(js.len() - 403 - 17..js.len() - 403);
-    // Add on the extra js
-    js.append(&mut include_bytes!("extra.js").to_vec());
+fn modify_js(mut js: String) -> String {
+    // The space after export is very important as some function names contain "export"
+    js = js.replace("export ", "").replace("import.meta.url", "");
+    // Remove the last two lines that break things
+    js.truncate(js.len() - 35);
+    js.push_str(include_str!("extra.js"));
     js
 }
