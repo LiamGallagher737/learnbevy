@@ -6,7 +6,7 @@ extern "C" {
     pub fn log(s: &str);
 }
 
-#[allow(unused_macros)]
+#[macro_export]
 macro_rules! dbg {
     () => {
         playground_lib:exports::log(&format_args!("%d{}:{}:{}", file!(), line!(), column!())).to_string()

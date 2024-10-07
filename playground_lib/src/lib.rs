@@ -10,10 +10,10 @@ mod log;
 /// ```
 pub mod exports {
     pub use super::log::log;
+    pub use crate::dbg;
 }
 
 pub struct Plugin;
 impl bevy_app::Plugin for Plugin {
     fn build(&self, app: &mut App) {}
 }
-
