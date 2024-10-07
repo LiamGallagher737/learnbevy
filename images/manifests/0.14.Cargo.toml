@@ -29,7 +29,7 @@ bevy = { version = "0.14", default-features = false, features = [
     "default_font",
     "webgl2",
 ] }
-playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git" }
+playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git", branch = "playground-lib-crate" }
 
 rand = "0.8.5"
 rand_chacha = "0.3.1"
