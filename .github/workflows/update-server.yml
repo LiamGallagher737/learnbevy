@@ -28,6 +28,7 @@ jobs:
         mkdir -p ~/.ssh/
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan root@slc.compile.learnbevy.com >> ~/.ssh/known_hosts
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
     - name: Test SSH
