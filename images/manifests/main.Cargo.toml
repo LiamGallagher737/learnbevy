@@ -31,7 +31,7 @@ bevy = { git = "https://github.com/bevyengine/bevy.git", default-features = fals
     "webgl2",
 ] }
 wasm-bindgen = "0.2"
-playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git" }
+playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git", branch = "playground-lib-crate" }
 
 [profile.release.package."*"]
 opt-level = 'z'
