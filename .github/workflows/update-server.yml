@@ -23,4 +23,4 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - name: Update Server
       working-directory: ./compile_server_os
-      run: nix run github:nix-community/nixos-anywhere -- --flake .#host-enos-slc root@slc.compile.learnbevy.com
+      run: nix run github:nix-community/nixos-anywhere -- --flake .#host-eons-slc root@slc.compile.learnbevy.com
