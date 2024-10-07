@@ -38,6 +38,10 @@ RUN cargo init --name game --vcs none /playground
 
 ARG version
 
+# Force a rebuild when the main branch is updated
+# TODO: Find a way to mae this conditional for only main version builds
+ADD https://api.github.com/repos/bevyengine/bevy/commits/main /playground/tools/latest-bevy-main
+
 COPY manifests/${version}.Cargo.toml /playground/Cargo.toml
 COPY nightly.config.toml /playground/.config/config.toml
 RUN if [ "${channel}" = 'stable' ]; then rm -rf /playground/.config; fi
