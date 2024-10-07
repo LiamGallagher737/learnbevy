@@ -1,0 +1,36 @@
+name: Update Compile Server
+
+on:
+  push:
+    branches: [main]
+    paths:
+    - 'compile_api/**'
+    - 'compile_server_os/**'
+    - '.github/workflows/compile-server-os-ci.yml'
+  pull_request: # for testing
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Nix
+      uses: cachix/install-nix-action@v27
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh/
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan slc.compile.learnbevy.com >> ~/.ssh/known_hosts
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Update Server
+      working-directory: ./compile_server_os
+      run: nix run nixpkgs#nixos-rebuild -- switch --flake .#host-eons-slc --target-host root@slc.compile.learnbevy.com
