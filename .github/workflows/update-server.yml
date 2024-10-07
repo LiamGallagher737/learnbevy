@@ -1,0 +1,21 @@
+name: Update Compile Server
+
+on:
+  push:
+    branches: [main]
+    paths:
+    - 'compile_server_os/**'
+    - '.github/workflows/compile-server-os-ci.yml'
+  pull_request: # for testing
+
+jobs:
+  update-server:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: cachix/install-nix-action@v27
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Update Server
+      working-directory: ./compile_server_os
+      run: nix run github:nix-community/nixos-anywhere -- --flake .#host-enos-slc
