@@ -31,8 +31,6 @@ jobs:
         ssh-keyscan slc.compile.learnbevy.com >> ~/.ssh/known_hosts
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-    - name: Test SSH
-      run: ssh root@slc.compile.learnbevy.com 'echo yes'
     - name: Update Server
       working-directory: ./compile_server_os
       run: nix run nixpkgs#nixos-rebuild -- switch --flake .#host-eons-slc --target-host root@slc.compile.learnbevy.com
