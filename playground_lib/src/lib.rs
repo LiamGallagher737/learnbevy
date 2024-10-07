@@ -10,7 +10,6 @@ mod log;
 /// ```
 pub mod exports {
     pub use super::log::log;
-    pub use crate::dbg;
 }
 
 pub struct Plugin;

@@ -30,6 +30,8 @@ pub fn edit_code_for_version(code: &str, version: Version) -> String {
 const EXTRA_RUST: &str = r#"
 #[allow(unused_imports)]
 use playground_lib::exports::*;
+#[allow(unused_imports)]
+use playground_lib::dbg;
 
 static __EXIT_FLAG: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 #[wasm_bindgen::prelude::wasm_bindgen]
