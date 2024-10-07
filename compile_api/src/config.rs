@@ -32,24 +32,13 @@ const EXTRA_RUST: &str = r#"
 use playground_lib::exports::*;
 #[allow(unused_imports)]
 use playground_lib::dbg;
-
-static __EXIT_FLAG: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn __exit() {
-    __EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
-}
-fn __check_exit_flag(mut exit: bevy::ecs::event::EventWriter<bevy::app::AppExit>) {
-    if __EXIT_FLAG.load(std::sync::atomic::Ordering::Relaxed) {
-        exit.send(bevy::app::AppExit::Success);
-    }
-}
 "#;
 
 /// Monifies the code in Bevy 0.14's style. Used by [edit_code_for_version].
 fn edit_code_v14(code: &str) -> String {
     let mut modified_code = code.replace(
         "App::new()",
-        "App::new().add_plugins(playground_lib::Plugin).add_systems(Update, __check_exit_flag)",
+        "App::new().add_plugins(playground_lib::Plugin)",
     );
     modified_code.push_str(EXTRA_RUST);
     modified_code

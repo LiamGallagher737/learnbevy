@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 bevy_app = "0.14"
+bevy_ecs = "0.14"
 bevy_log = "0.14"
 wasm-bindgen = "0.2"

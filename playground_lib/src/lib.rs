@@ -1,5 +1,6 @@
 use bevy_app::{App, Startup};
 
+mod exit;
 mod log;
 
 /// Items that should be accessable from the sandbox app.
@@ -14,5 +15,7 @@ pub mod exports {
 
 pub struct Plugin;
 impl bevy_app::Plugin for Plugin {
-    fn build(&self, app: &mut App) {}
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, exit::check_exit_flag);
+    }
 }
