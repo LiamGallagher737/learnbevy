@@ -1,7 +1,5 @@
 use bevy_app::{App, Startup};
 
-pub use crate::dbg;
-
 mod log;
 
 /// Items that should be accessable from the sandbox app.
