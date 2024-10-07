@@ -1,13 +1,16 @@
 { pkgs, ... }: {
-  languages.rust.enable = true;
-  languages.javascript = {
-      enable = true;
-      npm.enable = true;
-  };
-  packages = with pkgs; [
-    podman
-    cargo-watch
-    nodePackages.wrangler
-    lsof # for wrangler
-  ];
+    languages.rust = {
+        enable = true;
+        channel = "stable";
+    };
+    languages.javascript = {
+        enable = true;
+        npm.enable = true;
+    };
+    packages = with pkgs; [
+        podman
+        cargo-watch
+        nodePackages.wrangler
+        lsof # for wrangler
+    ];
 }
