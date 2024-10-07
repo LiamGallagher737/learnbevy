@@ -7,6 +7,7 @@ on:
     - 'compile_api/**'
     - 'compile_server_os/**'
     - '.github/workflows/compile-server-os-ci.yml'
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
