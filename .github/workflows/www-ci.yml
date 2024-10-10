@@ -43,7 +43,7 @@ jobs:
         run: deno install
       - name: Check
         working-directory: www
-        run: deno run npm:oxlint@latest
+        run: deno run --allow-all npm:oxlint@latest
 
   format:
     runs-on: ubuntu-latest
