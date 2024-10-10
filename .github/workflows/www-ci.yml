@@ -13,9 +13,9 @@ on:
     - '.github/workflows/www-ci.yml'
 
 jobs:
-  check:
+  svelte:
     runs-on: ubuntu-latest
-    name: Run Check
+    name: Check Svelte
     steps:
       - uses: actions/checkout@v4
       - name: Install Deno
@@ -28,6 +28,23 @@ jobs:
       - name: Check
         working-directory: www
         run: deno task check
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Check Lints
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+      - name: Install Dependencies
+        working-directory: www
+        run: deno install
+      - name: Check
+        working-directory: www
+        run: deno run npm:oxlint@latest
+
   format:
     runs-on: ubuntu-latest
     name: Check Formatting
