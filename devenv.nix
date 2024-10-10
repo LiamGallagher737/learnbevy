@@ -1,4 +1,7 @@
-{ pkgs, ... }: {
+{ pkgs, inputs, ... }:
+let
+    pkgs-unstable = import inputs.nixpkgs-unstable { system = pkgs.stdenv.system; };
+in {
     languages.rust = {
         enable = true;
         channel = "stable";
@@ -7,10 +10,10 @@
         enable = true;
         npm.enable = true;
     };
-    packages = with pkgs; [
-        podman
-        cargo-watch
-        nodePackages.wrangler
-        lsof # for wrangler
+    packages = [
+        pkgs.podman
+        pkgs.cargo-watch
+        pkgs-unstable.oxlint
+        pkgs-unstable.deno
     ];
 }
