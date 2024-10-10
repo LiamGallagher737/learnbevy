@@ -1,7 +1,0 @@
-{
-    "fmt": {
-        "include": ["src/"],
-        "exclude": ["src/**/$types.d.ts"]
-    }
-    "unstable": ["fmt-component"]
-}
