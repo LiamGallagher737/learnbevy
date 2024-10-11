@@ -43,7 +43,7 @@ jobs:
         run: deno install
       - name: Check
         working-directory: www
-        run: deno run --allow-all npm:oxlint@latest -f github --deny-warnings
+        run: deno run --allow-all npm:oxlint@0.9.10 -f github --deny-warnings
 
   format:
     runs-on: ubuntu-latest
