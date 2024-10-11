@@ -7,16 +7,22 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "lint": "eslint ."
   },
   "devDependencies": {
+    "@eslint/js": "^9.12.0",
     "@sveltejs/adapter-auto": "^3.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0-next.6",
+    "eslint": "^9.12.0",
+    "eslint-plugin-svelte": "^2.44.1",
+    "globals": "^15.11.0",
     "svelte": "^5.0.0-next.1",
     "svelte-check": "^4.0.0",
     "sveltekit-adapter-deno": "^0.12.0",
     "typescript": "^5.0.0",
+    "typescript-eslint": "^8.8.1",
     "vite": "^5.0.3"
   },
   "type": "module"

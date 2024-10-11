@@ -13,7 +13,6 @@ in {
     packages = [
         pkgs.podman
         pkgs.cargo-watch
-        pkgs-unstable.oxlint
         pkgs-unstable.deno
     ];
 }
