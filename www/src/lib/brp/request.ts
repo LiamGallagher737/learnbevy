@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface JsonRpcRequest<TParams> {
-    jsonrpc?: "2.0";
+    jsonrpc: "2.0";
     id?: number | string | null;
     method: string;
     params: TParams;
@@ -73,15 +73,3 @@ export type ReparentRequest = JsonRpcRequest<ReparentParams> & { method: "bevy/r
 export type ListRequest = JsonRpcRequest<ListParams> & { method: "bevy/list" };
 export type GetWatchRequest = JsonRpcRequest<GetWatchParams> & { method: "bevy/get+watch" };
 export type ListWatchRequest = JsonRpcRequest<ListWatchParams> & { method: "bevy/list+watch" };
-
-export type BrpRequest =
-    | GetRequest
-    | QueryRequest
-    | SpawnRequest
-    | DestroyRequest
-    | RemoveRequest
-    | InsertRequest
-    | ReparentRequest
-    | ListRequest
-    | GetWatchRequest
-    | ListWatchRequest;

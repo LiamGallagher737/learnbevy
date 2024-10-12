@@ -54,15 +54,3 @@ export type ReparentResponse = JsonRpcResponse<null>;
 export type ListResponse = JsonRpcResponse<ListResult>;
 export type GetWatchResponse = JsonRpcResponse<GetWatchResult>;
 export type ListWatchResponse = JsonRpcResponse<ListWatchResult>;
-
-export type BrpResponse =
-    | GetResponse
-    | QueryResponse
-    | SpawnResponse
-    | DestroyResponse
-    | RemoveResponse
-    | InsertResponse
-    | ReparentResponse
-    | ListResponse
-    | GetWatchResponse
-    | ListWatchResponse;
