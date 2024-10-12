@@ -24,7 +24,7 @@ import type {
 } from "./response";
 
 export type BrpRequestFunc =
-    ((request: GetRequest) => Promise<GetResponse>)
+    | ((request: GetRequest) => Promise<GetResponse>)
     | ((request: QueryRequest) => Promise<QueryResponse>)
     | ((request: SpawnRequest) => Promise<SpawnResponse>)
     | ((request: DestroyRequest) => Promise<DestroyResponse>)
