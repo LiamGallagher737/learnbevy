@@ -2,16 +2,21 @@
 
 export class TypePath {
     private fullTypePath: string;
+    private shortTypeName?: string;
 
     constructor(fullName: string) {
         this.fullTypePath = fullName;
     }
 
-    full() {
+    full(): string {
         return this.fullTypePath;
     }
 
-    short() {
+    short(): string {
+        if (this.shortTypeName) {
+            return this.shortTypeName;
+        }
+
         let result = "";
         let index = 0;
         const endOfString = this.fullTypePath.length;
@@ -42,6 +47,7 @@ export class TypePath {
             }
         }
 
+        this.shortTypeName = result;
         return result;
     }
 }
