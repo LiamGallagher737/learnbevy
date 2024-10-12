@@ -1,7 +1,8 @@
 {
     "fmt": {
         "include": ["src/"],
-        "exclude": ["src/**/$types.d.ts"]
+        "exclude": ["src/**/$types.d.ts"],
+        "indentWidth": 4
     }
     "unstable": ["fmt-component"]
 }

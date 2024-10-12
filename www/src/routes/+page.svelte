@@ -1,5 +1,5 @@
 <script>
-  let counter = $state(0);
+    let counter = $state(0);
 </script>
 
 <h1>{counter}</h1>
