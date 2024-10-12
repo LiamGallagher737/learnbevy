@@ -2,7 +2,8 @@
     "fmt": {
         "include": ["src/"],
         "exclude": ["src/**/$types.d.ts"],
-        "indentWidth": 4
+        "indentWidth": 4,
+        "lineWidth": 100
     }
     "unstable": ["fmt-component"]
 }
