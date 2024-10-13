@@ -16,14 +16,5 @@
           ./configuration.nix
         ];
       };
-      nixosConfigurations.host-eons-slc-slow = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; subdomain = "slow-slc"; };
-        modules = [
-          disko.nixosModules.disko
-          { disko.devices.disk.disk1.device = "/dev/vda"; }
-          ./configuration.nix
-        ];
-      };
     };
 }
