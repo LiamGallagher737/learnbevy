@@ -59,5 +59,3 @@ RUN rm src/*.rs
 
 COPY --from=wasm-bindgen /root/.cargo/bin/wasm-bindgen /root/.cargo/bin
 
-CMD /playground/tools/build.sh
-
