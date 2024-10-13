@@ -44,5 +44,5 @@ jobs:
           body: Update the 3rd party crates for the playground
           branch: update-crates
           base: main
-          labels: C-Crate-Update
+          labels: C-Crates
 
