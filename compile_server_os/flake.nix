@@ -3,13 +3,7 @@
   inputs.disko.url = "github:nix-community/disko";
   inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
 
-  inputs.learnbevy = {
-      type = "github";
-      owner = "LiamGallagher737";
-      repo = "learnbevy";
-      ref = "main";
-      dir = "compile_api";
-  };
+  inputs.learnbevy.url = "path:./../compile_api";
 
   outputs = inputs@{ self, nixpkgs, disko, ... }:
     {
