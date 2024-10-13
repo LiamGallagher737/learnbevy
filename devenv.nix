@@ -13,6 +13,8 @@ in {
     packages = [
         pkgs.podman
         pkgs.cargo-watch
+        pkgs.nodePackages_latest.svelte-language-server
+        pkgs.nodePackages_latest.typescript-language-server
         pkgs-unstable.deno
     ];
 }
