@@ -4,13 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-    - 'compile_api/**'
-    - '.github/workflows/bevy-compile-api-ci.yml'
+    - 'server/**'
+    - '.github/workflows/server-ci.yml'
   pull_request:
     branches: [main]
     paths:
     - 'compile_api/**'
-    - '.github/workflows/bevy-compile-api-ci.yml'
+    - '.github/workflows/server-ci.yml'
 
 env:
   CARGO_TERM_COLOR: always
@@ -33,11 +33,11 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-test-${{ hashFiles('compile_api/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('server/Cargo.toml') }}
       - name: Install stable toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run cargo test
-        working-directory: compile_api
+        working-directory: server
         run: cargo test
 
   # Run cargo clippy -- -D warnings
@@ -63,7 +63,7 @@ jobs:
         with:
           components: clippy
       - name: Run clippy
-        working-directory: compile_api
+        working-directory: server
         run: cargo clippy -- -D warnings
 
   # Run cargo fmt --all -- --check
@@ -79,5 +79,5 @@ jobs:
         with:
           components: rustfmt
       - name: Run cargo fmt
-        working-directory: compile_api
+        working-directory: server
         run: cargo fmt --all -- --check

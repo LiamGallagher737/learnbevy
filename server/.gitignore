@@ -1,0 +1,8 @@
+target/
+logs/
+cache/
+*.token
+upload.bat
+replace_server.sh
+*.key
+*.pem
