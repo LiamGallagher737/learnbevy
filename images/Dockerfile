@@ -29,9 +29,6 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- \
 
 RUN rustup component add clippy
 
-COPY build.sh /playground/tools/
-RUN chmod u+x /playground/tools/build.sh
-
 FROM toolchain as wasm-bindgen
 RUN cargo install wasm-bindgen-cli
 
