@@ -1,5 +1,5 @@
-use crate::{instances::Instance, Error};
-use axum::Json;
+use crate::{image, instances::Instance, BevyVersion, Error, RustChannel};
+use axum::{extract::Path, Json};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
@@ -13,15 +13,18 @@ pub struct ClippyRequest {
 
 #[derive(Serialize)]
 pub struct ClippyResponse {
-    code: Option<String>,
+    fixed_code: Option<String>,
     stderr: String,
 }
 
-pub async fn handler(Json(payload): Json<ClippyRequest>) -> Result<Json<ClippyResponse>, Error> {
+pub async fn handler(
+    Path((version, channel)): Path<(BevyVersion, RustChannel)>,
+    Json(payload): Json<ClippyRequest>,
+) -> Result<Json<ClippyResponse>, Error> {
     let commands = if payload.fix { COMMAND } else { &COMMAND[0..2] };
 
     let instance = Instance::new(
-        "ghcr.io/liamgallagher737/learnbevy-0.14-nightly:main",
+        image(version, channel),
         commands,
         &payload.code,
     )
@@ -29,7 +32,9 @@ pub async fn handler(Json(payload): Json<ClippyRequest>) -> Result<Json<ClippyRe
 
     let output = instance.execute().await?;
 
-    if output.status.code() != Some(0) {
+    // Exit code 101 means clippy executed successfully but a denied lint
+    // was encountered.
+    if !matches!(output.status.code(), Some(0 | 101)) {
         error!("Failed to run clippy: {output:?}");
         return Err(Error::Internal);
     }
@@ -41,7 +46,7 @@ pub async fn handler(Json(payload): Json<ClippyRequest>) -> Result<Json<ClippyRe
     };
 
     Ok(Json(ClippyResponse {
-        code: fixed_code,
+        fixed_code,
         stderr: String::from_utf8(output.stderr).map_err(Error::internal)?,
     }))
 }

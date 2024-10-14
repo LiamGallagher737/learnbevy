@@ -6,7 +6,7 @@ use tokio::{fs, process};
 /// An instance for interfacing with the podman containers.
 pub struct Instance<'a> {
     /// The name of the image to use.
-    image: &'a str,
+    image: String,
     /// The commands to run in the container.
     commands: &'a [&'a str],
     /// The code to run the commands on.
@@ -22,7 +22,7 @@ impl<'a> Instance<'a> {
     /// Create a new instance.
     ///
     /// This will create a local directory to be used with the container.
-    pub async fn new(image: &'a str, commands: &'a [&'a str], code: &'a str) -> io::Result<Self> {
+    pub async fn new(image: String, commands: &'a [&'a str], code: &'a str) -> io::Result<Self> {
         let unique_id = fastrand::u128(..);
         let bind_dir = env::temp_dir()
             .join("learnbevy-server-instances")
@@ -52,7 +52,7 @@ impl<'a> Instance<'a> {
                 "--quiet",
                 "--pull",
                 "never",
-                self.image,
+                &self.image,
             ])
             .args(self.commands)
             .output()
