@@ -16,12 +16,14 @@ export async function formatCode() {
             },
         });
 
-        const result = (await res.json()) as FmtResponse;
-        if (result.formatted_code) {
-            editorCode.set(result.formatted_code);
-            resolve(result);
+        const result = (await res.json());
+        if (res.status === 200) {
+            const success = result as FmtSuccess;
+            editorCode.set(success.formatted_code);
+            resolve(success);
         } else {
-            if (result.kind === "BadCode")
+            const err = result as FmtError;
+            if (err.kind === "BadCode")
                 consoleItems.update((items) => [...items, { kind: "Stdout", text: result.stderr }]);
             reject(result);
         }
@@ -31,13 +33,12 @@ export async function formatCode() {
         success: "Formatted successfully",
         error: (e) => {
             const err = e as FmtError;
-            if (err.kind === "UserError") return "Code could not be formatted";
+            if (err.kind === "BadCode") return "Code could not be formatted";
             return "Something went wrong on our end";
         },
     });
 }
 
-type FmtResponse = FmtSuccess | FmtUserError | FmtServerError;
 type FmtError = FmtUserError | FmtServerError;
 
 type FmtSuccess = {
