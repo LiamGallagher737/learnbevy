@@ -51,7 +51,7 @@ FROM sources
 ARG channel
 
 RUN cargo build --release --target wasm32-unknown-unknown
-RUN cargo clippy
+RUN cargo clippy --target wasm32-unknown-unknown
 RUN rm src/*.rs
 
 COPY --from=wasm-bindgen /root/.cargo/bin/wasm-bindgen /root/.cargo/bin

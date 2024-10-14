@@ -3,7 +3,14 @@ use axum::{extract::Path, Json};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
-const COMMAND: &[&str] = &["cargo", "clippy", "--fix", "--allow-no-vcs"];
+const COMMAND: &[&str] = &[
+    "cargo",
+    "clippy",
+    "--target",
+    "wasm32-unknown-unknown",
+    "--fix",
+    "--allow-no-vcs",
+];
 
 #[derive(Deserialize)]
 pub struct ClippyRequest {
@@ -21,7 +28,7 @@ pub async fn handler(
     Path((version, channel)): Path<(BevyVersion, RustChannel)>,
     Json(payload): Json<ClippyRequest>,
 ) -> Result<Json<ClippyResponse>, Error> {
-    let commands = if payload.fix { COMMAND } else { &COMMAND[0..2] };
+    let commands = if payload.fix { COMMAND } else { &COMMAND[0..4] };
 
     let instance = Instance::new(image(version, channel), commands, &payload.code).await?;
 
