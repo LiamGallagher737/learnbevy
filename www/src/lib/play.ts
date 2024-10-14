@@ -44,7 +44,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
             case "DisallowedWord":
                 msg = `Your code contains a disallowed word: "${error.word}"`;
                 break;
-            case "BuildFailed":
+            case "BadCode":
                 msg = "The code failed to build";
                 break;
             case "Internal":
@@ -54,7 +54,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
         return {
             kind: "Failed",
             message: msg,
-            stderr: error.kind === "BuildFailed" ? error.stderr : null,
+            stderr: error.kind === "BadCode" ? error.stderr : null,
         };
     }
 
@@ -150,8 +150,7 @@ type DisallowedWordError = {
     word: string;
 };
 type BuildFailedError = {
-    kind: "BuildFailed";
-    stdout: string;
+    kind: "BadCode";
     stderr: string;
 };
 type InternalError = {
