@@ -3,10 +3,10 @@ use axum::{
     routing::post,
     Json, Router,
 };
+use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
 use tracing::{error, info};
-use derive_more::Display;
 
 mod clippy;
 mod instances;

@@ -23,12 +23,7 @@ pub async fn handler(
 ) -> Result<Json<ClippyResponse>, Error> {
     let commands = if payload.fix { COMMAND } else { &COMMAND[0..2] };
 
-    let instance = Instance::new(
-        image(version, channel),
-        commands,
-        &payload.code,
-    )
-    .await?;
+    let instance = Instance::new(image(version, channel), commands, &payload.code).await?;
 
     let output = instance.execute().await?;
 
