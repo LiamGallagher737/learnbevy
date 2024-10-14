@@ -3,7 +3,7 @@
   inputs.disko.url = "github:nix-community/disko";
   inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
 
-  inputs.learnbevy.url = "path:./../compile_api";
+  inputs.learnbevy.url = "path:./../server";
 
   outputs = inputs@{ self, nixpkgs, disko, ... }:
     {
