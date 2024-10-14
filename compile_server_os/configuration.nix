@@ -91,6 +91,7 @@
     path = [
       pkgs.podman
       pkgs.shadow
+      pkgs.rustfmt
     ];
   };
 

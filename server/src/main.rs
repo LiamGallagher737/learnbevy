@@ -15,6 +15,7 @@ use tracing::{error, info};
 
 mod clippy;
 mod compile;
+mod format;
 mod instances;
 
 #[tokio::main]
@@ -24,7 +25,7 @@ async fn main() {
     let app = Router::new()
         .route("/compile/:version/:channel", post(compile::handler))
         .route("/clippy/:version/:channel", post(clippy::handler))
-        // .route("/lint", post(lint::handler))
+        .route("/format", post(format::handler))
         .layer(CompressionLayer::new())
         .layer(
             CorsLayer::new()
@@ -75,7 +76,7 @@ fn image(version: BevyVersion, channel: RustChannel) -> String {
 #[serde(tag = "kind")]
 enum Error {
     Internal,
-    BuildFailed { stderr: String },
+    BadCode { stderr: String },
 }
 
 impl Error {

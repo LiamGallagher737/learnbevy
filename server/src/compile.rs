@@ -48,7 +48,7 @@ pub async fn handler(
     // Exit code 101 means the compiler failed to build the code due to it
     // being invalid Rust. This is a user error.
     if code == Some(101) {
-        return Err(Error::BuildFailed { stderr });
+        return Err(Error::BadCode { stderr });
     }
 
     if !output.status.success() {
