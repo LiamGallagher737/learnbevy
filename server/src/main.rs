@@ -1,4 +1,5 @@
 use axum::{
+    http::{header::CONTENT_TYPE, HeaderName, Method},
     response::{IntoResponse, Response},
     routing::post,
     Json, Router,
@@ -6,9 +7,14 @@ use axum::{
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
+use tower_http::{
+    compression::CompressionLayer,
+    cors::{Any, CorsLayer},
+};
 use tracing::{error, info};
 
 mod clippy;
+mod compile;
 mod instances;
 
 #[tokio::main]
@@ -16,10 +22,20 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let app = Router::new()
-        // .route("/compile", post(compile::handler))
+        .route("/compile/:version/:channel", post(compile::handler))
         .route("/clippy/:version/:channel", post(clippy::handler))
         // .route("/lint", post(lint::handler))
-     ;
+        .layer(CompressionLayer::new())
+        .layer(
+            CorsLayer::new()
+                .allow_origin(Any)
+                .allow_methods([Method::POST])
+                .allow_headers([CONTENT_TYPE])
+                .expose_headers([
+                    HeaderName::from_static("wasm-content-length"),
+                    HeaderName::from_static("js-content-length"),
+                ]),
+        );
 
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
     info!("Listening at http://{}", listener.local_addr().unwrap());
@@ -59,6 +75,7 @@ fn image(version: BevyVersion, channel: RustChannel) -> String {
 #[serde(tag = "kind")]
 enum Error {
     Internal,
+    BuildFailed { stderr: String },
 }
 
 impl Error {

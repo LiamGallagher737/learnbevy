@@ -56,3 +56,6 @@ RUN rm src/*.rs
 
 COPY --from=wasm-bindgen /root/.cargo/bin/wasm-bindgen /root/.cargo/bin
 
+COPY build.sh /playground/tools/
+RUN chmod u+x /playground/tools/build.sh
+

@@ -12,8 +12,9 @@ type CompileArgs = {
 export async function play(args: CompileArgs): Promise<PlayResponse> {
     // Use the provided host if given
     const host = env.PUBLIC_COMPILE_HOST ?? "https://compile.learnbevy.com";
+    const url = `${host}/compile/${args.version}/${args.channel}`;
     // Make the request
-    const res = await fetch(host + "/compile", {
+    const res = await fetch(url, {
         method: "POST",
         body: JSON.stringify({
             code: args.code,
