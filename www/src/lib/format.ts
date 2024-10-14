@@ -16,7 +16,7 @@ export async function formatCode() {
             },
         });
 
-        const result = (await res.json());
+        const result = await res.json();
         if (res.status === 200) {
             const success = result as FmtSuccess;
             editorCode.set(success.formatted_code);
