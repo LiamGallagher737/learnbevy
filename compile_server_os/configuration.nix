@@ -58,7 +58,7 @@
     appendHttpConfig = ''
       limit_req_zone $binary_remote_addr zone=ip:10m rate=4r/s;
     '';
-    virtualHosts."${subdomain}.compile.learnbevy.com" = {
+    virtualHosts."${subdomain}.compute.learnbevy.com" = {
       addSSL = true;
       enableACME = true;
       locations."/" = {

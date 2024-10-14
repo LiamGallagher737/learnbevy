@@ -2,10 +2,13 @@ import { toast } from "svelte-sonner";
 import { consoleItems } from "$lib/components/console";
 import { get } from "svelte/store";
 import { editorCode } from "./components/editor";
+import { env } from "$env/dynamic/public";
 
 export async function formatCode() {
     const promise = new Promise(async (resolve, reject) => {
-        const res = await fetch("https://rustfmt-api.fly.dev/format", {
+        const host = env.PUBLIC_COMPILE_HOST ?? "https://slc.compute.learnbevy.com";
+        const url = `${host}/format`;
+        const res = await fetch(url, {
             method: "POST",
             body: JSON.stringify({ code: get(editorCode) }),
             headers: {
@@ -14,11 +17,11 @@ export async function formatCode() {
         });
 
         const result = (await res.json()) as FmtResponse;
-        if (result.kind === "Success") {
+        if (result.formatted_code) {
             editorCode.set(result.formatted_code);
             resolve(result);
         } else {
-            if (result.kind === "UserError")
+            if (result.kind === "BadCode")
                 consoleItems.update((items) => [...items, { kind: "Stdout", text: result.stderr }]);
             reject(result);
         }
@@ -38,15 +41,14 @@ type FmtResponse = FmtSuccess | FmtUserError | FmtServerError;
 type FmtError = FmtUserError | FmtServerError;
 
 type FmtSuccess = {
-    kind: "Success";
     formatted_code: string;
 };
 
 type FmtUserError = {
-    kind: "UserError";
+    kind: "BadCode";
     stderr: string;
 };
 
 type FmtServerError = {
-    kind: "ServerError";
+    kind: "Internal";
 };
