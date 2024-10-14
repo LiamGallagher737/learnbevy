@@ -1,5 +1,5 @@
 use axum::{
-    http::{header::CONTENT_TYPE, HeaderName, Method},
+    http::{header::CONTENT_TYPE, HeaderName, Method, StatusCode},
     response::{IntoResponse, Response},
     routing::post,
     Json, Router,
@@ -89,7 +89,13 @@ impl Error {
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
-        Json(self).into_response()
+        let status = match self {
+            Error::Internal => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::BadCode { stderr: _ } => StatusCode::BAD_REQUEST,
+        };
+        let mut response = Json(self).into_response();
+        *response.status_mut() = status;
+        response
     }
 }
 
