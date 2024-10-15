@@ -3,7 +3,7 @@ use axum::{extract::Path, Json};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
-const COMMAND: &[&str] = &["bevy_lint"];
+const COMMAND: &[&str] = &["bevy_lint", "--target", "wasm32-unknown-unknown"];
 
 #[derive(Deserialize)]
 pub struct LintRequest {

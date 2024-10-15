@@ -30,6 +30,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- \
 RUN rustup component add clippy
 # For linting
 RUN rustup toolchain install nightly-2024-08-21 --component rustc-dev --component llvm-tools-preview
+RUN rustup target add --toolchain nightly-2024-08-21 wasm32-unknown-unknown
 
 
 FROM toolchain as wasm-bindgen
@@ -66,7 +67,7 @@ COPY --from=wasm-bindgen /root/.cargo/bin/wasm-bindgen /root/.cargo/bin
 COPY --from=bevy_lint /root/.cargo/bin/bevy_lint /root/.cargo/bin
 COPY --from=bevy_lint /root/.cargo/bin/bevy_lint_driver /root/.cargo/bin
 
-RUN bevy_lint
+RUN bevy_lint --target wasm32-unknown-unknown
 
 RUN rm src/*.rs
 
