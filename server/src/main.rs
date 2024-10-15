@@ -17,6 +17,7 @@ mod clippy;
 mod compile;
 mod format;
 mod instances;
+mod lint;
 
 #[tokio::main]
 async fn main() {
@@ -25,6 +26,7 @@ async fn main() {
     let app = Router::new()
         .route("/compile/:version/:channel", post(compile::handler))
         .route("/clippy/:version/:channel", post(clippy::handler))
+        .route("/lint/:version/:channel", post(lint::handler))
         .route("/format", post(format::handler))
         .layer(CompressionLayer::new())
         .layer(
