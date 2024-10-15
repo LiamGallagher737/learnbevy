@@ -58,11 +58,11 @@
     appendHttpConfig = ''
       limit_req_zone $binary_remote_addr zone=ip:10m rate=4r/s;
     '';
-    virtualHosts."${subdomain}.compile.learnbevy.com" = {
+    virtualHosts."${subdomain}.compute.learnbevy.com" = {
       addSSL = true;
       enableACME = true;
       locations."/" = {
-        proxyPass = "http://127.0.0.1:53740";
+        proxyPass = "http://127.0.0.1:3000";
         # proxy_set_header will override user
         # set headers so it can be trusted
         extraConfig = ''
@@ -91,6 +91,7 @@
     path = [
       pkgs.podman
       pkgs.shadow
+      pkgs.rustfmt
     ];
   };
 

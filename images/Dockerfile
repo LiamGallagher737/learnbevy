@@ -27,8 +27,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- \
     --default-toolchain "${channel}" \
     --target wasm32-unknown-unknown 
 
-COPY build.sh /playground/tools/
-RUN chmod u+x /playground/tools/build.sh
+RUN rustup component add clippy
 
 FROM toolchain as wasm-bindgen
 RUN cargo install wasm-bindgen-cli
@@ -52,9 +51,11 @@ FROM sources
 ARG channel
 
 RUN cargo build --release --target wasm32-unknown-unknown
+RUN cargo clippy --target wasm32-unknown-unknown
 RUN rm src/*.rs
 
 COPY --from=wasm-bindgen /root/.cargo/bin/wasm-bindgen /root/.cargo/bin
 
-CMD /playground/tools/build.sh
+COPY build.sh /playground/tools/
+RUN chmod u+x /playground/tools/build.sh
 
