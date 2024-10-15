@@ -1,5 +1,6 @@
 <script lang="ts">
     import Paintbrush from "lucide-svelte/icons/paintbrush";
+    import AlertBadge from "lucide-svelte/icons/badge-alert";
     import SpellCheck from "lucide-svelte/icons/spell-check-2";
     import Wrench from "lucide-svelte/icons/wrench";
     import Copy from "lucide-svelte/icons/copy";
@@ -69,12 +70,37 @@
             consoleItems.update((items) => [...items, { kind: "Stdout", text: json.stderr }]);
         }
     }
+
+    async function lint() {
+        const host = env.PUBLIC_COMPILE_HOST ?? "https://slc.compute.learnbevy.com";
+        const url = `${host}/lint/${version}/${channel}`;
+
+        const res = await fetch(url, {
+            method: "POST",
+            body: JSON.stringify({ code: $editorCode }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const json = await res.json();
+
+        if (res.status === 200) {
+            consoleItems.update((items) => [...items, { kind: "Stdout", text: json.stderr }]);
+        }
+    }
 </script>
 
 <div class="flex flex-row gap-4">
     <BasicTooltip tooltip="Format">
         <Button variant="outline" size="icon" on:click={() => formatCode()}>
             <Paintbrush class="h-4 w-4" />
+        </Button>
+    </BasicTooltip>
+
+    <BasicTooltip tooltip="Bevy Lint">
+        <Button variant="outline" size="icon" on:click={() => lint()}>
+            <AlertBadge class="h-4 w-4" />
         </Button>
     </BasicTooltip>
 
