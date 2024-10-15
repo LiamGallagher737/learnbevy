@@ -1,4 +1,7 @@
-{ pkgs, ... }: {
+{ pkgs, inputs, ... }:
+let
+    pkgs-unstable = import inputs.nixpkgs-unstable { system = pkgs.stdenv.system; };
+in {
     languages.rust = {
         enable = true;
         channel = "stable";
@@ -7,10 +10,11 @@
         enable = true;
         npm.enable = true;
     };
-    packages = with pkgs; [
-        podman
-        cargo-watch
-        nodePackages.wrangler
-        lsof # for wrangler
+    packages = [
+        pkgs.podman
+        pkgs.cargo-watch
+        pkgs.nodePackages_latest.svelte-language-server
+        pkgs.nodePackages_latest.typescript-language-server
+        pkgs-unstable.deno
     ];
 }

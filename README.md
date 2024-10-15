@@ -120,20 +120,18 @@ This is the website https://learnbevy.com.
 
 #### How it works
 
-It is a [SvelteKit](https://kit.svelte.dev/) 4 app that uses tailwind for styling and [shancn-svelte](https://www.shadcn-svelte.com/) for the ui components.
+It is a [SvelteKit](https://kit.svelte.dev/) 5 app that uses tailwind for styling and [shancn-svelte](https://www.shadcn-svelte.com/) for the ui components.
 
 #### Hosting
 
-The website is hosted on [Cloudflare Pages](https://pages.cloudflare.com/) for free. The shares are stored in a [Cloudlflare KV](https://developers.cloudflare.com/kv/) database which is also free.
-
-The program can be built with the following command
+The website is hosted on [Deno Deploy](https://deno.com/deploy) for free. The shares are stored in a [Deno KV](https://docs.deno.com/deploy/kv/manual) database which is also free.
 
 #### Local Development
 
-Most of the time a simple `npm run dev` will suffice however if you want to use the sharing functionality you will have to build the app and run it with [wrangler](https://developers.cloudflare.com/workers/wrangler/), this is due to needing a database. The following command will do both.
+You can run the website locally with Deno.
 
 ```sh
-npm run build && npx wrangler pages dev .svelte-kit/cloudflare
+deno task dev
 ```
 
 If you want the website to use a locally running compile server you can specify a url in your .env file.
