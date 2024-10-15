@@ -62,7 +62,7 @@
       addSSL = true;
       enableACME = true;
       locations."/" = {
-        proxyPass = "http://127.0.0.1:53740";
+        proxyPass = "http://127.0.0.1:3000";
         # proxy_set_header will override user
         # set headers so it can be trusted
         extraConfig = ''
