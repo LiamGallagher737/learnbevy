@@ -3,6 +3,10 @@
 use dioxus::prelude::*;
 use dioxus_logger::tracing;
 
+use playground::Playground;
+
+mod playground;
+
 #[derive(Clone, Routable, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 enum Route {
     #[route("/playground")]
@@ -22,11 +26,6 @@ fn App() -> Element {
     rsx! {
         Router::<Route> {}
     }
-}
-
-#[component]
-fn Playground() -> Element {
-    rsx! { "Hi" }
 }
 
 #[component]
