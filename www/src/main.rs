@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use dioxus::prelude::*;
 use dioxus_logger::tracing;
 
@@ -23,6 +21,7 @@ fn main() {
     launch(App);
 }
 
+#[component]
 fn App() -> Element {
     rsx! {
         Router::<Route> {}
