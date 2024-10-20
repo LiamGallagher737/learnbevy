@@ -2871,7 +2871,6 @@ dependencies = [
  "dioxus-logger",
  "serde",
  "tailwind_fuse",
- "wasm-bindgen",
 ]
 
 [[package]]
