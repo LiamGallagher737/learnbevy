@@ -22,8 +22,8 @@ pub fn DynamicLayout(left: Element, right: Element) -> Element {
 
                 let offset = cursor_x - element.origin.x;
                 let decimal = offset / element.size.width;
-
-                split.set(decimal * 100.0);
+                let percent = (decimal * 100.0).clamp(20.0, 80.0);
+                split.set(percent);
             },
             div {
                 style: format!("flex: {split} 1 0px;"),
