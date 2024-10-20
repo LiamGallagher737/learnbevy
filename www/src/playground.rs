@@ -9,17 +9,39 @@ pub fn Playground() -> Element {
             class: "p-4 h-screen w-full",
             DynamicLayout {
                 left: rsx!{
-                    Card {
-                        class: "p-4",
-                        "Left"
-                    },
+                    Editor {}
                 },
                 right: rsx! {
                     Card {
-                        class: "p-4",
+                        class: "p-4 h-full",
                         "Right"
                     },
                 },
+            }
+        }
+    }
+}
+
+/// This is everything on the left side of the divider
+#[component]
+fn Editor() -> Element {
+    rsx! {
+        div {
+            class: "flex flex-col gap-4 h-full",
+            Card {
+                class: "p-4",
+                "Toolbar"
+            }
+            div {
+                class: "flex flex-row gap-4 h-full",
+                Card {
+                    class: "p-4 h-full",
+                    "Sidebar"
+                }
+                Card {
+                    class: "p-4 w-full h-full",
+                    "Main"
+                }
             }
         }
     }
