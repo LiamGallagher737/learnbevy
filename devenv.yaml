@@ -6,5 +6,3 @@ inputs:
         follows: nixpkgs
   nixpkgs-unstable:
     url: github:NixOS/nixpkgs/nixos-unstable
-  nixpkgs-local:
-    url: path:/home/liam/Projects/nixpkgs

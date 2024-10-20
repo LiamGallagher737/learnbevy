@@ -1,7 +1,6 @@
 { pkgs, inputs, ... }:
 let
     pkgs-unstable = import inputs.nixpkgs-unstable { system = pkgs.stdenv.system; };
-    pkgs-local = import inputs.nixpkgs-local { system = pkgs.stdenv.system; };
 in {
     languages.rust = {
         enable = true;
@@ -18,7 +17,7 @@ in {
         pkgs.podman
         pkgs.cargo-watch
         pkgs.tailwindcss
-        pkgs-local.dioxus-cli
-        pkgs-local.wasm-bindgen-cli
+        pkgs-unstable.dioxus-cli
+        pkgs-unstable.wasm-bindgen-cli
     ];
 }
