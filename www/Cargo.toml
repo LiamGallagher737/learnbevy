@@ -14,6 +14,7 @@ dioxus = { version = "0.5", features = ["fullstack", "router"] }
 dioxus-logger = "0.5.1"
 
 wasm-bindgen = "=0.2.93"
+tailwind_fuse = "0.3.1"
 
 [features]
 default = []

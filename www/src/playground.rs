@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::components::dynamic_layout::DynamicLayout;
+use crate::components::{card::Card, dynamic_layout::DynamicLayout};
 
 #[component]
 pub fn Playground() -> Element {
@@ -8,8 +8,18 @@ pub fn Playground() -> Element {
         div {
             class: "p-4 h-screen w-full",
             DynamicLayout {
-                left: rsx!{},
-                right: rsx! {},
+                left: rsx!{
+                    Card {
+                        class: "p-4",
+                        "Left"
+                    },
+                },
+                right: rsx! {
+                    Card {
+                        class: "p-4",
+                        "Right"
+                    },
+                },
             }
         }
     }
