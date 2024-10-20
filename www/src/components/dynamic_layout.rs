@@ -30,9 +30,12 @@ pub fn DynamicLayout(left: Element, right: Element) -> Element {
                 {left}
             }
             div {
+                class: "px-4",
                 onmousedown: move |_| dragging.set(true),
                 onmouseup: move |_| dragging.set(false),
-                "[]"
+                div {
+                    class: "bg-border w-px h-full"
+                }
             }
             div {
                 style: format!("flex: {} 1 0px;", 100.0 - *split.read()),
