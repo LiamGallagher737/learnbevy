@@ -5,6 +5,7 @@ use dioxus_logger::tracing;
 
 use playground::Playground;
 
+mod components;
 mod playground;
 
 #[derive(Clone, Routable, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
