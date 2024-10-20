@@ -1,0 +1,21 @@
+[package]
+name = "www"
+version = "0.1.0"
+authors = ["Liam Gallagher <liam@liamgallagher.dev>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0.197", features = ["derive"] }
+dioxus = { version = "0.5", features = ["fullstack", "router"] }
+
+# Debug
+dioxus-logger = "0.5.1"
+
+wasm-bindgen = "=0.2.93"
+
+[features]
+default = []
+server = ["dioxus/axum"]
+web = ["dioxus/web"]
