@@ -12,6 +12,7 @@ pub fn DynamicLayout(left: Element, right: Element) -> Element {
         div {
             class: "flex w-full h-full",
             onmounted: move |event| layout_element.set(Some(event.data())),
+            onmouseup: move |_| dragging.set(false),
             onmousemove: move |event: Event<MouseData>| async move {
                 if !*dragging.read() {
                     return;
@@ -32,7 +33,6 @@ pub fn DynamicLayout(left: Element, right: Element) -> Element {
             div {
                 class: "px-4",
                 onmousedown: move |_| dragging.set(true),
-                onmouseup: move |_| dragging.set(false),
                 div {
                     class: "bg-border w-px h-full"
                 }
