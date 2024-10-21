@@ -24,6 +24,7 @@ fn main() {
     dioxus_logger::init(tracing::Level::INFO).expect("failed to init logger");
     tracing::info!("starting app");
 
+    #[allow(clippy::unit_arg)]
     LaunchBuilder::new()
         .with_cfg(server_only! {
             dioxus::fullstack::Config::new().addr(SERVER_SOCKET)
