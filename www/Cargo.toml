@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0.197", features = ["derive"] }
 dioxus = { version = "0.5", features = ["fullstack", "router"] }
-tailwind_fuse = "0.3.1"
+tailwind_fuse = { version = "0.3.1", features = ["variant"] }
 
 # Debug
 dioxus-logger = "0.5.1"

@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::components::{card::Card, dynamic_layout::DynamicLayout};
+use crate::components::{button::*, card::Card, dynamic_layout::DynamicLayout};
 
 #[component]
 pub fn Playground() -> Element {
@@ -35,13 +35,49 @@ fn Editor() -> Element {
             div {
                 class: "flex flex-row gap-4 h-full",
                 Card {
-                    class: "p-4 h-full",
-                    "Sidebar"
+                    class: "h-full",
+                    Sidebar {}
                 }
                 Card {
                     class: "p-4 w-full h-full",
                     "Main"
                 }
+            }
+        }
+    }
+}
+
+#[component]
+fn Sidebar() -> Element {
+    rsx! {
+        div {
+            class: "flex flex-col",
+            Button {
+                onclick: |_| {},
+                variant: BtnVariant::Ghost,
+                class: "rounded-b-none",
+                "E"
+            }
+            div {
+                class: "bg-border shrink-0 h-px w-full",
+            }
+            Button {
+                onclick: |_| {},
+                variant: BtnVariant::Ghost,
+                class: "rounded-none",
+                "A"
+            }
+            div {
+                class: "bg-border shrink-0 h-px w-full",
+            }
+            Button {
+                onclick: |_| {},
+                variant: BtnVariant::Ghost,
+                class: "rounded-none",
+                "C"
+            }
+            div {
+                class: "bg-border shrink-0 h-px w-full",
             }
         }
     }
