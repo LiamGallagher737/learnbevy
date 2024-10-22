@@ -9,7 +9,6 @@
     };
     packages = with pkgs; [
         docker
-        podman
         cargo-watch
         nodePackages.wrangler
         lsof # for wrangler
