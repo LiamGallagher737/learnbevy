@@ -1,6 +1,7 @@
-use crate::{image, instances::Instance, BevyVersion, Error, RustChannel};
+use crate::{image, instances::Instance, BevyVersion, RustChannel};
 use axum::{extract::Path, Json};
-use serde::{Deserialize, Serialize};
+use shared::clippy::*;
+use shared::Error;
 use tracing::error;
 
 const COMMAND: &[&str] = &[
@@ -11,18 +12,6 @@ const COMMAND: &[&str] = &[
     "--fix",
     "--allow-no-vcs",
 ];
-
-#[derive(Deserialize)]
-pub struct ClippyRequest {
-    code: String,
-    fix: bool,
-}
-
-#[derive(Serialize)]
-pub struct ClippyResponse {
-    fixed_code: Option<String>,
-    stderr: String,
-}
 
 pub async fn handler(
     Path((version, channel)): Path<(BevyVersion, RustChannel)>,

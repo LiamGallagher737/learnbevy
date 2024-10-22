@@ -1,0 +1,16 @@
+[package]
+name = "shared"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+server = ["dep:axum", "dep:tracing"]
+website = []
+
+[dependencies]
+derive_more = { version = "1.0.0", features = ["display"] }
+serde = { version = "1.0.210", features = ["derive"] }
+
+axum = { version = "0.7.7", optional = true }
+tracing = { version = "0.1.40", optional = true }
+

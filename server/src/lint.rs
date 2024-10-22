@@ -1,19 +1,10 @@
-use crate::{image, instances::Instance, BevyVersion, Error, RustChannel};
+use crate::{image, instances::Instance, BevyVersion, RustChannel};
 use axum::{extract::Path, Json};
-use serde::{Deserialize, Serialize};
+use shared::lint::*;
+use shared::Error;
 use tracing::error;
 
 const COMMAND: &[&str] = &["bevy_lint", "--target", "wasm32-unknown-unknown"];
-
-#[derive(Deserialize)]
-pub struct LintRequest {
-    code: String,
-}
-
-#[derive(Serialize)]
-pub struct LintResponse {
-    stderr: String,
-}
 
 pub async fn handler(
     Path((version, channel)): Path<(BevyVersion, RustChannel)>,
