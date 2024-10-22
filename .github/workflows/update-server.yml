@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-    - 'compile_api/**'
+    - 'server/**'
     - 'compile_server_os/**'
-    - '.github/workflows/compile-server-os-ci.yml'
+    - '.github/workflows/update-server.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
