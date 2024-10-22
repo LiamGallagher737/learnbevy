@@ -1,10 +1,11 @@
-use crate::{image, instances::Instance, BevyVersion, Error, RustChannel};
+use crate::{image, instances::Instance, BevyVersion, RustChannel};
 use axum::{
     extract::Path,
     http::{header::CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue},
     Json,
 };
-use serde::Deserialize;
+use shared::compile::*;
+use shared::Error;
 use tracing::error;
 
 const COMMANDS: &[&str] = &["sh", "/playground/tools/build.sh"];
@@ -26,11 +27,6 @@ const { instance, module } = await __wbg_load(input, imports);
 ref_obj.wasm = instance.exports;
 __wbg_finalize_init(instance, module);
 "#;
-
-#[derive(Deserialize)]
-pub struct CompileRequest {
-    code: String,
-}
 
 pub async fn handler(
     Path((version, channel)): Path<(BevyVersion, RustChannel)>,
