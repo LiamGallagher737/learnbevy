@@ -8,7 +8,7 @@
         npm.enable = true;
     };
     packages = with pkgs; [
-        podman
+        docker
         cargo-watch
         nodePackages.wrangler
         lsof # for wrangler
