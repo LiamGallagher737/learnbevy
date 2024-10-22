@@ -40,6 +40,7 @@
     isNormalUser = true;
     home = "/home/ferris";
     description = "The user that runs the server";
+    extraGroups = [ "docker" ];
     packages = [
       pkgs.docker
       inputs.learnbevy.packages."${pkgs.system}".default
@@ -94,9 +95,6 @@
   # Pull the images every 15 minutes
   systemd.services.pull-learnbevy-images = {
     description = "Pull the learnbevy images";
-    serviceConfig = {
-      User = "ferris";
-    };
     script = ''
       ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-main-nightly:main
       ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-main-stable:main
