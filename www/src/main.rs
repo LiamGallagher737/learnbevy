@@ -5,8 +5,8 @@ use dioxus_logger::tracing;
 
 use playground::Playground;
 
-mod play;
 mod components;
+mod play;
 mod playground;
 
 #[allow(dead_code)]
