@@ -8,6 +8,7 @@
         npm.enable = true;
     };
     packages = with pkgs; [
+        docker
         podman
         cargo-watch
         nodePackages.wrangler
