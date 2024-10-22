@@ -33,7 +33,7 @@ This is the program than compiles the code to wasm.
 
 #### How it works
 
-Each request spins up a new podman container, see [images](#-images) for for infomation on them.
+Each request spins up a new docker container, see [images](#-images) for for infomation on them.
 
 The http server in use is [tide](https://github.com/http-rs/tide), I chose this due to its middleware which works quite well for this use case. Each stage is implmented as its own middleware.
 
@@ -49,14 +49,14 @@ The server collects metrics about the number of requests, their statuses and how
 
 #### Local Development
 
-All the program needs to run is podman and the images for the versions and channels you want to use/test.
+All the program needs to run is docker and the images for the versions and channels you want to use/test.
 
 You can pull them like this.
 
 ```sh
-podman pull ghcr.io/liamgallagher737/learnbevy-<version>-<channel>
-podman pull ghcr.io/liamgallagher737/learnbevy-0.14-nightly # 0.14 on nightly
-podman pull ghcr.io/liamgallagher737/learnbevy-main-stable # bevy main branch on stable
+docker pull ghcr.io/liamgallagher737/learnbevy-<version>-<channel>
+docker pull ghcr.io/liamgallagher737/learnbevy-0.14-nightly # 0.14 on nightly
+docker pull ghcr.io/liamgallagher737/learnbevy-main-stable # bevy main branch on stable
 ```
 
 If you want to build them yourselve see the [images section](#-images).
@@ -95,7 +95,7 @@ This is where the Dockfile is for the images used durning compiling. A single do
 An image can be build like this, replace `0.14` and `stable` with options of your choice.
 
 ```sh
-podman build --build-arg="version=0.14" --build-arg="channel=stable" --tag "ghcr.io/liamgallagher737/learnbevy-0.14-stable" .
+docker build --build-arg="version=0.14" --build-arg="channel=stable" --tag "ghcr.io/liamgallagher737/learnbevy-0.14-stable" .
 ```
 
 ## 📂 rustfmt_api

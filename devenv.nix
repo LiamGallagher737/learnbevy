@@ -14,7 +14,7 @@ in {
         npm.enable = true;
     };
     packages = [
-        pkgs.podman
+        pkgs.docker
         pkgs.flyctl
         pkgs.openssl
         pkgs.cargo-watch

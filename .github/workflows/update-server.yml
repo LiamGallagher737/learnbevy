@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-    - 'compile_api/**'
+    - 'server/**'
     - 'compile_server_os/**'
-    - '.github/workflows/compile-server-os-ci.yml'
+    - '.github/workflows/update-server.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,9 +27,9 @@ jobs:
         mkdir -p ~/.ssh/
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan slc.compile.learnbevy.com >> ~/.ssh/known_hosts
+        ssh-keyscan slc.compute.learnbevy.com >> ~/.ssh/known_hosts
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
     - name: Update Server
       working-directory: ./compile_server_os
-      run: nix run nixpkgs#nixos-rebuild -- switch --flake .#host-eons-slc --target-host root@slc.compile.learnbevy.com
+      run: nix run nixpkgs#nixos-rebuild -- switch --flake .#host-eons-slc --target-host root@slc.compute.learnbevy.com

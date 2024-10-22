@@ -3,7 +3,7 @@
 use std::{env, io, path};
 use tokio::{fs, process};
 
-/// An instance for interfacing with the podman containers.
+/// An instance for interfacing with the docker containers.
 pub struct Instance<'a> {
     /// The name of the image to use.
     image: String,
@@ -42,7 +42,7 @@ impl<'a> Instance<'a> {
 
     /// Execute the comtainer with the given inputs.
     pub async fn execute(&self) -> io::Result<std::process::Output> {
-        process::Command::new("podman")
+        process::Command::new("docker")
             .args([
                 "run",
                 "--name",
