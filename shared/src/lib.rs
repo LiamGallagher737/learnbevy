@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// When updating this for new Bevy versions, the number value
 /// should also be updated so saved caches are invalidated.
-#[derive(Serialize, Deserialize, Display)]
+#[derive(Serialize, Deserialize, Display, Debug)]
 pub enum BevyVersion {
     #[serde(rename = "main")]
     #[display("main")]
@@ -16,7 +16,7 @@ pub enum BevyVersion {
 }
 
 /// The channel of Rust for a request.
-#[derive(Serialize, Deserialize, Display)]
+#[derive(Serialize, Deserialize, Display, Debug)]
 pub enum RustChannel {
     #[serde(rename = "stable")]
     #[display("stable")]
@@ -27,7 +27,7 @@ pub enum RustChannel {
 }
 
 /// The error type for all handlers.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "kind")]
 pub enum Error {
     Internal,
