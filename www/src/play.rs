@@ -28,7 +28,7 @@ pub async fn play(
     let js = String::from_utf8_lossy(&bytes[wasm_length..js_length]).to_string();
     let stderr = String::from_utf8_lossy(&bytes[js_length..]).to_string();
 
-    let instance = run(wasm, js);
+    let instance = run(wasm, js).await;
 
     let document = web_sys::window().unwrap().document().unwrap();
     let parent = document.get_element_by_id(CANVAS_PARENT_ID).unwrap();
@@ -63,5 +63,5 @@ extern "C" {
 
 #[wasm_bindgen(module = "/src/run.js")]
 extern "C" {
-    fn run(wasm: &[u8], js: String) -> Instance;
+    async fn run(wasm: &[u8], js: String) -> Instance;
 }

@@ -36,7 +36,7 @@ fn Editor() -> Element {
             class: "flex flex-col gap-4 h-full",
             Card {
                 class: "p-4",
-                button {
+                Button {
                     onclick: move |_| {
                         tracing::info!("12");
                         spawn(async move {

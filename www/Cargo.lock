@@ -3366,6 +3366,7 @@ dependencies = [
  "shared",
  "tailwind_fuse",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
 ]
 
