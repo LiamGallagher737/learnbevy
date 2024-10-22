@@ -5,6 +5,7 @@ use dioxus_logger::tracing;
 
 use playground::Playground;
 
+mod play;
 mod components;
 mod playground;
 

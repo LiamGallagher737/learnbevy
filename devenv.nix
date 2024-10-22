@@ -16,6 +16,7 @@ in {
     packages = [
         pkgs.podman
         pkgs.flyctl
+        pkgs.openssl
         pkgs.cargo-watch
         pkgs.tailwindcss
         pkgs-unstable.dioxus-cli
