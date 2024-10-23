@@ -24,6 +24,9 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v9
 
+      - name: Restore and Cache Nix Store
+        uses: nix-community/cache-nix-action@v5
+
       - name: Install QEMU
         run: |
           sudo apt-get update
