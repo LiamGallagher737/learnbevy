@@ -45,9 +45,9 @@ jobs:
       - name: Start VM
         working-directory: compile_server_os
         run: |
-          sudo ./vm-run --no-reboot -nic user,hostfwd=tcp::8080-:8080 &
+          sudo ./vm-run --no-reboot -nic user,hostfwd=tcp::3000-:8080 &
           sleep 60 # TODO: Replace with waiting for server to come online
 
       - name: Run Tests
         run: |
-          curl --fail http://localhost:8080 || (echo "Server not reachable!" && exit 1)
+          curl --fail http://localhost:3000 || (echo "Server not reachable!" && exit 1)
