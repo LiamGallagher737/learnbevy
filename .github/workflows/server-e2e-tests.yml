@@ -45,9 +45,8 @@ jobs:
       - name: Start VM
         working-directory: compile_server_os
         run: |
-          sudo ./vm-run --no-reboot &
+          sudo ./vm-run --no-reboot -nic user,hostfwd=tcp::8080-:8080 &
           sleep 60 # TODO: Replace with waiting for server to come online
-          sudo iptables -t nat -A PREROUTING -p tcp --dport 8080 -j REDIRECT --to-ports 8080
 
       - name: Run Tests
         run: |
