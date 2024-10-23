@@ -1,0 +1,49 @@
+name: Server E2E Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+    - 'server/**'
+    - 'compile_server_os/**'
+    - '.github/workflows/server-e2e-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+    - 'server/**'
+    - 'compile_server_os/**'
+    - '.github/workflows/server-e2e-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 curl
+
+      - name: Build VM
+        working-directory: compile_server_os
+        run: |
+          nix build .#nixosConfigurations.host-eons-slc.config.system.build.vm
+          mv result/bin/run-*-vm vm-run
+
+      - name: Start VM
+        working-directory: compile_server_os
+        run: |
+          sudo ./vm-run --no-reboot &
+          sleep 20 # TODO: Replace with waiting for server to come online
+
+      - name: Forward VM Port to Host
+        run: sudo iptables -t nat -A PREROUTING -p tcp --dport 8080 -j REDIRECT --to-ports 8080
+
+      - name: Run Tests
+        run: |
+          curl --fail http://localhost:8080 || (echo "Server not reachable!" && exit 1)
