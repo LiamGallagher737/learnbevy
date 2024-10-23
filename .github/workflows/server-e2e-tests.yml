@@ -26,6 +26,9 @@ jobs:
 
       - name: Restore and Cache Nix Store
         uses: nix-community/cache-nix-action@v5
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
 
       - name: Install QEMU
         run: |
