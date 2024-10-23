@@ -46,10 +46,8 @@ jobs:
         working-directory: compile_server_os
         run: |
           sudo ./vm-run --no-reboot &
-          sleep 20 # TODO: Replace with waiting for server to come online
-
-      - name: Forward VM Port to Host
-        run: sudo iptables -t nat -A PREROUTING -p tcp --dport 8080 -j REDIRECT --to-ports 8080
+          sleep 60 # TODO: Replace with waiting for server to come online
+          sudo iptables -t nat -A PREROUTING -p tcp --dport 8080 -j REDIRECT --to-ports 8080
 
       - name: Run Tests
         run: |
