@@ -48,7 +48,7 @@ fn Editor() -> Element {
                             .await;
                             match result {
                                 Ok(Ok(res)) => {
-                                    instance.set(Some(res.instance));
+                                    instance.set(Some(res.module));
                                     tracing::info!("{}", res.stderr)
                                 }
                                 Ok(Err(err)) => tracing::error!("Failed to play: {err:?}"),

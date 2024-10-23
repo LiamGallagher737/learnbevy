@@ -13,11 +13,13 @@ tailwind_fuse = { version = "0.3.1", features = ["variant"] }
 
 # Debug
 dioxus-logger = "0.5.1"
-web-sys = { version = "0.3.70", features = ["Document", "Element"] }
+web-sys = { version = "0.3.70", features = ["Blob", "BlobPropertyBag", "Document", "Element"] }
 wasm-bindgen = "0.2.93"
 reqwest = { version = "0.12.8", features = ["json"] }
 shared = { version = "0.1.0", path = "../shared", features = ["website"] }
 wasm-bindgen-futures = "0.4.43"
+js-sys = "0.3.70"
+gloo-file = "0.3.0"
 
 [features]
 default = []
