@@ -1,7 +1,7 @@
 use axum::{
     http::{header::CONTENT_TYPE, HeaderName, Method, StatusCode},
     response::{IntoResponse, Response},
-    routing::post,
+    routing::{get, post},
     Json, Router,
 };
 use derive_more::Display;
@@ -16,6 +16,7 @@ use tracing::{error, info};
 mod clippy;
 mod compile;
 mod format;
+mod health;
 mod instances;
 mod lint;
 
@@ -24,6 +25,7 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let app = Router::new()
+        .route("/health/:version/:channel", get(health::handler))
         .route("/compile/:version/:channel", post(compile::handler))
         .route("/clippy/:version/:channel", post(clippy::handler))
         .route("/lint/:version/:channel", post(lint::handler))
