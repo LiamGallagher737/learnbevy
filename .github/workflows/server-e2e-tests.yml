@@ -47,8 +47,9 @@ jobs:
         run: sudo ./vm-run --no-reboot -nographic -nic user,model=virtio,hostfwd=tcp::3000-:3000 &
 
       - name: Wait for Boot
+        timeout-minutes: 5
         run: |
-          for i in {1..30}; do
+          while true; do
             curl http://localhost:3000 && break
             echo "Waiting for server..."
             sleep 5
