@@ -44,7 +44,7 @@ jobs:
 
       - name: Start VM
         working-directory: compile_server_os
-        run: sudo ./vm-run --no-reboot -nic user,model=virtio,hostfwd=tcp::3000-:3000
+        run: sudo ./vm-run --no-reboot -nographic -nic user,model=virtio,hostfwd=tcp::3000-:3000
 
       - name: Wait for Boot
         run: |
