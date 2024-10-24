@@ -57,7 +57,7 @@ jobs:
           done
 
       - name: Wait for 0.14 Nightly Image
-        timeout-minutes: 5
+        timeout-minutes: 15
         run: |
           while true; do
             response=$(curl -s http://localhost:3000/health/0.14/nightly)
