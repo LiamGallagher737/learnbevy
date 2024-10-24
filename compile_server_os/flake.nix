@@ -16,5 +16,14 @@
           ./configuration.nix
         ];
       };
+      nixosConfigurations.test-system = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = { inherit inputs; subdomain = "test-system"; };
+        modules = [
+          disko.nixosModules.disko
+          { networking.firewall.allowedTCPPorts = [ 3000 ]; }
+          ./configuration.nix
+        ];
+      };
     };
 }
