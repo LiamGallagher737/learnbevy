@@ -32,10 +32,10 @@ jobs:
           restore-prefixes-first-match: nix-${{ runner.os }}-
           save-always: true
 
-      - name: Install QEMU
+      - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 curl
+          sudo apt-get install -y qemu-system-x86 curl jq
 
       - name: Build VM
         working-directory: compile_server_os
@@ -55,6 +55,20 @@ jobs:
             echo "Waiting for server..."
             sleep 5
           done
+
+      - name: Wait for 0.14 Nightly Image
+        timeout-minutes: 5
+        run: |
+          while true; do
+            response=$(curl -s http://localhost:3000/health/0.14/nightly)
+            if echo "$response" | jq -e '.available == true' > /dev/null; then
+              break
+            else
+              echo "Waiting for image..."
+            fi
+            sleep 5
+          done
+
 
       - name: Run Tests
         run: |
