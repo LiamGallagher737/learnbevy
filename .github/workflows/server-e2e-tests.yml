@@ -39,7 +39,7 @@ jobs:
       - name: Build VM
         working-directory: compile_server_os
         run: |
-          nix build .#nixosConfigurations.host-eons-slc.config.system.build.vm
+          nix build .#nixosConfigurations.test-system.config.system.build.vm
           sudo mv result/bin/run-*-vm vm-run
 
       - name: Start VM
