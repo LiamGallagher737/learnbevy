@@ -44,9 +44,15 @@ jobs:
 
       - name: Start VM
         working-directory: compile_server_os
+        run: sudo ./vm-run --no-reboot -nic user,model=virtio,hostfwd=tcp::3000-:3000
+
+      - name: Wait for Boot
         run: |
-          sudo ./vm-run --no-reboot -nic user,hostfwd=tcp::3000-:3000 &
-          sleep 60 # TODO: Replace with waiting for server to come online
+          for i in {1..30}; do
+            curl http://localhost:3000 && break
+            echo "Waiting for server..."
+            sleep 5
+          done
 
       - name: Run Tests
         run: |
