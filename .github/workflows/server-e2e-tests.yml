@@ -64,7 +64,7 @@ jobs:
             if echo "$response" | jq -e '.available == true' > /dev/null; then
               break
             else
-              echo "Waiting for image..."
+              echo "Waiting for image... Response: $response"
             fi
             sleep 5
           done
