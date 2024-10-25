@@ -25,14 +25,20 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-uDrQeGJJEmntqKIMRlMZzX1wWUoWxPbvue+ifYmc1PM=",
-        "path": "./../server",
-        "type": "path"
+        "dir": "compile_api",
+        "lastModified": 1728272622,
+        "narHash": "sha256-0D0h4BcH9dXjMJR/L/yRgNQdGDjQwBOHGs8Tt4vnchs=",
+        "owner": "LiamGallagher737",
+        "repo": "learnbevy",
+        "rev": "ec1a3350e08eeac7b74b86023a2798136cca9889",
+        "type": "github"
       },
       "original": {
-        "path": "./../server",
-        "type": "path"
+        "dir": "compile_api",
+        "owner": "LiamGallagher737",
+        "ref": "main",
+        "repo": "learnbevy",
+        "type": "github"
       }
     },
     "nixpkgs": {
