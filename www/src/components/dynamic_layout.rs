@@ -1,7 +1,11 @@
 use dioxus::prelude::*;
 
 #[component]
-pub fn DynamicLayout(left: Element, right: Element) -> Element {
+pub fn DynamicLayout(
+    left: Element,
+    right: Element,
+    onresized: Option<EventHandler<()>>,
+) -> Element {
     // The split between the two panes in terms of the left's
     // percentage of space.
     let mut split = use_signal(|| 50.0);
@@ -25,6 +29,10 @@ pub fn DynamicLayout(left: Element, right: Element) -> Element {
                 let decimal = offset / element.size.width;
                 let percent = (decimal * 100.0).clamp(20.0, 80.0);
                 split.set(percent);
+
+                if let Some(handler) = onresized {
+                    handler.call(());
+                }
             },
             div {
                 style: format!("flex: {split} 1 0px;"),

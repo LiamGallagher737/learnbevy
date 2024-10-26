@@ -1,14 +1,13 @@
-use dioxus_logger::tracing::info;
 use gloo_file::ObjectUrl;
 use js_sys::{Array, ArrayBuffer, Promise, Uint8Array};
 use shared::{compile::*, BevyVersion, RustChannel};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::BlobPropertyBag;
+use web_sys::{BlobPropertyBag, Element};
 
 //pub const HOST: &str = "https://slc.compute.learnbevy.com";
 pub const HOST: &str = "http://localhost:3000";
-//pub const CANVAS_PARENT_ID: &str = "game-card";
+pub const CANVAS_PARENT_ID: &str = "game-card";
 
 pub async fn play(
     code: String,
@@ -33,8 +32,6 @@ pub async fn play(
     let wasm = Uint8Array::from(&bytes[0..wasm_length]).buffer();
     let js = &bytes[wasm_length..wasm_length + js_length];
     let stderr = String::from_utf8_lossy(&bytes[wasm_length + js_length..]).to_string();
-    info!("wasm len: {wasm_length}");
-    info!("size 1: {}", wasm.byte_length());
 
     let js_array = Array::new();
     js_array.push(&Uint8Array::from(js));
@@ -45,34 +42,32 @@ pub async fn play(
 
     let module_address = ObjectUrl::from(blob);
 
-    info!("2");
-
     let module_promise: Promise =
         js_sys::eval(&format!("import (\"{}\")", module_address.to_string()))
             .unwrap()
             .into();
-    info!("3");
     let module: InstanceModule = JsFuture::from(module_promise).await.unwrap().into();
-    info!("4");
 
-    module.start(wasm).await;
-    info!("6");
+    // The error is just for control flow should not blow up the website.
+    let _ = module.start(wasm).await;
 
-    //let document = web_sys::window().unwrap().document().unwrap();
-    //let parent = document.get_element_by_id(CANVAS_PARENT_ID).unwrap();
+    let document = web_sys::window().unwrap().document().unwrap();
+    let parent = document.get_element_by_id(CANVAS_PARENT_ID).unwrap();
 
-    //let Ok(Some(canvas)) = document.query_selector("canvas[alt=\"Bevy App\"]") else {
-    //    return Ok(Ok(PlayResponse { instance, stderr }));
-    //};
+    let Ok(Some(canvas)) = document.query_selector("canvas[alt=\"App\"]") else {
+        return Ok(Ok(PlayResponse { module, stderr, canvas: None }));
+    };
 
-    //let _ = parent.append_child(&canvas);
+    let _ = canvas.set_attribute("class", "rounded-lg absolute top-0 left-0");
+    let _ = parent.append_child(&canvas);
 
-    Ok(Ok(PlayResponse { module, stderr }))
+    Ok(Ok(PlayResponse { module, stderr, canvas: Some(canvas) }))
 }
 
 pub struct PlayResponse {
     pub module: InstanceModule,
     pub stderr: String,
+    pub canvas: Option<Element>,
 }
 
 fn parse_length_header(response: &reqwest::Response, name: &str) -> Option<usize> {
@@ -84,24 +79,9 @@ extern "C" {
     #[wasm_bindgen]
     pub type InstanceModule;
 
-    #[wasm_bindgen(method)]
-    pub async fn start(this: &InstanceModule, wasm: ArrayBuffer);
+    #[wasm_bindgen(method, catch)]
+    pub async fn start(this: &InstanceModule, wasm: ArrayBuffer) -> Result<(), JsValue>;
 
     #[wasm_bindgen(method)]
     pub fn exit(this: &InstanceModule);
-}
-
-#[wasm_bindgen]
-extern "C" {
-    pub type Instance;
-
-    // Stop this instance from running. Any method invokations after calling
-    // this will do nothing.
-    #[wasm_bindgen(method)]
-    fn exit(this: &Instance);
-}
-
-#[wasm_bindgen(module = "/src/run.js")]
-extern "C" {
-    async fn run(wasm: web_sys::Blob, js: String) -> Instance;
 }

@@ -1,24 +1,56 @@
-use dioxus::prelude::*;
-use dioxus_logger::tracing;
-
 use crate::{
     components::{button::*, card::Card, dynamic_layout::DynamicLayout},
-    play::play,
+    play::{play, InstanceModule},
 };
+use dioxus::prelude::*;
+use dioxus_logger::tracing;
+use std::{ops::Deref, rc::Rc};
 
 #[component]
 pub fn Playground() -> Element {
+    let instance_module = use_signal(|| None);
+    let instance_canvas = use_signal::<Option<web_sys::Element>>(|| None);
+
+    let mut game_card_element = use_signal::<Option<Rc<MountedData>>>(|| None);
+    let mut game_size = use_signal(|| (0.0, 0.0));
+
+    use_effect(move || {
+        if let Some(element) = instance_canvas.read().deref() {
+            let (width, height) = *game_size.read();
+            let _ =
+                element.set_attribute("style", &format!("width: {width}px; height: {height}px;"));
+        }
+    });
+
     rsx! {
         div {
             class: "p-4 h-screen w-full",
             DynamicLayout {
+                onresized: move |_| {
+                    spawn(async move {
+                        if let Some(element) = game_card_element.read().deref() {
+                            let rect = element.get_client_rect().await.unwrap();
+                            game_size.set((rect.size.width, rect.size.height));
+                        }
+                    });
+                },
                 left: rsx!{
-                    Editor {}
+                    Editor {
+                        instance_module,
+                        instance_canvas,
+                    }
                 },
                 right: rsx! {
-                    Card {
-                        class: "p-4 h-full",
-                        "Right"
+                    div {
+                        class: "flex flex-col gap-4 h-full",
+                        Card {
+                            id: "game-card",
+                            class: "aspect-video overflow-none relative",
+                            onmounted: move |event: MountedEvent| game_card_element.set(Some(event.data())),
+                        },
+                        Card {
+                            class: "h-full",
+                        },
                     },
                 },
             }
@@ -28,9 +60,10 @@ pub fn Playground() -> Element {
 
 /// This is everything on the left side of the divider
 #[component]
-fn Editor() -> Element {
-    let mut instance = use_signal(|| None);
-
+fn Editor(
+    instance_module: Signal<Option<InstanceModule>>,
+    instance_canvas: Signal<Option<web_sys::Element>>,
+) -> Element {
     rsx! {
         div {
             class: "flex flex-col gap-4 h-full",
@@ -38,8 +71,16 @@ fn Editor() -> Element {
                 class: "p-4",
                 Button {
                     onclick: move |_| {
-                        tracing::info!("12");
                         spawn(async move {
+                            tracing::info!("{:?}", instance_module.read().is_some());
+                            if let Some(module) = instance_module.read().deref() {
+                                module.exit();
+                            }
+                            if let Some(element) = instance_canvas.read().deref() {
+                                element.remove();
+                            }
+                            instance_module.set(None);
+                            instance_canvas.set(None);
                             let result = play(
                                 CODE.to_string(),
                                 shared::BevyVersion::V0_14,
@@ -48,7 +89,8 @@ fn Editor() -> Element {
                             .await;
                             match result {
                                 Ok(Ok(res)) => {
-                                    instance.set(Some(res.module));
+                                    instance_module.set(Some(res.module));
+                                    instance_canvas.set(res.canvas);
                                     tracing::info!("{}", res.stderr)
                                 }
                                 Ok(Err(err)) => tracing::error!("Failed to play: {err:?}"),
