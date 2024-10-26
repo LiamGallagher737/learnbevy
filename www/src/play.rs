@@ -44,10 +44,9 @@ pub async fn play(
 
     let module_address = ObjectUrl::from(blob);
 
-    let module_promise: Promise =
-        js_sys::eval(&format!("import (\"{}\")", module_address.deref()))
-            .unwrap()
-            .into();
+    let module_promise: Promise = js_sys::eval(&format!("import (\"{}\")", module_address.deref()))
+        .unwrap()
+        .into();
     let module: InstanceModule = JsFuture::from(module_promise).await.unwrap().into();
 
     // The error is just for control flow should not blow up the website.
@@ -57,13 +56,21 @@ pub async fn play(
     let parent = document.get_element_by_id(CANVAS_PARENT_ID).unwrap();
 
     let Ok(Some(canvas)) = document.query_selector("canvas[alt=\"App\"]") else {
-        return Ok(Ok(PlayResponse { module, stderr, canvas: None }));
+        return Ok(Ok(PlayResponse {
+            module,
+            stderr,
+            canvas: None,
+        }));
     };
 
     let _ = canvas.set_attribute("class", "rounded-lg absolute top-0 left-0");
     let _ = parent.append_child(&canvas);
 
-    Ok(Ok(PlayResponse { module, stderr, canvas: Some(canvas) }))
+    Ok(Ok(PlayResponse {
+        module,
+        stderr,
+        canvas: Some(canvas),
+    }))
 }
 
 pub struct PlayResponse {
