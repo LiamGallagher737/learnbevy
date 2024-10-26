@@ -9,10 +9,6 @@ in {
             "wasm32-unknown-unknown"
         ];
     };
-    languages.javascript = {
-        enable = true;
-        npm.enable = true;
-    };
     packages = [
         pkgs.docker
         pkgs.flyctl
