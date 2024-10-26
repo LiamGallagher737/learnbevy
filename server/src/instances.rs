@@ -50,6 +50,7 @@ impl<'a> Instance<'a> {
                 "-v",
                 &format!("{}:/playground/src/:z", self.bind_dir.display()),
                 "--quiet",
+                "--rm",
                 "--pull",
                 "never",
                 &self.image,

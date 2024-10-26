@@ -29,8 +29,8 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- \
 
 RUN rustup component add clippy
 # For linting
-RUN rustup toolchain install nightly-2024-08-21 --component rustc-dev --component llvm-tools-preview
-RUN rustup target add --toolchain nightly-2024-08-21 wasm32-unknown-unknown
+RUN rustup toolchain install nightly-2024-10-03 --component rustc-dev --component llvm-tools-preview
+RUN rustup target add --toolchain nightly-2024-10-03 wasm32-unknown-unknown
 
 
 FROM toolchain as wasm-bindgen
@@ -38,7 +38,7 @@ RUN cargo install wasm-bindgen-cli
 
 
 FROM toolchain as bevy_lint
-RUN cargo +nightly-2024-08-21 install --git https://github.com/TheBevyFlock/bevy_cli bevy_lint
+RUN cargo +nightly-2024-10-03 install --git https://github.com/TheBevyFlock/bevy_cli bevy_lint
 
 
 FROM toolchain as sources
