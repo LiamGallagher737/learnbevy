@@ -1,6 +1,6 @@
 use dioxus_logger::tracing::info;
 use gloo_file::ObjectUrl;
-use js_sys::{Array, Promise, Uint8Array};
+use js_sys::{Array, ArrayBuffer, Promise, Uint8Array};
 use shared::{compile::*, BevyVersion, RustChannel};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
@@ -30,9 +30,11 @@ pub async fn play(
     let js_length = parse_length_header(&response, "js-content-length").unwrap();
     let bytes = response.bytes().await?;
 
-    let wasm = Uint8Array::from(&bytes[0..wasm_length]);
+    let wasm = Uint8Array::from(&bytes[0..wasm_length]).buffer();
     let js = &bytes[wasm_length..wasm_length + js_length];
     let stderr = String::from_utf8_lossy(&bytes[wasm_length + js_length..]).to_string();
+    info!("wasm len: {wasm_length}");
+    info!("size 1: {}", wasm.byte_length());
 
     let js_array = Array::new();
     js_array.push(&Uint8Array::from(js));
@@ -40,23 +42,21 @@ pub async fn play(
     js_type_set.set_type("application/javascript");
 
     let blob = gloo_file::Blob::new_with_options(js, Some("text/javascript"));
-    let module_address = ObjectUrl::from(blob).to_string();
 
-    info!("2: {module_address}");
+    let module_address = ObjectUrl::from(blob);
 
-    let module_promise: Promise = js_sys::eval(&format!("import (\"{module_address}\")"))
-        .unwrap()
-        .into();
+    info!("2");
+
+    let module_promise: Promise =
+        js_sys::eval(&format!("import (\"{}\")", module_address.to_string()))
+            .unwrap()
+            .into();
     info!("3");
     let module: InstanceModule = JsFuture::from(module_promise).await.unwrap().into();
     info!("4");
 
-    let wasm_blob = web_sys::Blob::new_with_u8_array_sequence(&wasm.clone().into()).unwrap();
-    info!("5");
-    module.start(wasm_blob).await;
+    module.start(wasm).await;
     info!("6");
-
-    //let instance = run(wasm_blob, js).await;
 
     //let document = web_sys::window().unwrap().document().unwrap();
     //let parent = document.get_element_by_id(CANVAS_PARENT_ID).unwrap();
@@ -85,7 +85,7 @@ extern "C" {
     pub type InstanceModule;
 
     #[wasm_bindgen(method)]
-    pub async fn start(this: &InstanceModule, wasm: web_sys::Blob);
+    pub async fn start(this: &InstanceModule, wasm: ArrayBuffer);
 
     #[wasm_bindgen(method)]
     pub fn exit(this: &InstanceModule);
