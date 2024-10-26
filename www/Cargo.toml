@@ -18,6 +18,7 @@ shared = { version = "0.1.0", path = "../shared", features = ["website"] }
 wasm-bindgen-futures = "0.4.43"
 js-sys = "0.3.70"
 gloo-file = "0.3.0"
+monaco = "0.5.0"
 
 [features]
 default = []

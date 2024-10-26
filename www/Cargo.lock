@@ -1848,6 +1848,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "monaco"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8d5a8f26b4282061b05d99ca5d39fae23eda734557bfca12a69b78e6ad73281"
+dependencies = [
+ "js-sys",
+ "paste",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "multer"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2012,6 +2024,12 @@ dependencies = [
  "smallvec",
  "windows-targets",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "percent-encoding"
@@ -3385,6 +3403,7 @@ dependencies = [
  "dioxus-logger",
  "gloo-file 0.3.0",
  "js-sys",
+ "monaco",
  "reqwest",
  "serde",
  "shared",

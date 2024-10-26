@@ -1,5 +1,5 @@
 use crate::{
-    components::{button::*, card::Card, dynamic_layout::DynamicLayout},
+    components::{button::*, card::Card, code_editor::CodeEditor, dynamic_layout::DynamicLayout},
     play::{play, InstanceModule},
 };
 use dioxus::prelude::*;
@@ -84,7 +84,7 @@ fn Editor(
                             instance_module.set(None);
                             instance_canvas.set(None);
                             let result = play(
-                                CODE.to_string(),
+                                "".to_string(),
                                 shared::BevyVersion::V0_14,
                                 shared::RustChannel::Nightly,
                             )
@@ -111,8 +111,9 @@ fn Editor(
                     Sidebar {}
                 }
                 Card {
-                    class: "p-4 w-full h-full",
-                    "Main"
+                    id: "editor-card",
+                    class: "w-full h-full rounded-lg",
+                    CodeEditor {},
                 }
             }
         }
@@ -154,35 +155,3 @@ fn Sidebar() -> Element {
         }
     }
 }
-
-const CODE: &str = r#"
-use bevy::prelude::*;
-
-fn main() {
-    App::new()
-        .insert_resource(ClearColor(Color::srgb(1.0, 0.0, 0.0)))
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, setup)
-        .add_systems(Update, change_clear_color)
-        .run();
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
-    info!("Here is some info");
-    warn!("Here is a warning");
-    error!("Here is an error");
-}
-
-fn change_clear_color(input: Res<ButtonInput<KeyCode>>, mut clear_color: ResMut<ClearColor>, mut state: Local<bool>) {
-    if input.just_pressed(KeyCode::Space) {
-        info!("Changing color");
-        *state = !*state;
-        if *state {
-            clear_color.0 = Color::srgb(0.0, 1.0, 0.0);
-        } else {
-            clear_color.0 = Color::srgb(0.0, 0.0, 1.0);
-        }
-    }
-}
-"#;
