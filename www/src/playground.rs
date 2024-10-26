@@ -44,9 +44,12 @@ pub fn Playground() -> Element {
                     div {
                         class: "flex flex-col gap-4 h-full",
                         Card {
-                            id: "game-card",
-                            class: "aspect-video overflow-none relative",
-                            onmounted: move |event: MountedEvent| game_card_element.set(Some(event.data())),
+                            class: "aspect-video",
+                            div {
+                                id: "game-card",
+                                class: "relative overflow-hidden h-full w-full rounded-lg",
+                                onmounted: move |event: MountedEvent| game_card_element.set(Some(event.data())),
+                            },
                         },
                         Card {
                             class: "h-full",
