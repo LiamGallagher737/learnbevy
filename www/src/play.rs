@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use gloo_file::ObjectUrl;
 use js_sys::{Array, ArrayBuffer, Promise, Uint8Array};
 use shared::{compile::*, BevyVersion, RustChannel};
@@ -43,7 +45,7 @@ pub async fn play(
     let module_address = ObjectUrl::from(blob);
 
     let module_promise: Promise =
-        js_sys::eval(&format!("import (\"{}\")", module_address.to_string()))
+        js_sys::eval(&format!("import (\"{}\")", module_address.deref()))
             .unwrap()
             .into();
     let module: InstanceModule = JsFuture::from(module_promise).await.unwrap().into();
