@@ -1,4 +1,4 @@
-use bevy_app::{App, Startup};
+use bevy_app::{App, Update};
 
 mod exit;
 mod log;
@@ -16,6 +16,6 @@ pub mod exports {
 pub struct Plugin;
 impl bevy_app::Plugin for Plugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, exit::check_exit_flag);
+        app.add_systems(Update, exit::check_exit_flag);
     }
 }
