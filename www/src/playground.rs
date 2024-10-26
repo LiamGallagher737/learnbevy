@@ -75,7 +75,6 @@ fn Editor(
                 Button {
                     onclick: move |_| {
                         spawn(async move {
-                            tracing::info!("{:?}", instance_module.read().is_some());
                             if let Some(module) = instance_module.read().deref() {
                                 module.exit();
                             }
@@ -103,7 +102,7 @@ fn Editor(
                     },
                     class: "font-semibold",
                     "Play"
-                }
+                },
             }
             div {
                 class: "flex flex-row gap-4 h-full",
