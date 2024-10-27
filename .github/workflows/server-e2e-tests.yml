@@ -1,0 +1,75 @@
+name: Server E2E Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+    - 'server/**'
+    - 'compile_server_os/**'
+    - '.github/workflows/server-e2e-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+    - 'server/**'
+    - 'compile_server_os/**'
+    - '.github/workflows/server-e2e-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
+      - name: Restore and Cache Nix Store
+        uses: nix-community/cache-nix-action@v5
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          save-always: true
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 curl jq
+
+      - name: Build VM
+        working-directory: compile_server_os
+        run: |
+          nix build .#nixosConfigurations.test-system.config.system.build.vm
+          sudo mv result/bin/run-*-vm vm-run
+
+      - name: Start VM
+        working-directory: compile_server_os
+        run: sudo ./vm-run --no-reboot -nic user,model=virtio,hostfwd=tcp::3000-:3000 &
+
+      - name: Wait for Boot
+        timeout-minutes: 5
+        run: |
+          while true; do
+            curl http://localhost:3000 && break
+            echo "Waiting for server..."
+            sleep 5
+          done
+
+      - name: Wait for 0.14 Nightly Image
+        timeout-minutes: 15
+        run: |
+          while true; do
+            response=$(curl -s http://localhost:3000/health/0.14/nightly)
+            if echo "$response" | jq -e '.available == true' > /dev/null; then
+              break
+            else
+              echo "Waiting for image... Response: $response"
+            fi
+            sleep 5
+          done
+
+
+      - name: Run Tests
+        run: |
+          curl --fail http://localhost:3000 || (echo "Server not reachable!" && exit 1)

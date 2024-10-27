@@ -16,5 +16,21 @@
           ./configuration.nix
         ];
       };
+      nixosConfigurations.test-system = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = { inherit inputs; subdomain = "test-system"; };
+        modules = [
+          "${nixpkgs}/nixos/modules/virtualisation/qemu-vm.nix"
+          disko.nixosModules.disko
+          {
+            networking.firewall.allowedTCPPorts = [ 3000 ];
+            virtualisation = {
+              graphics = false;
+              diskSize = 10240;
+            };
+          }
+          ./configuration.nix
+        ];
+      };
     };
 }
