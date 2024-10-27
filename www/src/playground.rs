@@ -1,5 +1,10 @@
 use crate::{
-    components::{button::*, card::Card, code_editor::CodeEditor, dynamic_layout::DynamicLayout},
+    components::{
+        button::*,
+        card::Card,
+        code_editor::{CodeEditor, CodeEditorInstance},
+        dynamic_layout::DynamicLayout,
+    },
     play::{play, InstanceModule},
 };
 use dioxus::prelude::*;
@@ -67,6 +72,8 @@ fn Editor(
     instance_module: Signal<Option<InstanceModule>>,
     instance_canvas: Signal<Option<web_sys::Element>>,
 ) -> Element {
+    let editor = use_signal::<Option<CodeEditorInstance>>(|| None);
+
     rsx! {
         div {
             class: "flex flex-col gap-4 h-full",
@@ -84,7 +91,7 @@ fn Editor(
                             instance_module.set(None);
                             instance_canvas.set(None);
                             let result = play(
-                                "".to_string(),
+                                editor.as_ref().unwrap().get_value(),
                                 shared::BevyVersion::V0_14,
                                 shared::RustChannel::Nightly,
                             )
@@ -113,7 +120,9 @@ fn Editor(
                 Card {
                     id: "editor-card",
                     class: "w-full h-full rounded-lg",
-                    CodeEditor {},
+                    CodeEditor {
+                        editor,
+                    },
                 }
             }
         }

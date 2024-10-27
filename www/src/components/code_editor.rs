@@ -9,10 +9,7 @@ use wasm_bindgen::JsCast;
 use web_sys::HtmlElement;
 
 #[component]
-pub fn CodeEditor() -> Element {
-    let value = use_signal(|| CODE.to_owned());
-    let mut editor = use_signal(|| None);
-
+pub fn CodeEditor(editor: Signal<Option<CodeEditorInstance>>) -> Element {
     use_hook(move || {
         info!("starting monaco");
 
@@ -33,7 +30,7 @@ pub fn CodeEditor() -> Element {
         let options = CodeEditorOptions::default()
             .with_language(RUST_PLUS.to_owned())
             .with_theme(VS_DARK_PLUS.to_owned())
-            .with_value(value.read().to_string())
+            .with_value(CODE.to_owned())
             .with_automatic_layout(true)
             .to_sys_options();
 
@@ -42,7 +39,7 @@ pub fn CodeEditor() -> Element {
         options.set_minimap(Some(&minimap));
 
         let code_editor = CodeEditor::create(&element, Some(options));
-        editor.set(Some(code_editor));
+        editor.set(Some(CodeEditorInstance { code_editor }));
 
         // Fixes dynamic layout not being able to go smaller
         let editor_element = element.first_element_child().unwrap();
@@ -50,6 +47,20 @@ pub fn CodeEditor() -> Element {
     });
 
     rsx! {}
+}
+
+pub struct CodeEditorInstance {
+    code_editor: CodeEditor,
+}
+
+impl CodeEditorInstance {
+    pub fn get_value(&self) -> String {
+        self.code_editor.get_model().unwrap().get_value()
+    }
+
+    pub fn set_value(&self, value: &str) {
+        self.code_editor.get_model().unwrap().set_value(value)
+    }
 }
 
 const CODE: &str = r#"
