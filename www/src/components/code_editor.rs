@@ -63,8 +63,7 @@ impl CodeEditorInstance {
     }
 }
 
-const CODE: &str = r#"
-use bevy::prelude::*;
+const CODE: &str = r#"use bevy::prelude::*;
 
 fn main() {
     App::new()
