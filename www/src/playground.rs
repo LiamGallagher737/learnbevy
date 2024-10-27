@@ -57,7 +57,7 @@ pub fn Playground() -> Element {
                             },
                         },
                         Card {
-                            class: "h-full",
+                            class: "grow",
                         },
                     },
                 },
