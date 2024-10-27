@@ -58,6 +58,7 @@ impl CodeEditorInstance {
         self.code_editor.get_model().unwrap().get_value()
     }
 
+    #[allow(dead_code)]
     pub fn set_value(&self, value: &str) {
         self.code_editor.get_model().unwrap().set_value(value)
     }
