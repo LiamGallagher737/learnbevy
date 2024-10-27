@@ -6,6 +6,7 @@ use dioxus_logger::tracing;
 use playground::Playground;
 
 mod components;
+mod monaco;
 mod play;
 mod playground;
 

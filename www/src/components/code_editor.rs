@@ -1,9 +1,7 @@
+use crate::monaco::{setup_rust_plus_language, setup_vs_dark_plus_theme, RUST_PLUS, VS_DARK_PLUS};
 use dioxus::prelude::*;
 use dioxus_logger::tracing::info;
-use monaco::{
-    api::{CodeEditor, CodeEditorOptions},
-    sys::editor::BuiltinTheme,
-};
+use monaco::api::{CodeEditor, CodeEditorOptions};
 use wasm_bindgen::JsCast;
 use web_sys::HtmlElement;
 
@@ -26,10 +24,13 @@ pub fn CodeEditor() -> Element {
             .unwrap();
         element.set_class_name("h-full");
 
+        setup_vs_dark_plus_theme();
+        setup_rust_plus_language();
+
         let options = CodeEditorOptions::default()
-            .with_language("rust".to_owned())
+            .with_language(RUST_PLUS.to_owned())
+            .with_theme(VS_DARK_PLUS.to_owned())
             .with_value(value.read().to_string())
-            .with_builtin_theme(BuiltinTheme::VsDark)
             .with_automatic_layout(true);
 
         let code_editor = CodeEditor::create(&element, Some(options));
