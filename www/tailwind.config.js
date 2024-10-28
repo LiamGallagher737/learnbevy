@@ -1,18 +1,10 @@
 import { fontFamily } from "tailwindcss/defaultTheme";
 
 /** @type {import('tailwindcss').Config} */
-const config = {
-    darkMode: ["class"],
-    content: ["./src/**/*.{html,js,svelte,ts}"],
-    safelist: ["dark"],
+module.exports = {
+    mode: "all",
+    content: ["./src/**/*.{rs,html,css}", "./dist/**/*.html"],
     theme: {
-        container: {
-            center: true,
-            padding: "2rem",
-            screens: {
-                "2xl": "1400px",
-            },
-        },
         extend: {
             colors: {
                 border: "hsl(var(--border) / <alpha-value>)",
@@ -59,6 +51,5 @@ const config = {
             },
         },
     },
+    plugins: [],
 };
-
-export default config;

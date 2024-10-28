@@ -1,20 +1,10 @@
-use crate::Error;
 use axum::Json;
-use serde::{Deserialize, Serialize};
+use shared::format::*;
+use shared::Error;
 use std::process::Stdio;
 use tokio::io::AsyncWriteExt;
 use tokio::process;
 use tracing::error;
-
-#[derive(Deserialize)]
-pub struct FormatRequest {
-    code: String,
-}
-
-#[derive(Serialize)]
-pub struct FormatResponse {
-    formatted_code: String,
-}
 
 pub async fn handler(Json(payload): Json<FormatRequest>) -> Result<Json<FormatResponse>, Error> {
     // Spawn a new rustfmt child process

@@ -1,17 +1,15 @@
 use axum::{
-    http::{header::CONTENT_TYPE, HeaderName, Method, StatusCode},
-    response::{IntoResponse, Response},
+    http::{header::CONTENT_TYPE, HeaderName, Method},
     routing::post,
-    Json, Router,
+    Router,
 };
-use derive_more::Display;
-use serde::{Deserialize, Serialize};
+use shared::{BevyVersion, RustChannel};
 use tokio::net::TcpListener;
 use tower_http::{
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
 };
-use tracing::{error, info};
+use tracing::info;
 
 mod clippy;
 mod compile;
@@ -45,64 +43,6 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-/// The version of Bevy for a request.
-#[derive(Deserialize, Display)]
-enum BevyVersion {
-    #[serde(rename = "main")]
-    #[display("main")]
-    Main,
-    // When updating this for new Bevy versions, the number value
-    // should also be updated so saved caches are invalidated.
-    #[serde(rename = "0.14")]
-    #[display("0.14")]
-    V0_14 = 14,
-}
-
-/// The channel of Rust for a request.
-#[derive(Deserialize, Display)]
-enum RustChannel {
-    #[serde(rename = "stable")]
-    #[display("stable")]
-    Stable,
-    #[serde(rename = "nightly")]
-    #[display("nightly")]
-    Nightly,
-}
-
 fn image(version: BevyVersion, channel: RustChannel) -> String {
     format!("ghcr.io/liamgallagher737/learnbevy-{version}-{channel}:main")
-}
-
-/// The error type for all handlers.
-#[derive(Serialize)]
-#[serde(tag = "kind")]
-enum Error {
-    Internal,
-    BadCode { stderr: String },
-}
-
-impl Error {
-    #[must_use]
-    pub fn internal<E: std::fmt::Display>(error: E) -> Self {
-        error!("Failed to handle request: {error}");
-        Self::Internal
-    }
-}
-
-impl IntoResponse for Error {
-    fn into_response(self) -> Response {
-        let status = match self {
-            Error::Internal => StatusCode::INTERNAL_SERVER_ERROR,
-            Error::BadCode { stderr: _ } => StatusCode::BAD_REQUEST,
-        };
-        let mut response = Json(self).into_response();
-        *response.status_mut() = status;
-        response
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(error: std::io::Error) -> Self {
-        Self::internal(error)
-    }
 }
