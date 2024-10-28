@@ -3,12 +3,12 @@ use crate::{
         button::*,
         card::Card,
         code_editor::{CodeEditor, CodeEditorInstance},
+        console::Console,
         dynamic_layout::DynamicLayout,
     },
     play::{play, InstanceModule},
 };
 use dioxus::prelude::*;
-use dioxus_logger::tracing;
 use std::{ops::Deref, rc::Rc};
 
 #[component]
@@ -18,6 +18,8 @@ pub fn Playground() -> Element {
 
     let mut game_card_element = use_signal::<Option<Rc<MountedData>>>(|| None);
     let mut game_size = use_signal(|| (0.0, 0.0));
+
+    let console_entries = use_signal(|| Vec::new());
 
     use_effect(move || {
         if let Some(element) = instance_canvas.read().deref() {
@@ -58,6 +60,9 @@ pub fn Playground() -> Element {
                         },
                         Card {
                             class: "grow",
+                            Console {
+                                entries: console_entries,
+                            }
                         },
                     },
                 },
@@ -119,7 +124,7 @@ fn Editor(
                 }
                 Card {
                     id: "editor-card",
-                    class: "w-full h-full rounded-lg",
+                    class: "w-full h-full rounded-lg p-4",
                     CodeEditor {
                         editor,
                     },

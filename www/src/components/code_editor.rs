@@ -1,6 +1,8 @@
+// Much of the code here can only run on the client and will crash the server if run
+#![cfg_attr(not(feature = "web"), allow(dead_code, unused_imports))]
+
 use crate::monaco::{setup_rust_plus_language, setup_vs_dark_plus_theme, RUST_PLUS, VS_DARK_PLUS};
 use dioxus::prelude::*;
-use dioxus_logger::tracing::info;
 use monaco::{
     api::{CodeEditor, CodeEditorOptions},
     sys::editor::IEditorMinimapOptions,
@@ -10,9 +12,8 @@ use web_sys::HtmlElement;
 
 #[component]
 pub fn CodeEditor(editor: Signal<Option<CodeEditorInstance>>) -> Element {
+    #[cfg(feature = "web")]
     use_hook(move || {
-        info!("starting monaco");
-
         let document = web_sys::window().unwrap().document().unwrap();
         let card_element = document.get_element_by_id("editor-card").unwrap();
 

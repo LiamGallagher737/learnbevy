@@ -1,7 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use dioxus::prelude::*;
-use dioxus_logger::tracing;
 
 use playground::Playground;
 
@@ -23,7 +22,8 @@ enum Route {
 
 fn main() {
     // Init logger
-    dioxus_logger::init(tracing::Level::INFO).expect("failed to init logger");
+    // tracing_subscriber::fmt::init();
+
     tracing::info!("starting app");
 
     #[allow(clippy::unit_arg)]
