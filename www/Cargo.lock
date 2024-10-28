@@ -3385,8 +3385,6 @@ dependencies = [
  "serde",
  "shared",
  "tailwind_fuse",
- "tracing",
- "tracing-subscriber",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
