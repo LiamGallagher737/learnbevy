@@ -17,7 +17,7 @@ pub struct LintResponse {
 }
 
 #[instrument(skip(payload))]
-pub async fn handler(
+pub async fn lint(
     Path((version, channel)): Path<(BevyVersion, RustChannel)>,
     Json(payload): Json<LintRequest>,
 ) -> Result<Json<LintResponse>, Error> {

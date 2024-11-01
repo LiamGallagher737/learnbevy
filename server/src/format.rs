@@ -17,7 +17,7 @@ pub struct FormatResponse {
 }
 
 #[instrument(skip(payload))]
-pub async fn handler(Json(payload): Json<FormatRequest>) -> Result<Json<FormatResponse>, Error> {
+pub async fn format(Json(payload): Json<FormatRequest>) -> Result<Json<FormatResponse>, Error> {
     info!("Started");
     let start = Instant::now();
 

@@ -34,7 +34,7 @@ pub struct CompileRequest {
 }
 
 #[instrument(skip(payload))]
-pub async fn handler(
+pub async fn compile(
     Path((version, channel)): Path<(BevyVersion, RustChannel)>,
     Json(payload): Json<CompileRequest>,
 ) -> Result<(HeaderMap, Vec<u8>), Error> {

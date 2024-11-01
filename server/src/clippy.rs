@@ -26,7 +26,7 @@ pub struct ClippyResponse {
 }
 
 #[instrument(skip(payload))]
-pub async fn handler(
+pub async fn clippy(
     Path((version, channel)): Path<(BevyVersion, RustChannel)>,
     Json(payload): Json<ClippyRequest>,
 ) -> Result<Json<ClippyResponse>, Error> {

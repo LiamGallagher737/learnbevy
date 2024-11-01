@@ -24,10 +24,10 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let app = Router::new()
-        .route("/compile/:version/:channel", post(compile::handler))
-        .route("/clippy/:version/:channel", post(clippy::handler))
-        .route("/lint/:version/:channel", post(lint::handler))
-        .route("/format", post(format::handler))
+        .route("/compile/:version/:channel", post(compile::compile))
+        .route("/clippy/:version/:channel", post(clippy::clippy))
+        .route("/lint/:version/:channel", post(lint::lint))
+        .route("/format", post(format::format))
         .layer(CompressionLayer::new())
         .layer(
             CorsLayer::new()
