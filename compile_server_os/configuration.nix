@@ -11,7 +11,11 @@
     efiSupport = true;
     efiInstallAsRemovable = true;
   };
-  services.openssh.enable = true;
+
+  services.openssh = {
+    enable = true;
+    openFirewall = true;
+  };
 
   environment.systemPackages = map lib.lowPrio [
     pkgs.curl
@@ -21,6 +25,7 @@
   virtualisation.containers.enable = true;
   virtualisation.docker.enable = true;
 
+  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
   networking.firewall = {
       enable = true;
       allowedTCPPorts = [ 80 443 ];
