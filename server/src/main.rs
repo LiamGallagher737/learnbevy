@@ -46,7 +46,7 @@ async fn main() {
 }
 
 /// The version of Bevy for a request.
-#[derive(Deserialize, Display)]
+#[derive(Deserialize, Display, Debug)]
 enum BevyVersion {
     #[serde(rename = "main")]
     #[display("main")]
@@ -59,7 +59,7 @@ enum BevyVersion {
 }
 
 /// The channel of Rust for a request.
-#[derive(Deserialize, Display)]
+#[derive(Deserialize, Display, Debug)]
 enum RustChannel {
     #[serde(rename = "stable")]
     #[display("stable")]

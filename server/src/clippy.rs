@@ -1,7 +1,8 @@
 use crate::{image, instances::Instance, BevyVersion, Error, RustChannel};
 use axum::{extract::Path, Json};
 use serde::{Deserialize, Serialize};
-use tracing::error;
+use std::time::Instant;
+use tracing::{error, info, instrument};
 
 const COMMAND: &[&str] = &[
     "cargo",
@@ -24,10 +25,14 @@ pub struct ClippyResponse {
     stderr: String,
 }
 
+#[instrument(skip(payload))]
 pub async fn handler(
     Path((version, channel)): Path<(BevyVersion, RustChannel)>,
     Json(payload): Json<ClippyRequest>,
 ) -> Result<Json<ClippyResponse>, Error> {
+    info!("Started");
+    let start = Instant::now();
+
     let commands = if payload.fix { COMMAND } else { &COMMAND[0..4] };
 
     let instance = Instance::new(image(version, channel), commands, &payload.code).await?;
@@ -47,6 +52,7 @@ pub async fn handler(
         None
     };
 
+    info!("Success: Completed in {:.2?}", start.elapsed());
     Ok(Json(ClippyResponse {
         fixed_code,
         stderr: String::from_utf8(output.stderr).map_err(Error::internal)?,
