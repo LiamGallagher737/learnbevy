@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        machine: [host-eons-slc]
+        machine: [slc, deu]
     steps:
     - uses: actions/checkout@v4
     - uses: cachix/install-nix-action@v27
