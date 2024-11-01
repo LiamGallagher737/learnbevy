@@ -28,7 +28,7 @@
   networking = {
     hostName = "${subdomain}.compute.learnbevy.com";
     nameservers = [ "8.8.8.8" "8.8.4.4" ];
-    networking.firewall = {
+    firewall = {
       enable = true;
       allowedTCPPorts = [ 80 443 ];
     };
