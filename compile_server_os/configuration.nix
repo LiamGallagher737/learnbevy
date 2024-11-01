@@ -25,10 +25,13 @@
   virtualisation.containers.enable = true;
   virtualisation.docker.enable = true;
 
-  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-  networking.firewall = {
+  networking = {
+    hostName = "${subdomain}";
+    nameservers = [ "8.8.8.8" "8.8.4.4" ];
+    firewall = {
       enable = true;
       allowedTCPPorts = [ 80 443 ];
+    };
   };
 
   services.openssh.settings.PasswordAuthentication = false;
