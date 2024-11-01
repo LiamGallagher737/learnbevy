@@ -5,7 +5,8 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
-use tracing::error;
+use std::time::Instant;
+use tracing::{error, info, instrument};
 
 const COMMANDS: &[&str] = &["sh", "/playground/tools/build.sh"];
 
@@ -32,10 +33,14 @@ pub struct CompileRequest {
     code: String,
 }
 
-pub async fn handler(
+#[instrument(skip(payload))]
+pub async fn compile(
     Path((version, channel)): Path<(BevyVersion, RustChannel)>,
     Json(payload): Json<CompileRequest>,
 ) -> Result<(HeaderMap, Vec<u8>), Error> {
+    info!("Started");
+    let start = Instant::now();
+
     let modified_code = modify_input_code(payload.code);
     let instance = Instance::new(image(version, channel), COMMANDS, &modified_code).await?;
 
@@ -48,6 +53,7 @@ pub async fn handler(
     // Exit code 101 means the compiler failed to build the code due to it
     // being invalid Rust. This is a user error.
     if code == Some(101) {
+        info!("User error: Completed in {:.2?}", start.elapsed());
         return Err(Error::BadCode { stderr });
     }
 
@@ -78,6 +84,7 @@ pub async fn handler(
         HeaderValue::from(js_length),
     );
 
+    info!("Success: Completed in {:.2?}", start.elapsed());
     Ok((headers, body))
 }
 

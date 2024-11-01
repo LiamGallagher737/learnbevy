@@ -1,10 +1,10 @@
 use crate::Error;
 use axum::Json;
 use serde::{Deserialize, Serialize};
-use std::process::Stdio;
+use std::{process::Stdio, time::Instant};
 use tokio::io::AsyncWriteExt;
 use tokio::process;
-use tracing::error;
+use tracing::{error, info, instrument};
 
 #[derive(Deserialize)]
 pub struct FormatRequest {
@@ -16,7 +16,11 @@ pub struct FormatResponse {
     formatted_code: String,
 }
 
-pub async fn handler(Json(payload): Json<FormatRequest>) -> Result<Json<FormatResponse>, Error> {
+#[instrument(skip(payload))]
+pub async fn format(Json(payload): Json<FormatRequest>) -> Result<Json<FormatResponse>, Error> {
+    info!("Started");
+    let start = Instant::now();
+
     // Spawn a new rustfmt child process
     let mut command = process::Command::new("rustfmt")
         .stdin(Stdio::piped())
@@ -38,10 +42,12 @@ pub async fn handler(Json(payload): Json<FormatRequest>) -> Result<Json<FormatRe
 
     // Respond based on result of rustfmt
     if output.status.success() {
+        info!("Success: Completed in {:.2?}", start.elapsed());
         Ok(Json(FormatResponse {
             formatted_code: String::from_utf8(output.stdout).map_err(Error::internal)?,
         }))
     } else if output.status.code() == Some(1) {
+        info!("Success: Completed in {:.2?}", start.elapsed());
         Err(Error::BadCode {
             stderr: String::from_utf8(output.stderr).map_err(Error::internal)?,
         })
