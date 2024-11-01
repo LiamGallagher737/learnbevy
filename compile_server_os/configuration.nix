@@ -26,7 +26,7 @@
   virtualisation.docker.enable = true;
 
   networking = {
-    hostName = "${subdomain}.compute.learnbevy.com";
+    hostName = "${subdomain}";
     nameservers = [ "8.8.8.8" "8.8.4.4" ];
     firewall = {
       enable = true;
