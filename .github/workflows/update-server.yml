@@ -33,6 +33,6 @@ jobs:
         ssh-keyscan slc.compute.learnbevy.com >> ~/.ssh/known_hosts
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-    - name: Update Server
+    - name: Update ${{ matrix.machine }} Server
       working-directory: ./compile_server_os
       run: nix run nixpkgs#nixos-rebuild -- switch --flake .#${{ matrix.machine }} --target-host root@${{ matrix.machine }}.compute.learnbevy.com
