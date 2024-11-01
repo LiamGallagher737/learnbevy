@@ -25,10 +25,13 @@
   virtualisation.containers.enable = true;
   virtualisation.docker.enable = true;
 
-  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-  networking.firewall = {
+  networking = {
+    hostname = "${subdomain}.compute.learnbevy.com";
+    nameservers = [ "8.8.8.8" "8.8.4.4" ];
+    networking.firewall = {
       enable = true;
       allowedTCPPorts = [ 80 443 ];
+    };
   };
 
   services.openssh.settings.PasswordAuthentication = false;
