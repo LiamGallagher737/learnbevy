@@ -16,6 +16,7 @@ jobs:
   update-server:
     runs-on: ubuntu-latest
     strategy:
+      fast-fail: false
       matrix:
         machine: [slc, deu]
     timeout-minutes: 30
