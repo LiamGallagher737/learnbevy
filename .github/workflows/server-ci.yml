@@ -1,4 +1,4 @@
-name: Compile Api CI
+name: Server CI
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-    - 'compile_api/**'
+    - 'server/**'
     - '.github/workflows/server-ci.yml'
 
 env:
