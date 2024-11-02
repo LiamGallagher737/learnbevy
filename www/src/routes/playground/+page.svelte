@@ -16,6 +16,7 @@
     import { editorCode } from "$lib/components/editor";
     import type { PageData } from "./$types";
     import { onMount, tick } from "svelte";
+    import About from "./About.svelte";
 
     export let data: PageData;
     if (data.code) editorCode.set(data.code);
@@ -111,7 +112,7 @@
             </Card>
             <div class="flex h-full w-full gap-4 overflow-hidden">
                 <Card class="h-full w-12">
-                    <Sidebar tabs={["editor", "assets", "crates"]} />
+                    <Sidebar tabs={["editor", "assets", "crates", "about"]} />
                 </Card>
                 <!-- The 4rem in calc() comes from 3rem sidebar + 1rem gap,
                 flex-grow won't work because of the editor -->
@@ -122,6 +123,8 @@
                         <AssetExplorer />
                     {:else if $selectedTab === "crates"}
                         <CrateList />
+                    {:else if $selectedTab === "about"}
+                        <About />
                     {/if}
                 </Card>
             </div>
