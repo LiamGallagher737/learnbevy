@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use axum::{
     http::{header::CONTENT_TYPE, HeaderName, Method, StatusCode},
     response::{IntoResponse, Response},
@@ -34,6 +36,7 @@ async fn main() {
                 .allow_origin(Any)
                 .allow_methods([Method::POST])
                 .allow_headers([CONTENT_TYPE])
+                .max_age(Duration::from_secs(60 * 60 * 24))
                 .expose_headers([
                     HeaderName::from_static("wasm-content-length"),
                     HeaderName::from_static("js-content-length"),
