@@ -24,7 +24,7 @@
                     web game.
                 </p>
                 <a href="https://snakecrafthosting.com" alt="Snakecraft Hosting" target="_blank">
-                    <img src="https://my.snakecrafthosting.com/assets/img/logo.png" />
+                    <img width="320" height="132" src="https://my.snakecrafthosting.com/assets/img/logo.png" />
                 </a>
             </section>
 
