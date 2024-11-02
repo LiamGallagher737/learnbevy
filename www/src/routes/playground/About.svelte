@@ -23,8 +23,13 @@
                     case of compiling, the WASM is sent back to your browser and ran like any other Bevy
                     web game.
                 </p>
-                <a href="https://snakecrafthosting.com" alt="Snakecraft Hosting" target="_blank">
-                    <img width="320" height="132" src="https://my.snakecrafthosting.com/assets/img/logo.png" />
+                <a href="https://snakecrafthosting.com" target="_blank">
+                    <img
+                        width="320"
+                        height="132"
+                        src="https://my.snakecrafthosting.com/assets/img/logo.png"
+                        alt="Snakecraft Hosting"
+                    />
                 </a>
             </section>
 
