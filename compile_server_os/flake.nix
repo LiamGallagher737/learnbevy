@@ -7,6 +7,24 @@
 
   outputs = inputs@{ self, nixpkgs, disko, ... }:
     {
+      nixosConfigurations.mi = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = { inherit inputs; subdomain = "mi"; };
+        modules = [
+          disko.nixosModules.disko
+          {
+            disko.devices.disk.disk1.device = "/dev/vda";
+            networking.interfaces.ens3 = {
+              useDHCP = false;
+              ipv4.addresses = [
+                { address = "185.165.44.18"; prefixLength = 24; }
+              ];
+            };
+            networking.defaultGateway = "185.165.44.1";
+          }
+          ./configuration.nix
+        ];
+      };
       nixosConfigurations.slc = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; subdomain = "slc"; };
