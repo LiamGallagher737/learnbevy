@@ -27,25 +27,22 @@ Here is a list of current and planned features
 - [ ] Entity inspector
 - [ ] Rust analyzer running in the browser ([it's possible](https://github.com/rust-analyzer/rust-analyzer-wasm))
 
-## 📂 compile_api
 
-This is the program than compiles the code to wasm.
+## 📂 server
+
+This is backend of the project.
 
 #### How it works
 
-Each request spins up a new docker container, see [images](#-images) for for infomation on them.
+Each request spins up a new docker container depending on the Bevy version and Rust channel selected, see [images](#-images) for for infomation on them.
 
-The http server in use is [tide](https://github.com/http-rs/tide), I chose this due to its middleware which works quite well for this use case. Each stage is implmented as its own middleware.
-
-To keep the service avaliable for everyone to use there is rate limiting which adds a 5 second deplay before another request can be made when the last one was successful but only 1 second if it was unsuccessful. There is also what I call "ip locking" which allows only a single concurrent request from each IP address.
+The http server in use is [axum](https://github.com/tokio-rs/axum), I chose this due to its great ecosystem and simplicity.
 
 #### Hosting
 
-Currently it is running on a single [7950 VDS 1]([https://hizakura.nl/vps/](https://my.hosteons.com/store/ryzen-7950x-based-hybrid-dedicated-server)) from HostENOS in Salt Lake City. I chose this due to it's great single threaded performance which seems to be the most important for incrimental builds.
+The server is hosted on a [4GB Premium KVM VPS](https://my.snakecrafthosting.com/index.php?rp=/store/premium-kvm-vps) from [Snakecraft Hosting](https://snakecrafthosting.com/#slide-49-b6b798b6) who very generously sponsored this project.
 
-#### Metrics / Uptime
-
-The server collects metrics about the number of requests, their statuses and how long they take. A public grafana dashboard is avaliable to view at https://metrics.learnbevy.com. I also have uptime messuarements using [Better Stack](https://betterstack.com), the public status page can be found at https://status.learnbevy.com.
+[![Snakecraft Hosting](https://my.snakecrafthosting.com/assets/img/logo.png)](https://snakecrafthosting.com)
 
 #### Local Development
 
@@ -60,6 +57,7 @@ docker pull ghcr.io/liamgallagher737/learnbevy-main-stable # bevy main branch on
 ```
 
 If you want to build them yourselve see the [images section](#-images).
+
 
 ## 📂 compile_server_os
 
@@ -98,21 +96,6 @@ An image can be build like this, replace `0.14` and `stable` with options of you
 docker build --build-arg="version=0.14" --build-arg="channel=stable" --tag "ghcr.io/liamgallagher737/learnbevy-0.14-stable" .
 ```
 
-## 📂 rustfmt_api
-
-This is the program that formats the code.
-
-#### How it works
-
-This is a very simple server using [warp](https://github.com/seanmonstar/warp), just a single [main.rs](./rustfmt_api/src/main.rs) file. Each requests runs a new [rustfmt](https://github.com/rust-lang/rustfmt) process and pipes the users code into stdin. The formatted code is then read through stdout.
-
-#### Hosting
-
-There are three instances of this server running on [fly.io](https://fly.io)'s free tier. The machines being used are `shared-cpu-1x@256MB` as that is the maximum to stay in the free their while keeping them permanently up which is ideal to avoid cold starts. The three instances run in the following regions.
-
-- Dallas, Texas 🇺🇸
-- Sydney, Australia 🇦🇺
-- Amsterdam, Netherlands 🇳🇱
 
 ## 📂 www
 
