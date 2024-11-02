@@ -27,30 +27,50 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- \
     --default-toolchain "${channel}" \
     --target wasm32-unknown-unknown 
 
-COPY build.sh /playground/tools/
-RUN chmod u+x /playground/tools/build.sh
+RUN rustup component add clippy
+# For linting
+RUN rustup toolchain install nightly-2024-10-03 --component rustc-dev --component llvm-tools-preview
+RUN rustup target add --toolchain nightly-2024-10-03 wasm32-unknown-unknown
+
 
 FROM toolchain as wasm-bindgen
 RUN cargo install wasm-bindgen-cli
+
+
+FROM toolchain as bevy_lint
+RUN cargo +nightly-2024-10-03 install --git https://github.com/TheBevyFlock/bevy_cli bevy_lint
+
 
 FROM toolchain as sources
 RUN cargo init --name game --vcs none /playground
 
 ARG version
 
+# Force a rebuild when the main branch is updated
+# TODO: Find a way to mae this conditional for only main version builds
+ADD https://api.github.com/repos/bevyengine/bevy/commits/main /playground/tools/latest-bevy-main
+
 COPY manifests/${version}.Cargo.toml /playground/Cargo.toml
 COPY nightly.config.toml /playground/.config/config.toml
 RUN if [ "${channel}" = 'stable' ]; then rm -rf /playground/.config; fi
 RUN cargo fetch
+
 
 FROM sources
 
 ARG channel
 
 RUN cargo build --release --target wasm32-unknown-unknown
-RUN rm src/*.rs
+RUN cargo clippy --target wasm32-unknown-unknown
 
 COPY --from=wasm-bindgen /root/.cargo/bin/wasm-bindgen /root/.cargo/bin
+COPY --from=bevy_lint /root/.cargo/bin/bevy_lint /root/.cargo/bin
+COPY --from=bevy_lint /root/.cargo/bin/bevy_lint_driver /root/.cargo/bin
 
-CMD /playground/tools/build.sh
+RUN bevy_lint --target wasm32-unknown-unknown
+
+RUN rm src/*.rs
+
+COPY build.sh /playground/tools/
+RUN chmod u+x /playground/tools/build.sh
 

@@ -44,7 +44,7 @@
     let wasm: any | null = null;
 
     async function play() {
-        if (wasm) wasm.__exit();
+        if (wasm) wasm.exit();
         if (gameCanvas) gameCanvas.remove();
         consoleItems.set([]);
         processingRequest = true;

@@ -11,9 +11,10 @@ type CompileArgs = {
 
 export async function play(args: CompileArgs): Promise<PlayResponse> {
     // Use the provided host if given
-    const host = env.PUBLIC_COMPILE_HOST ?? "https://compile.learnbevy.com";
+    const host = env.PUBLIC_COMPILE_HOST ?? "https://slc.compute.learnbevy.com";
+    const url = `${host}/compile/${args.version}/${args.channel}`;
     // Make the request
-    const res = await fetch(host + "/compile", {
+    const res = await fetch(url, {
         method: "POST",
         body: JSON.stringify({
             code: args.code,
@@ -43,7 +44,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
             case "DisallowedWord":
                 msg = `Your code contains a disallowed word: "${error.word}"`;
                 break;
-            case "BuildFailed":
+            case "BadCode":
                 msg = "The code failed to build";
                 break;
             case "Internal":
@@ -53,7 +54,7 @@ export async function play(args: CompileArgs): Promise<PlayResponse> {
         return {
             kind: "Failed",
             message: msg,
-            stderr: error.kind === "BuildFailed" ? error.stderr : null,
+            stderr: error.kind === "BadCode" ? error.stderr : null,
         };
     }
 
@@ -149,8 +150,7 @@ type DisallowedWordError = {
     word: string;
 };
 type BuildFailedError = {
-    kind: "BuildFailed";
-    stdout: string;
+    kind: "BadCode";
     stderr: string;
 };
 type InternalError = {

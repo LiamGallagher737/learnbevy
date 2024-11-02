@@ -3,17 +3,29 @@
   inputs.disko.url = "github:nix-community/disko";
   inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
 
-  inputs.learnbevy = {
-      type = "github";
-      owner = "LiamGallagher737";
-      repo = "learnbevy";
-      ref = "main";
-      dir = "compile_api";
-  };
+  inputs.learnbevy.url = "path:./../server";
 
   outputs = inputs@{ self, nixpkgs, disko, ... }:
     {
-      nixosConfigurations.host-eons-slc = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.mi = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = { inherit inputs; subdomain = "mi"; };
+        modules = [
+          disko.nixosModules.disko
+          {
+            disko.devices.disk.disk1.device = "/dev/vda";
+            networking.interfaces.ens3 = {
+              useDHCP = false;
+              ipv4.addresses = [
+                { address = "185.165.44.18"; prefixLength = 24; }
+              ];
+            };
+            networking.defaultGateway = "185.165.44.1";
+          }
+          ./configuration.nix
+        ];
+      };
+      nixosConfigurations.slc = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; subdomain = "slc"; };
         modules = [
@@ -22,12 +34,21 @@
           ./configuration.nix
         ];
       };
-      nixosConfigurations.host-eons-slc-slow = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.deu = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; subdomain = "slow-slc"; };
+        specialArgs = { inherit inputs; subdomain = "deu"; };
         modules = [
           disko.nixosModules.disko
-          { disko.devices.disk.disk1.device = "/dev/vda"; }
+          {
+            disko.devices.disk.disk1.device = "/dev/vda";
+            networking.interfaces.ens3 = {
+              useDHCP = false;
+              ipv4.addresses = [
+                { address = "5.83.147.226"; prefixLength = 24; }
+              ];
+            };
+            networking.defaultGateway = "5.83.147.1";
+          }
           ./configuration.nix
         ];
       };
