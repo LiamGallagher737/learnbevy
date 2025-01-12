@@ -38,7 +38,7 @@ RUN cargo install wasm-bindgen-cli
 
 
 FROM toolchain as bevy_lint
-RUN cargo +nightly-2024-10-03 install --git https://github.com/TheBevyFlock/bevy_cli bevy_lint
+RUN cargo +nightly-2024-11-14 install --git https://github.com/TheBevyFlock/bevy_cli --tag lint-v0.1.0 bevy_lint
 
 
 FROM toolchain as sources
