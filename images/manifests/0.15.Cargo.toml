@@ -4,29 +4,37 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.14", default-features = false, features = [
+bevy = { version = "0.15", default-features = false, features = [
     "animation",
     "bevy_asset",
-    "bevy_state",
     "bevy_audio",
     "bevy_color",
+    "bevy_core_pipeline",
     "bevy_dev_tools",
     "bevy_gilrs",
-    "bevy_scene",
-    "bevy_winit",
-    "bevy_core_pipeline",
-    "bevy_pbr",
+    "bevy_gizmos",
     "bevy_gltf",
+    "bevy_mesh_picking_backend",
+    "bevy_pbr",
+    "bevy_picking",
     "bevy_render",
+    "bevy_scene",
     "bevy_sprite",
+    "bevy_sprite_picking_backend",
+    "bevy_state",
     "bevy_text",
     "bevy_ui",
-    "png",
-    "hdr",
-    "vorbis",
-    "bevy_gizmos",
-    "tonemapping_luts",
+    "bevy_ui_picking_backend",
+    "bevy_window",
+    "bevy_winit",
+    "custom_cursor",
     "default_font",
+    "hdr",
+    "png",
+    "smaa_luts",
+    "sysinfo_plugin",
+    "tonemapping_luts",
+    "vorbis",
     "webgl2",
 ] }
 playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git" }
@@ -34,14 +42,12 @@ playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git" }
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 
-avian2d = "=0.1.2"
-avian3d = "=0.1.2"
-bevy_mod_picking = "=0.20.1"
-bevy_prototype_lyon = "=0.12.0"
-bevy_kira_audio = "=0.20.0"
-bevy_light_2d = "=0.4.2"
-#leafwing-input-manager = "=0.14.0"
-#bevy_dev = { version = "0.3.0", default-features = false }
+avian2d = "=0.2.0"
+avian3d = "=0.2.0"
+bevy_prototype_lyon = "=0.13.0"
+bevy_kira_audio = "=0.22.0"
+bevy_light_2d = "=0.5.0"
+leafwing-input-manager = "=0.16.0"
 
 wasm-bindgen = "0.2"
 

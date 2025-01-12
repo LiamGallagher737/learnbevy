@@ -106,8 +106,8 @@
     script = ''
       ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-main-nightly:main
       ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-main-stable:main
-      ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-0.14-nightly:main
-      ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-0.14-stable:main
+      ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-0.15-nightly:main
+      ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-0.15-stable:main
       ${pkgs.docker}/bin/docker image prune -f
     '';
     wantedBy = [ "default.target" ];
