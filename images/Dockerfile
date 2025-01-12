@@ -29,8 +29,8 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- \
 
 RUN rustup component add clippy
 # For linting
-RUN rustup toolchain install nightly-2024-10-03 --component rustc-dev --component llvm-tools-preview
-RUN rustup target add --toolchain nightly-2024-10-03 wasm32-unknown-unknown
+RUN rustup toolchain install nightly-2024-11-14 --component rustc-dev --component llvm-tools-preview
+RUN rustup target add --toolchain nightly-2024-11-14 wasm32-unknown-unknown
 
 
 FROM toolchain as wasm-bindgen
