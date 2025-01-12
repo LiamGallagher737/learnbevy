@@ -4,39 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", default-features = false, features = [
-    "animation",
-    "bevy_asset",
-    "bevy_audio",
-    "bevy_color",
-    "bevy_core_pipeline",
-    "bevy_dev_tools",
-    "bevy_gilrs",
-    "bevy_gizmos",
-    "bevy_gltf",
-    "bevy_mesh_picking_backend",
-    "bevy_pbr",
-    "bevy_picking",
-    "bevy_render",
-    "bevy_scene",
-    "bevy_sprite",
-    "bevy_sprite_picking_backend",
-    "bevy_state",
-    "bevy_text",
-    "bevy_ui",
-    "bevy_ui_picking_backend",
-    "bevy_window",
-    "bevy_winit",
-    "custom_cursor",
-    "default_font",
-    "hdr",
-    "png",
-    "smaa_luts",
-    "sysinfo_plugin",
-    "tonemapping_luts",
-    "vorbis",
-    "webgl2",
-] }
+bevy = { git = "https://github.com/bevyengine/bevy.git", features = [ "bevy_dev_tools" ] }
 wasm-bindgen = "0.2"
 playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git" }
 
