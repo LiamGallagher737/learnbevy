@@ -22,7 +22,7 @@ jobs:
       matrix:
         version:
           - main
-          - 0.14
+          - 0.15
         channel:
         - stable
         - nightly
