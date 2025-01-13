@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy.git", features = [ "bevy_dev_tools" ] }
-wasm-bindgen = "0.2"
+wasm-bindgen = "=0.2.100"
 playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git" }
 
 [profile.release.package."*"]
