@@ -34,7 +34,7 @@ RUN rustup target add --toolchain nightly-2024-11-14 wasm32-unknown-unknown
 
 
 FROM toolchain as wasm-bindgen
-RUN cargo install wasm-bindgen-cli
+RUN cargo install wasm-bindgen-cli --version 0.2.100
 
 
 FROM toolchain as bevy_lint
