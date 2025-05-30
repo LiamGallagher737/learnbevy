@@ -35,6 +35,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Copy playground_lib to images
+        run: cp -r playground_lib images/playground_lib
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
