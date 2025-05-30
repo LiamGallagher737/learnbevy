@@ -7,7 +7,8 @@ edition = "2021"
 bevy = { version = "0.16", features = ["bevy_dev_tools"] }
 playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git" }
 
-rand = "0.8.0"
+rand = "0.9.1"
+rand_chacha = "0.9.0"
 
 avian2d = "=0.3.0"
 avian3d = "=0.3.0"
