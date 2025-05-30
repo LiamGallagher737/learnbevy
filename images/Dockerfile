@@ -51,8 +51,7 @@ ARG version
 ADD https://api.github.com/repos/bevyengine/bevy/commits/main /playground/tools/latest-bevy-main
 
 COPY manifests/${version}.Cargo.toml /playground/Cargo.toml
-COPY nightly.config.toml /playground/.config/config.toml
-RUN if [ "${channel}" = 'stable' ]; then rm -rf /playground/.config; fi
+COPY ${channel}.config.toml /playground/.config/config.toml
 RUN cargo fetch
 
 

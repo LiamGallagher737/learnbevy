@@ -9,6 +9,7 @@ wasm-bindgen = "=0.2.100"
 
 rand = "0.9.1"
 rand_chacha = "0.9.0"
+getrandom = { version = "0.3", features = ["wasm_js"] }
 
 playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git" }
 
