@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 bevy = { version = "0.16", features = ["bevy_dev_tools"] }
-playground_lib = { git = "https://github.com/liamgallagher737/learnbevy.git" }
+playground_lib = { path = "./playground_lib" }
 
 rand = "0.9.1"
 rand_chacha = "0.9.0"
