@@ -10,3 +10,6 @@ devenv.local.nix
 
 /tools/*/target
 /tools/*/Cargo.lock
+
+# Copied from /playground_lib when building images
+/images/playground_lib

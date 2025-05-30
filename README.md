@@ -52,7 +52,7 @@ You can pull them like this.
 
 ```sh
 docker pull ghcr.io/liamgallagher737/learnbevy-<version>-<channel>
-docker pull ghcr.io/liamgallagher737/learnbevy-0.15-nightly # 0.15 on nightly
+docker pull ghcr.io/liamgallagher737/learnbevy-0.16-nightly # 0.16 on nightly
 docker pull ghcr.io/liamgallagher737/learnbevy-main-stable # bevy main branch on stable
 ```
 
@@ -90,10 +90,10 @@ This is where the Dockfile is for the images used durning compiling. A single do
 
 #### Building
 
-An image can be build like this, replace `0.15` and `stable` with options of your choice.
+An image can be build like this, replace `0.16` and `stable` with options of your choice.
 
 ```sh
-docker build --build-arg="version=0.15" --build-arg="channel=stable" --tag "ghcr.io/liamgallagher737/learnbevy-0.15-stable" .
+docker build --build-arg="version=0.16" --build-arg="channel=stable" --tag "ghcr.io/liamgallagher737/learnbevy-0.16-stable" .
 ```
 
 

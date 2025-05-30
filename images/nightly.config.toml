@@ -1,2 +1,2 @@
 [target.wasm32-unknown-unknown]
-rustflags = ["-Zshare-generics=y"]
+rustflags = ["-Zshare-generics=y", '--cfg', 'getrandom_backend="wasm_js"']

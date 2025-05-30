@@ -4,14 +4,20 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", features = [ "bevy_dev_tools" ] }
-wasm-bindgen = "=0.2.100"
+bevy = { version = "0.16", features = ["bevy_dev_tools"] }
+playground_lib = { path = "./playground_lib" }
 
 rand = "0.9.1"
 rand_chacha = "0.9.0"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 
-playground_lib = { path = "./playground_lib" }
+avian2d = "=0.3.0"
+avian3d = "=0.3.0"
+bevy_kira_audio = "=0.23.0"
+bevy_light_2d = "=0.6.0"
+leafwing-input-manager = "=0.17.0"
+
+wasm-bindgen = "=0.2.100"
 
 [profile.release.package."*"]
 opt-level = 'z'

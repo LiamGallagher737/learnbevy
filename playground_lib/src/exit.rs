@@ -12,6 +12,6 @@ pub fn exit() {
 
 pub fn check_exit_flag(mut exit: EventWriter<AppExit>) {
     if EXIT_FLAG.load(Ordering::Relaxed) {
-        exit.send(AppExit::Success);
+        exit.write(AppExit::Success);
     }
 }
