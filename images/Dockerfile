@@ -51,7 +51,7 @@ ARG version
 ADD https://api.github.com/repos/bevyengine/bevy/commits/main /playground/tools/latest-bevy-main
 
 COPY manifests/${version}.Cargo.toml /playground/Cargo.toml
-COPY ${channel}.config.toml /playground/.config/config.toml
+COPY ${channel}.config.toml /playground/.cargo/config.toml
 RUN cargo fetch
 
 
