@@ -9,7 +9,7 @@ extern "C" {
 #[macro_export]
 macro_rules! dbg {
     () => {
-        playground_lib:exports::log(&format_args!("%d{}:{}:{}", file!(), line!(), column!())).to_string()
+        playground_lib::exports::log(&format_args!("%d{}:{}:{}", file!(), line!(), column!())).to_string()
     };
     ($val:expr $(,)?) => {
         match $val {

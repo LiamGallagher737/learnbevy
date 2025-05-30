@@ -9,9 +9,7 @@ mod log;
 /// ```rs
 /// use playground_lib::exports::*;
 /// ```
-pub mod exports {
-    pub use super::log::log;
-}
+pub mod exports {}
 
 pub struct Plugin;
 impl bevy_app::Plugin for Plugin {
