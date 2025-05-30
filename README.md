@@ -40,9 +40,9 @@ The http server in use is [axum](https://github.com/tokio-rs/axum), I chose this
 
 #### Hosting
 
-The server is hosted on a [4GB Premium KVM VPS](https://my.snakecrafthosting.com/index.php?rp=/store/premium-kvm-vps) from [Snakecraft Hosting](https://snakecrafthosting.com/#slide-49-b6b798b6) who very generously sponsored this project.
+The server is hosted on a [4GB Premium KVM VPS](https://my.snakecrafthosting.com/index.php?rp=/store/premium-kvm-vps) from [RackGenius](https://rackgenius.com) who very generously sponsored this project.
 
-[![Snakecraft Hosting](https://my.snakecrafthosting.com/assets/img/logo.png)](https://snakecrafthosting.com)
+[![RackGEnius](https://rackgenius.com/rackgenius-logo.png)](https://rackgenius.com)
 
 #### Local Development
 
