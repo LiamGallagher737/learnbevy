@@ -56,9 +56,9 @@ enum BevyVersion {
     Main,
     // When updating this for new Bevy versions, the number value
     // should also be updated so saved caches are invalidated.
-    #[serde(rename = "0.15")]
-    #[display("0.15")]
-    V0_15 = 15,
+    #[serde(rename = "0.16")]
+    #[display("0.16")]
+    V0_16 = 16,
 }
 
 /// The channel of Rust for a request.
