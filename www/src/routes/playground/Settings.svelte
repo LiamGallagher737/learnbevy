@@ -44,7 +44,7 @@
                     </Select.Trigger>
                     <Select.Content>
                         {#each VERSIONS as version}
-                            <Select.Item class="capitalize" value={version} label={version}>
+                            <Select.Item class="capitalize" value={version} label={version} disabled={version === "main"}>
                                 {version}
                             </Select.Item>
                         {/each}
