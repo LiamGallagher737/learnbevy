@@ -30,7 +30,7 @@
     nameservers = [ "8.8.8.8" "8.8.4.4" ];
     firewall = {
       enable = true;
-      allowedTCPPorts = [ 80 443 ];
+      allowedTCPPorts = [ 80 443 45876 ];
     };
   };
 
@@ -123,6 +123,26 @@
       Persistent = true;
     };
     wantedBy = [ "timers.target" ];
+  };
+
+  # Run the beszel monitoring as a service
+  systemd.services.beszel = {
+    description = "Beszel Agent Service";
+    after = ["network-online.target"];
+    wants = ["network-online.target"];
+
+    environment = {
+      PORT = "45876";
+      KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHzYgTT5m9b+K3wavPbfYvyY6IrQTRr5110P0z5l/lVQ";
+    };
+
+    serviceConfig = {
+      Restart = "always";
+      RestartSec = "5";
+      ExecStart = "${pkgs.beszel}/bin/beszel-agent";
+    };
+
+    wantedBy = [ "multi-user.target" ];
   };
 
   system.stateVersion = "24.05";
