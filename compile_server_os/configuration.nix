@@ -105,13 +105,13 @@
     description = "Pull the learnbevy images";
     script = ''
       ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-main-nightly:main
-      ${pkgs.docker}/bin/docker image prune -f
+      ${pkgs.docker}/bin/docker image prune -f --filter "dangling=true"
       ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-main-stable:main
-      ${pkgs.docker}/bin/docker image prune -f
+      ${pkgs.docker}/bin/docker image prune -f --filter "dangling=true"
       ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-0.16-nightly:main
-      ${pkgs.docker}/bin/docker image prune -f
+      ${pkgs.docker}/bin/docker image prune -f --filter "dangling=true"
       ${pkgs.docker}/bin/docker pull ghcr.io/liamgallagher737/learnbevy-0.16-stable:main
-      ${pkgs.docker}/bin/docker image prune -f
+      ${pkgs.docker}/bin/docker image prune -f --filter "dangling=true"
     '';
     wantedBy = [ "default.target" ];
   };
