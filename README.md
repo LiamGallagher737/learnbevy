@@ -1,3 +1,9 @@
+# No longer under development
+
+This project has been archived for now as I don't have the time currently to keep working on it. It's very likely that I will come back to it in the future, but no idea how far away that will be.
+
+<br/>
+
 <div align="center">
 
 <img src="https://raw.githubusercontent.com/LiamGallagher737/learnbevy/main/www/static/logo.png" width="200" height="200" >
